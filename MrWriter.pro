@@ -49,6 +49,8 @@ LIBS += -lz
 
 ICON = MyIcon.icns
 
+RC_ICONS = MyIcon.ico
+
 DISTFILES += \
     images/openIcon.png \
     images/newIcon.png
