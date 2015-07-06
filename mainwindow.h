@@ -6,11 +6,7 @@
 #include <QLabel>
 
 #include "widget.h"
-#include "QScrollArea"
-
-namespace Ui {
-class MainWindow;
-}
+#include <QScrollArea>
 
 class MainWindow : public QMainWindow
 {

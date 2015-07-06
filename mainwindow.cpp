@@ -2,15 +2,19 @@
 //#include <QtWidgets>
 #include <QScrollArea>
 #include <QScrollBar>
+#include <QAction>
 #include <QFileDialog>
+#include <QMenuBar>
+#include <QToolBar>
 #include <QMessageBox>
+#include <QStatusBar>
 #include <qdebug.h>
 
 #include <iostream>
 
-#include "mainwindow.h"
 #include "document.h"
 #include "version.h"
+#include "mainwindow.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
