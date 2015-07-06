@@ -70,6 +70,7 @@ void MainWindow::setTitle()
     QString title = MY_PRODUCT_NAME;
     title.append(" - ");
     title.append(docName);
+    title.append("[*]");
     setWindowTitle(title);
 }
 
