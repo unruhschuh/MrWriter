@@ -40,7 +40,7 @@ HEADERS  += mainwindow.h \
     tabletapplication.h \
     version.h
 
-FORMS    += mainwindow.ui
+FORMS    +=
 
 RESOURCES += \
     myresource.qrc
