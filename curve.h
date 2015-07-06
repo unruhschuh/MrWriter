@@ -2,16 +2,19 @@
 #define CURVE_H
 
 #include <QObject>
+#include <QPainter>
+#include <QVector>
+#include <QVector2D>
 
-class Curve : public QObject
+class Curve
 {
-    Q_OBJECT
 public:
-    explicit Curve(QObject *parent = 0);
-
-signals:
-
-public slots:
+    Curve();
+    //QVector<QVector2D> points;
+    QPolygonF points;
+    QVector<qreal> pressures;
+    qreal penWidth;
+    QColor color;
 };
 
 #endif // CURVE_H
