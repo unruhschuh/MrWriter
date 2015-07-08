@@ -548,11 +548,14 @@ void Widget::stopSelecting(QPointF mousePos)
 
 void Widget::letGoSelection()
 {
-    int pageNum = currentSelection.pageNum;
-    ReleaseSelectionCommand* releaseCommand = new ReleaseSelectionCommand(this, pageNum);
-    undoStack.push(releaseCommand);
-    updateBuffer(pageNum);
-    update();
+    if (getCurrentState() == state::SELECTED)
+    {
+        int pageNum = currentSelection.pageNum;
+        ReleaseSelectionCommand* releaseCommand = new ReleaseSelectionCommand(this, pageNum);
+        undoStack.push(releaseCommand);
+        updateBuffer(pageNum);
+        update();
+    }
 }
 
 void Widget::startDrawing(QPointF mousePos, qreal pressure)

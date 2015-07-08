@@ -98,7 +98,6 @@ private:
     QPointF previousMousePos;
     QPointF previousPagePos;
 
-
     void startDrawing(QPointF mousePos, qreal pressure);
     void continueDrawing(QPointF mousePos, qreal pressure);
     void stopDrawing(QPointF mousePos, qreal pressure);
