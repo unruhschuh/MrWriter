@@ -124,6 +124,7 @@ private:
     QAction *whiteAct;
 
     QAction *aboutAct;
+    QAction *aboutQtAct;
 
     QToolBar *fileToolBar;
     QToolBar *editToolBar;

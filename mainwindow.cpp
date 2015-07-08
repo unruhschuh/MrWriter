@@ -294,6 +294,9 @@ void MainWindow::createActions()
     aboutAct = new QAction(tr("&About"), this);
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
 
+    aboutQtAct = new QAction(tr("About &Qt"), this);
+    connect(aboutQtAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
+
     QObject::connect(scrollArea->verticalScrollBar(), SIGNAL(valueChanged(int)), this, SLOT(verticalScrolling()));
 }
 
@@ -332,6 +335,7 @@ void MainWindow::createMenus()
 
     helpMenu = menuBar()->addMenu(tr("&Help"));
     helpMenu->addAction(aboutAct);
+    helpMenu->addAction(aboutQtAct);
 }
 
 void MainWindow::createToolBars()
