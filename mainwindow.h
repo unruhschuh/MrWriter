@@ -31,11 +31,16 @@ private slots:
     void zoomIn();
     void zoomOut();
     void zoomFitWidth();
+    void zoomFitHeight();
 
     void pen();
+    void ruler();
+    void circle();
     void eraser();
     void select();
     void hand();
+
+    void updateGUI();
 
     void modified();
 
@@ -54,6 +59,8 @@ private slots:
     void orange();
     void yellow();
     void white();
+
+    void rotate();
 
     void about();
 
@@ -88,6 +95,7 @@ private:
     QAction *zoomInAct;
     QAction *zoomOutAct;
     QAction *zoomFitWidthAct;
+    QAction *zoomFitHeightAct;
 
     QAction *pageFirstAct;
     QAction *pageLastAct;
@@ -102,9 +110,19 @@ private:
     QAction *pageRemoveAct;
 
     QAction *penAct;
+    QAction *rulerAct;
+    QAction *circleAct;
     QAction *eraserAct;
     QAction *selectAct;
     QAction *handAct;
+
+    QAction *rotateAct;
+
+    QAction *veryFinePenWidthAct;
+    QAction *finePenWidthAct;
+    QAction *mediumPenWidthAct;
+    QAction *thickPenWidthAct;
+    QAction *veryThickPenWidthAct;
 
     QAction *toolbarAct;
     QAction *statusbarAct;
@@ -134,6 +152,8 @@ private:
     QMenu *fileMenu;
     QMenu *editMenu;
     QMenu *pageMenu;
+    QMenu *toolsMenu;
+    QMenu *penWidthMenu;
     QMenu *viewMenu;
     QMenu *helpMenu;
 

@@ -26,10 +26,21 @@ class Widget : public QWidget
 public:
     explicit Widget(QWidget *parent = 0);
 
-    enum class tool { NONE, PEN, ERASER, SELECT, HAND };
-    enum class state { IDLE, DRAWING, SELECTING, SELECTED, MODIFYING_SELECTION };
+    enum class tool  { NONE, PEN    , RULER , CIRCLE  , ERASER   , SELECT                                   , HAND };
+    enum class state { IDLE, DRAWING, RULING, CIRCLING           , SELECTING, SELECTED, MODIFYING_SELECTION        };
+
+    static constexpr qreal veryFinePenWidth  = 0.42;
+    static constexpr qreal finePenWidth      = 0.85;
+    static constexpr qreal mediumPenWidth    = 1.41;
+    static constexpr qreal thickPenWidth     = 2.26;
+    static constexpr qreal veryThickPenWidth = 5.67;
 
     void setCurrentTool(tool toolID);
+    tool getCurrentTool() { return currentTool; };
+
+    void setCurrentPenWidth(qreal penWidth) { currentPenWidth = penWidth; };
+    qreal getCurrentPenWidth() { return currentPenWidth; };
+
 
     void mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::MouseButtons buttons, QTabletEvent::PointerType pointerType, QEvent::Type eventType, qreal pressure, bool tabletEvent);
 
@@ -46,6 +57,7 @@ public:
     state getCurrentState();
 
     void setCurrentColor(QColor newColor);
+    QColor getCurrentColor();
 
     void setDocument(Document* newDocument);
 
@@ -56,12 +68,15 @@ public:
     void zoomOut();
     void zoomTo(qreal newZoom);
     void zoomFitWidth();
+    void zoomFitHeight();
+
+    void rotateSelection(qreal angle);
 
     Document* currentDocument;
     QVector<QImage> pageBuffer;
 
     QColor currentColor;
-    float currentPenWidth;
+    qreal currentPenWidth;
 
     Selection currentSelection;
 
@@ -95,12 +110,22 @@ private:
     qreal maxWidthMultiplier = 1.25;
 
     QPointF currentCOSPos;
+    QPointF firstMousePos;
     QPointF previousMousePos;
     QPointF previousPagePos;
+
 
     void startDrawing(QPointF mousePos, qreal pressure);
     void continueDrawing(QPointF mousePos, qreal pressure);
     void stopDrawing(QPointF mousePos, qreal pressure);
+
+    void startRuling(QPointF mousePos);
+    void continueRuling(QPointF mousePos);
+    void stopRuling(QPointF mousePos);
+
+    void startCircling(QPointF mousePos);
+    void continueCircling(QPointF mousePos);
+    void stopCircling(QPointF mousePos);
 
     void startSelecting(QPointF mousePos);
     void continueSelecting(QPointF mousePos);
@@ -133,11 +158,21 @@ private slots:
 
     void pageRemove();
 
+    void veryFine();
+    void fine();
+    void medium();
+    void thick();
+    void veryThick();
+
 signals:
     void pen();
+    void ruler();
+    void circle();
     void eraser();
     void select();
     void hand();
+
+    void updateGUI();
 
     void modified();
 

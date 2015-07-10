@@ -1,3 +1,26 @@
+/*
+#####################################################################
+Copyright (C) 2015 Thomas Leitz
+#####################################################################
+
+LICENSE:
+
+This file is part of MrWriter.
+
+MrWriter is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 2 of the License.
+
+MrWriter is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with MrWriter.  If not, see <http://www.gnu.org/licenses/>.
+#####################################################################
+*/
+
 #include "widget.h"
 //#include <QtWidgets>
 #include <QScrollArea>
@@ -6,8 +29,10 @@
 #include <QFileDialog>
 #include <QMenuBar>
 #include <QToolBar>
+#include <QToolButton>
 #include <QMessageBox>
 #include <QStatusBar>
+#include <QInputDialog>
 #include <qdebug.h>
 
 #include <iostream>
@@ -23,8 +48,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     mainWidget = new Widget(this);
     connect(mainWidget, SIGNAL(select()), this, SLOT(select()));
     connect(mainWidget, SIGNAL(pen()), this, SLOT(pen()));
+    connect(mainWidget, SIGNAL(ruler()), this, SLOT(ruler()));
+    connect(mainWidget, SIGNAL(circle()), this, SLOT(circle()));
     connect(mainWidget, SIGNAL(eraser()), this, SLOT(eraser()));
     connect(mainWidget, SIGNAL(hand()), this, SLOT(hand()));
+
+    connect(mainWidget, SIGNAL(updateGUI()), this, SLOT(updateGUI()));
 
     connect(mainWidget, SIGNAL(modified()), this, SLOT(modified()));
 
@@ -41,16 +70,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     mainWidget->scrollArea = scrollArea;
 
     statusBar()->addPermanentWidget(&pageStatus);
-    pageStatus.setText("1 / 1");
 
     createActions();
-    createToolBars();
     createMenus();
+    createToolBars();
 
     mainWidget->zoomTo(1.0);
-    verticalScrolling();
 
-    setTitle();
+    updateGUI();
 }
 
 MainWindow::~MainWindow()
@@ -149,8 +176,15 @@ void MainWindow::createActions()
 
     zoomFitWidthAct = new QAction(QIcon(":/images/zoomFitWidthIcon.png"), tr("Zoom to fit width"), this); // QAction(QIcon(":/images/new.png"), tr("&New"), this);
     zoomFitWidthAct->setStatusTip(tr("Zoom to fit width"));
+    zoomFitWidthAct->setShortcut(QKeySequence(Qt::Key_Z));
     connect(zoomFitWidthAct, SIGNAL(triggered()), this, SLOT(zoomFitWidth()));
     this->addAction(zoomFitWidthAct); // add to make shortcut work if menubar is hidden
+
+    zoomFitHeightAct = new QAction(QIcon(":/images/zoomFitHeightIcon.png"), tr("Zoom to fit Height"), this); // QAction(QIcon(":/images/new.png"), tr("&New"), this);
+    zoomFitHeightAct->setStatusTip(tr("Zoom to fit Height"));
+    zoomFitHeightAct->setShortcut(QKeySequence(Qt::Key_X));
+    connect(zoomFitHeightAct, SIGNAL(triggered()), this, SLOT(zoomFitHeight()));
+    this->addAction(zoomFitHeightAct); // add to make shortcut work if menubar is hidden
 
     pageFirstAct = new QAction(QIcon(":/images/pageFirstIcon.png"), tr("First Page"), this);
     pageFirstAct->setStatusTip(tr("First Page"));
@@ -190,28 +224,83 @@ void MainWindow::createActions()
 
     penAct = new QAction(QIcon(":/images/penIcon.png"), tr("Pen"), this);
     penAct->setStatusTip(tr("Pen Tool"));
+    penAct->setShortcut(QKeySequence(Qt::Key_1));
     penAct->setCheckable(true);
     penAct->setChecked(true);
     connect(penAct, SIGNAL(triggered()), this, SLOT(pen()));
     this->addAction(penAct); // add to make shortcut work if menubar is hidden
 
+    rulerAct = new QAction(QIcon(":/images/rulerIcon.png"), tr("Ruler"), this);
+    rulerAct->setStatusTip(tr("Ruler Tool"));
+    rulerAct->setShortcut(QKeySequence(Qt::Key_2));
+    rulerAct->setCheckable(true);
+    rulerAct->setChecked(false);
+    connect(rulerAct, SIGNAL(triggered()), this, SLOT(ruler()));
+    this->addAction(rulerAct); // add to make shortcut work if menubar is hidden
+
+    circleAct = new QAction(QIcon(":/images/circleIcon.png"), tr("circle"), this);
+    circleAct->setStatusTip(tr("circle Tool"));
+    circleAct->setShortcut(QKeySequence(Qt::Key_3));
+    circleAct->setCheckable(true);
+    circleAct->setChecked(false);
+    connect(circleAct, SIGNAL(triggered()), this, SLOT(circle()));
+    this->addAction(circleAct); // add to make shortcut work if menubar is hidden
+
     eraserAct = new QAction(QIcon(":/images/eraserIcon.png"), tr("Eraser"), this);
     eraserAct->setStatusTip(tr("Eraser Tool"));
+    eraserAct->setShortcut(QKeySequence(Qt::Key_4));
     eraserAct->setCheckable(true);
     connect(eraserAct, SIGNAL(triggered()), this, SLOT(eraser()));
     this->addAction(eraserAct); // add to make shortcut work if menubar is hidden
 
     selectAct = new QAction(QIcon(":/images/selectIcon.png"), tr("Select"), this);
     selectAct->setStatusTip(tr("Select Tool"));
+    selectAct->setShortcut(QKeySequence(Qt::Key_5));
     selectAct->setCheckable(true);
     connect(selectAct, SIGNAL(triggered()), this, SLOT(select()));
     this->addAction(selectAct); // add to make shortcut work if menubar is hidden
 
     handAct = new QAction(QIcon(":/images/handIcon.png"), tr("Hand"), this);
     handAct->setStatusTip(tr("Hand Tool"));
+    handAct->setShortcut(QKeySequence(Qt::Key_6));
     handAct->setCheckable(true);
     connect(handAct, SIGNAL(triggered()), this, SLOT(hand()));
     this->addAction(handAct); // add to make shortcut work if menubar is hidden
+
+    veryFinePenWidthAct = new QAction(QIcon(":/images/veryFinePenWidthIcon.png"), tr("Very Fine"), this);
+    veryFinePenWidthAct->setStatusTip(tr("Very Fine Pen Width"));
+    veryFinePenWidthAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_1));
+    veryFinePenWidthAct->setCheckable(true);
+    veryFinePenWidthAct->setChecked(false);
+    connect(veryFinePenWidthAct, SIGNAL(triggered()), mainWidget, SLOT(veryFine()));
+
+    finePenWidthAct = new QAction(QIcon(":/images/finePenWidthIcon.png"), tr("Fine"), this);
+    finePenWidthAct->setStatusTip(tr("Fine Pen Width"));
+    finePenWidthAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_2));
+    finePenWidthAct->setCheckable(true);
+    finePenWidthAct->setChecked(false);
+    connect(finePenWidthAct, SIGNAL(triggered()), mainWidget, SLOT(fine()));
+
+    mediumPenWidthAct = new QAction(QIcon(":/images/mediumPenWidthIcon.png"), tr("Medium"), this);
+    mediumPenWidthAct->setStatusTip(tr("Medium Pen Width"));
+    mediumPenWidthAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_3));
+    mediumPenWidthAct->setCheckable(true);
+    mediumPenWidthAct->setChecked(false);
+    connect(mediumPenWidthAct, SIGNAL(triggered()), mainWidget, SLOT(medium()));
+
+    thickPenWidthAct = new QAction(QIcon(":/images/thickPenWidthIcon.png"), tr("Thick"), this);
+    thickPenWidthAct->setStatusTip(tr("Thick Pen Width"));
+    thickPenWidthAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_4));
+    thickPenWidthAct->setCheckable(true);
+    thickPenWidthAct->setChecked(false);
+    connect(thickPenWidthAct, SIGNAL(triggered()), mainWidget, SLOT(thick()));
+
+    veryThickPenWidthAct = new QAction(QIcon(":/images/veryThickPenWidthIcon.png"), tr("Very Thick"), this);
+    veryThickPenWidthAct->setStatusTip(tr("Very Thick Pen Width"));
+    veryThickPenWidthAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_5));
+    veryThickPenWidthAct->setCheckable(true);
+    veryThickPenWidthAct->setChecked(false);
+    connect(veryThickPenWidthAct, SIGNAL(triggered()), mainWidget, SLOT(veryThick()));
 
     toolbarAct = new QAction(tr("show Toolbar"), this);
     toolbarAct->setShortcut(QKeySequence(Qt::Key_T));
@@ -227,7 +316,7 @@ void MainWindow::createActions()
     connect(statusbarAct, SIGNAL(triggered()), this, SLOT(statusbar()));
     this->addAction(statusbarAct); // add to make shortcut work if menubar is hidden
 
-    fullscreenAct = new QAction(tr("show fullscreen"), this);
+    fullscreenAct = new QAction(QIcon(":/images/fullscreenIcon.png"), tr("show fullscreen"), this);
     fullscreenAct->setShortcut(QKeySequence(Qt::Key_F));
     fullscreenAct->setCheckable(true);
     fullscreenAct->setChecked(false);
@@ -291,6 +380,11 @@ void MainWindow::createActions()
     whiteAct->setCheckable(true);
     connect(whiteAct, SIGNAL(triggered()), this, SLOT(white()));
 
+    rotateAct = new QAction(tr("Rotate"), this);
+    rotateAct->setStatusTip("Rotate Selection");
+    rotateAct->setShortcut(QKeySequence(Qt::Modifier::CTRL +  Qt::Key_R));
+    connect(rotateAct, SIGNAL(triggered()), this, SLOT(rotate()));
+
     aboutAct = new QAction(tr("&About"), this);
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
 
@@ -315,6 +409,8 @@ void MainWindow::createMenus()
     editMenu->addAction(cutAct);
     editMenu->addAction(copyAct);
     editMenu->addAction(pasteAct);
+    editMenu->addSeparator();
+    editMenu->addAction(rotateAct);
 
     pageMenu = menuBar()->addMenu(tr("&Page"));
     pageMenu->addAction(pageAddBeforeAct);
@@ -324,10 +420,27 @@ void MainWindow::createMenus()
     pageMenu->addSeparator();
     pageMenu->addAction(pageRemoveAct);
 
+    toolsMenu = menuBar()->addMenu(tr("&Tools"));
+    toolsMenu->addAction(penAct);
+    toolsMenu->addAction(rulerAct);
+    toolsMenu->addAction(circleAct);
+    toolsMenu->addAction(eraserAct);
+    toolsMenu->addAction(selectAct);
+    toolsMenu->addAction(handAct);
+    toolsMenu->addSeparator();
+
+    penWidthMenu = toolsMenu->addMenu(tr("Pen Width"));
+    penWidthMenu->addAction(veryFinePenWidthAct);
+    penWidthMenu->addAction(finePenWidthAct);
+    penWidthMenu->addAction(mediumPenWidthAct);
+    penWidthMenu->addAction(thickPenWidthAct);
+    penWidthMenu->addAction(veryThickPenWidthAct);
+
     viewMenu = menuBar()->addMenu(tr("&View"));
     viewMenu->addAction(zoomInAct);
     viewMenu->addAction(zoomOutAct);
     viewMenu->addAction(zoomFitWidthAct);
+    viewMenu->addAction(zoomFitHeightAct);
     viewMenu->addSeparator();
     viewMenu->addAction(toolbarAct);
     viewMenu->addAction(statusbarAct);
@@ -359,22 +472,37 @@ void MainWindow::createToolBars()
     editToolBar->setIconSize(iconSize);
 
     viewToolBar = addToolBar(tr("View"));
-    viewToolBar->addAction(zoomOutAct);
-    viewToolBar->addAction(zoomFitWidthAct);
-    viewToolBar->addAction(zoomInAct);
-    viewToolBar->setIconSize(iconSize);
-    viewToolBar->addSeparator();
     viewToolBar->addAction(pageFirstAct);
     viewToolBar->addAction(pageUpAct);
     viewToolBar->addAction(pageDownAct);
     viewToolBar->addAction(pageLastAct);
+    viewToolBar->addSeparator();
+    viewToolBar->addAction(zoomOutAct);
+    viewToolBar->addAction(zoomFitWidthAct);
+    viewToolBar->addAction(zoomFitHeightAct);
+    viewToolBar->addAction(zoomInAct);
+    viewToolBar->addSeparator();
+    viewToolBar->addAction(fullscreenAct);
+    viewToolBar->setIconSize(iconSize);
+
+    addToolBarBreak();
 
     toolsToolBar = addToolBar(tr("Tools"));
     toolsToolBar->addAction(penAct);
+    toolsToolBar->addAction(rulerAct);
+    toolsToolBar->addAction(circleAct);
     toolsToolBar->addAction(eraserAct);
     toolsToolBar->addAction(selectAct);
     toolsToolBar->addAction(handAct);
+
     toolsToolBar->addSeparator();
+
+    toolsToolBar->addAction(finePenWidthAct);
+    toolsToolBar->addAction(mediumPenWidthAct);
+    toolsToolBar->addAction(thickPenWidthAct);
+
+    toolsToolBar->addSeparator();
+
     toolsToolBar->addAction(blackAct);
     toolsToolBar->addAction(redAct);
     toolsToolBar->addAction(blueAct);
@@ -499,40 +627,45 @@ void MainWindow::zoomFitWidth()
     mainWidget->zoomFitWidth();
 }
 
+void MainWindow::zoomFitHeight()
+{
+    mainWidget->zoomFitHeight();
+}
+
 void MainWindow::pen()
 {
     mainWidget->setCurrentTool(Widget::tool::PEN);
-    penAct->setChecked(true);
-    eraserAct->setChecked(false);
-    selectAct->setChecked(false);
-    handAct->setChecked(false);
+    updateGUI();
+}
+
+void MainWindow::ruler()
+{
+    mainWidget->setCurrentTool(Widget::tool::RULER);
+    updateGUI();
+}
+
+void MainWindow::circle()
+{
+    mainWidget->setCurrentTool(Widget::tool::CIRCLE);
+    updateGUI();
 }
 
 void MainWindow::eraser()
 {
     mainWidget->setCurrentTool(Widget::tool::ERASER);
-    penAct->setChecked(false);
-    eraserAct->setChecked(true);
-    selectAct->setChecked(false);
-    handAct->setChecked(false);
+    updateGUI();
 }
 
 void MainWindow::select()
 {
     mainWidget->setCurrentTool(Widget::tool::SELECT);
-    penAct->setChecked(false);
-    eraserAct->setChecked(false);
-    selectAct->setChecked(true);
-    handAct->setChecked(false);
+    updateGUI();
 }
 
 void MainWindow::hand()
 {
     mainWidget->setCurrentTool(Widget::tool::HAND);
-    penAct->setChecked(false);
-    eraserAct->setChecked(false);
-    selectAct->setChecked(false);
-    handAct->setChecked(true);
+    updateGUI();
 }
 
 void MainWindow::modified()
@@ -542,189 +675,68 @@ void MainWindow::modified()
 
 void MainWindow::black()
 {
-    blackAct->setChecked(true);
-    blueAct->setChecked(false);
-    redAct->setChecked(false);
-    greenAct->setChecked(false);
-    grayAct->setChecked(false);
-    lightblueAct->setChecked(false);
-    lightgreenAct->setChecked(false);
-    magentaAct->setChecked(false);
-    orangeAct->setChecked(false);
-    yellowAct->setChecked(false);
-    whiteAct->setChecked(false);
-
     mainWidget->setCurrentColor(Document::black);
+    updateGUI();
 }
 
 void MainWindow::blue()
 {
-    blackAct->setChecked(false);
-    blueAct->setChecked(true);
-    redAct->setChecked(false);
-    greenAct->setChecked(false);
-    grayAct->setChecked(false);
-    lightblueAct->setChecked(false);
-    lightgreenAct->setChecked(false);
-    magentaAct->setChecked(false);
-    orangeAct->setChecked(false);
-    yellowAct->setChecked(false);
-    whiteAct->setChecked(false);
-
     mainWidget->setCurrentColor(Document::blue);
+    updateGUI();
 }
 
 void MainWindow::red()
 {
-    blackAct->setChecked(false);
-    blueAct->setChecked(false);
-    redAct->setChecked(true);
-    greenAct->setChecked(false);
-    grayAct->setChecked(false);
-    lightblueAct->setChecked(false);
-    lightgreenAct->setChecked(false);
-    magentaAct->setChecked(false);
-    orangeAct->setChecked(false);
-    yellowAct->setChecked(false);
-    whiteAct->setChecked(false);
-
     mainWidget->setCurrentColor(Document::red);
+    updateGUI();
 }
 
 void MainWindow::green()
 {
-    blackAct->setChecked(false);
-    blueAct->setChecked(false);
-    redAct->setChecked(false);
-    greenAct->setChecked(true);
-    grayAct->setChecked(false);
-    lightblueAct->setChecked(false);
-    lightgreenAct->setChecked(false);
-    magentaAct->setChecked(false);
-    orangeAct->setChecked(false);
-    yellowAct->setChecked(false);
-    whiteAct->setChecked(false);
-
     mainWidget->setCurrentColor(Document::green);
+    updateGUI();
 }
 
 void MainWindow::gray()
 {
-    blackAct->setChecked(false);
-    blueAct->setChecked(false);
-    redAct->setChecked(false);
-    greenAct->setChecked(false);
-    grayAct->setChecked(true);
-    lightblueAct->setChecked(false);
-    lightgreenAct->setChecked(false);
-    magentaAct->setChecked(false);
-    orangeAct->setChecked(false);
-    yellowAct->setChecked(false);
-    whiteAct->setChecked(false);
-
     mainWidget->setCurrentColor(Document::gray);
+    updateGUI();
 }
 
 void MainWindow::lightblue()
 {
-    blackAct->setChecked(false);
-    blueAct->setChecked(false);
-    redAct->setChecked(false);
-    greenAct->setChecked(false);
-    grayAct->setChecked(false);
-    lightblueAct->setChecked(true);
-    lightgreenAct->setChecked(false);
-    magentaAct->setChecked(false);
-    orangeAct->setChecked(false);
-    yellowAct->setChecked(false);
-    whiteAct->setChecked(false);
-
     mainWidget->setCurrentColor(Document::lightblue);
+    updateGUI();
 }
 
 void MainWindow::lightgreen()
 {
-    blackAct->setChecked(false);
-    blueAct->setChecked(false);
-    redAct->setChecked(false);
-    greenAct->setChecked(false);
-    grayAct->setChecked(false);
-    lightblueAct->setChecked(false);
-    lightgreenAct->setChecked(true);
-    magentaAct->setChecked(false);
-    orangeAct->setChecked(false);
-    yellowAct->setChecked(false);
-    whiteAct->setChecked(false);
-
     mainWidget->setCurrentColor(Document::lightgreen);
+    updateGUI();
 }
 
 void MainWindow::magenta()
 {
-    blackAct->setChecked(false);
-    blueAct->setChecked(false);
-    redAct->setChecked(false);
-    greenAct->setChecked(false);
-    grayAct->setChecked(false);
-    lightblueAct->setChecked(false);
-    lightgreenAct->setChecked(false);
-    magentaAct->setChecked(true);
-    orangeAct->setChecked(false);
-    yellowAct->setChecked(false);
-    whiteAct->setChecked(false);
-
     mainWidget->setCurrentColor(Document::magenta);
+    updateGUI();
 }
 
 void MainWindow::orange()
 {
-    blackAct->setChecked(false);
-    blueAct->setChecked(false);
-    redAct->setChecked(false);
-    greenAct->setChecked(false);
-    grayAct->setChecked(false);
-    lightblueAct->setChecked(false);
-    lightgreenAct->setChecked(false);
-    magentaAct->setChecked(false);
-    orangeAct->setChecked(true);
-    yellowAct->setChecked(false);
-    whiteAct->setChecked(false);
-
     mainWidget->setCurrentColor(Document::orange);
+    updateGUI();
 }
 
 void MainWindow::yellow()
 {
-    blackAct->setChecked(false);
-    blueAct->setChecked(false);
-    redAct->setChecked(false);
-    greenAct->setChecked(false);
-    grayAct->setChecked(false);
-    lightblueAct->setChecked(false);
-    lightgreenAct->setChecked(false);
-    magentaAct->setChecked(false);
-    orangeAct->setChecked(false);
-    yellowAct->setChecked(true);
-    whiteAct->setChecked(false);
-
     mainWidget->setCurrentColor(Document::yellow);
+    updateGUI();
 }
 
 void MainWindow::white()
 {
-    blackAct->setChecked(false);
-    blueAct->setChecked(false);
-    redAct->setChecked(false);
-    greenAct->setChecked(false);
-    grayAct->setChecked(false);
-    lightblueAct->setChecked(false);
-    lightgreenAct->setChecked(false);
-    magentaAct->setChecked(false);
-    orangeAct->setChecked(false);
-    yellowAct->setChecked(false);
-    whiteAct->setChecked(true);
-
     mainWidget->setCurrentColor(Document::white);
+    updateGUI();
 }
 
 void MainWindow::about()
@@ -741,7 +753,7 @@ void MainWindow::about()
     aboutText = aboutText.append(MY_PRODUCT_NAME);
     aboutText = aboutText.append(" ");
     aboutText = aboutText.append(version);
-    aboutText = aboutText.append("<br/><br/>Written by Thomas Leitz<br/><br/><a href='http://www.unruhschuh.com'>unruhschuh.com/MrWriter</a></center>");
+    aboutText = aboutText.append("<br/><br/>Written by Thomas Leitz<br/><br/><a href='http://www.unruhschuh.com'>unruhschuh.com/mrwriter</a></center>");
     msgBox.setText(aboutText);
     msgBox.setStandardButtons(QMessageBox::Ok);
     msgBox.setIconPixmap(QIcon(":/images/Icon1024.png").pixmap(QSize(100,100)));
@@ -762,6 +774,7 @@ void MainWindow::toolbar()
     editToolBar->setVisible(vis);
     viewToolBar->setVisible(vis);
     toolsToolBar->setVisible(vis);
+    updateGUI();
 }
 
 void MainWindow::statusbar()
@@ -774,6 +787,7 @@ void MainWindow::statusbar()
         vis = false;
     }
     statusBar()->setVisible(vis);
+    updateGUI();
 }
 
 void MainWindow::fullscreen()
@@ -814,9 +828,6 @@ void MainWindow::verticalScrolling()
     QString statusMsg = QString("%1 / %2").arg(QString::number(pageNum+1), QString::number(Npages));
 
     pageStatus.setText(statusMsg);
-//    statusBar()->showMessage(statusMsg);
-
-//    std::cout << "width: " << globalMousePos.x() << ", height: " << globalMousePos.y() << ", page: " << pageNum << std::endl;
 
 }
 
@@ -845,4 +856,52 @@ bool MainWindow::maybeSave()
             return false;
     }
     return true;
+}
+
+void MainWindow::updateGUI()
+{
+    QColor currentColor = mainWidget->getCurrentColor();
+
+    blackAct->setChecked(currentColor == Document::black);
+    blueAct->setChecked(currentColor == Document::blue);
+    redAct->setChecked(currentColor == Document::red);
+    greenAct->setChecked(currentColor == Document::green);
+    grayAct->setChecked(currentColor == Document::gray);
+    lightblueAct->setChecked(currentColor == Document::lightblue);
+    lightgreenAct->setChecked(currentColor == Document::lightgreen);
+    magentaAct->setChecked(currentColor == Document::magenta);
+    orangeAct->setChecked(currentColor == Document::orange);
+    yellowAct->setChecked(currentColor == Document::yellow);
+    whiteAct->setChecked(currentColor == Document::white);
+
+    Widget::tool currentTool = mainWidget->getCurrentTool();
+
+    penAct->setChecked(currentTool == Widget::tool::PEN);
+    rulerAct->setChecked(currentTool == Widget::tool::RULER);
+    circleAct->setChecked(currentTool == Widget::tool::CIRCLE);
+    eraserAct->setChecked(currentTool == Widget::tool::ERASER);
+    selectAct->setChecked(currentTool == Widget::tool::SELECT);
+    handAct->setChecked(currentTool == Widget::tool::HAND);
+
+    qreal currentPenWidth = mainWidget->getCurrentPenWidth();
+
+    veryFinePenWidthAct->setChecked(currentPenWidth == Widget::veryFinePenWidth);
+    finePenWidthAct->setChecked(currentPenWidth == Widget::finePenWidth);
+    mediumPenWidthAct->setChecked(currentPenWidth == Widget::mediumPenWidth);
+    thickPenWidthAct->setChecked(currentPenWidth == Widget::thickPenWidth);
+    veryThickPenWidthAct->setChecked(currentPenWidth == Widget::veryThickPenWidth);
+
+    fullscreenAct->setChecked(isFullScreen());
+    statusbarAct->setChecked(statusBar()->isVisible());
+//    toolbarAct->setChecked()
+
+    verticalScrolling();
+    setTitle();
+}
+
+void MainWindow::rotate()
+{
+//    book ok;
+    qreal angle = QInputDialog::getDouble(this, tr("Rotate"), tr("Degrees:"));
+    mainWidget->rotateSelection(angle);
 }

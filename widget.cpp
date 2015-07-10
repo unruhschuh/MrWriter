@@ -14,6 +14,8 @@
 #include <QUndoCommand>
 #include <QScrollArea>
 #include <QScrollBar>
+#include <QDebug>
+#include <qmath.h>
 
 #define PAGE_GAP 10.0
 #define ZOOM_STEP 1.2
@@ -37,7 +39,7 @@ Widget::Widget(QWidget *parent) : QWidget(parent)
     eraserCursor = QCursor(eraserCursorBitmap, -1, -1);
 
     currentTool = tool::PEN;
-    previousTool = tool::PEN;
+    previousTool = tool::NONE;
     setCursor(penCursorBitmap);
 
     currentDocument = new Document();
@@ -99,9 +101,6 @@ void Widget::updateBufferRegion(int buffNum, QRectF clipRect)
     painter.setClipping(true);
 
     painter.fillRect(clipRect, currentDocument->pages.at(buffNum).backgroundColor);
-//    painter.fillRect(clipRect, QColor("black"));
-
-//    currentDocument->paintPage(buffNum, painter, zoom);
 
     QRectF paintRect = QRectF(clipRect.topLeft() / zoom, clipRect.bottomRight() / zoom);
     currentDocument->pages[buffNum].paint(painter, zoom, paintRect);
@@ -315,6 +314,36 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
         }
     }
 
+    if (currentState == state::RULING)
+    {
+        if (eventType == QEvent::MouseMove)
+        {
+            continueRuling(mousePos);
+            return;
+        }
+        if (eventType == QEvent::MouseButtonRelease)
+        {
+            stopRuling(mousePos);
+            setPreviousTool();
+            return;
+        }
+    }
+
+    if (currentState == state::CIRCLING)
+    {
+        if (eventType == QEvent::MouseMove)
+        {
+            continueCircling(mousePos);
+            return;
+        }
+        if (eventType == QEvent::MouseButtonRelease)
+        {
+            stopCircling(mousePos);
+            setPreviousTool();
+            return;
+        }
+    }
+
     if (currentState == state::IDLE)
     {
         if (eventType == QEvent::MouseButtonPress)
@@ -324,6 +353,16 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
                 if (currentTool == tool::PEN)
                 {
                     startDrawing(mousePos, pressure);
+                    return;
+                }
+                if (currentTool == tool::RULER)
+                {
+                    startRuling(mousePos);
+                    return;
+                }
+                if (currentTool == tool::CIRCLE)
+                {
+                    startCircling(mousePos);
                     return;
                 }
                 if (currentTool == tool::ERASER)
@@ -457,6 +496,14 @@ void Widget::setPreviousTool()
     {
         emit pen();
     }
+    if (previousTool == tool::RULER)
+    {
+        emit ruler();
+    }
+    if (previousTool == tool::CIRCLE)
+    {
+        emit circle();
+    }
     if (previousTool == tool::ERASER)
     {
         emit eraser();
@@ -544,6 +591,7 @@ void Widget::stopSelecting(QPointF mousePos)
         CreateSelectionCommand* selectCommand = new CreateSelectionCommand(this, pageNum, curvesInSelection);
         undoStack.push(selectCommand);
     }
+    update();
 }
 
 void Widget::letGoSelection()
@@ -556,6 +604,180 @@ void Widget::letGoSelection()
         updateBuffer(pageNum);
         update();
     }
+}
+
+void Widget::startRuling(QPointF mousePos)
+{
+    currentDocument->setDocumentChanged(true);
+    emit modified();
+
+    int pageNum = getPageFromMousePos(mousePos);
+    QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
+
+    Curve newCurve;
+    newCurve.points.append(pagePos);
+    newCurve.pressures.append(1);
+    newCurve.penWidth = currentPenWidth;
+    newCurve.color = currentColor;
+    currentCurve = newCurve;
+    currentState = state::RULING;
+
+    previousMousePos = mousePos;
+    firstMousePos = mousePos;
+    drawingOnPage = pageNum;
+}
+
+void Widget::continueRuling(QPointF mousePos)
+{
+    QPointF pagePos = getPagePosFromMousePos(mousePos, drawingOnPage);
+    QPointF previousPagePos = getPagePosFromMousePos(previousMousePos, drawingOnPage);
+
+    QPointF firstPagePos = currentCurve.points.at(0);
+
+    QPointF oldPagePos = pagePos;
+
+    if (currentCurve.points.length() > 1)
+    {
+        oldPagePos = currentCurve.points.at(1);
+        currentCurve.points.removeAt(1);
+        currentCurve.pressures.removeAt(1);
+    }
+
+    currentCurve.points.append(pagePos);
+    currentCurve.pressures.append(1);
+
+    QRect clipRect(zoom*firstPagePos.toPoint(), zoom*pagePos.toPoint());
+    QRect oldClipRect(zoom*firstPagePos.toPoint(), zoom*previousPagePos.toPoint());
+    clipRect = clipRect.normalized().united(oldClipRect.normalized());
+    int clipRad = zoom*currentPenWidth / 2 + 2;
+    clipRect = clipRect.normalized().adjusted(-clipRad, -clipRad, clipRad, clipRad);
+    updateBufferRegion(drawingOnPage, clipRect);
+    drawOnBuffer(firstPagePos, pagePos, 1);
+
+    QRect updateRect(firstMousePos.toPoint(), mousePos.toPoint());
+    QRect oldUpdateRect(firstMousePos.toPoint(), previousMousePos.toPoint());
+    updateRect = updateRect.normalized().united(oldUpdateRect.normalized());
+    int rad = currentPenWidth * zoom / 2 + 2;
+    updateRect = updateRect.normalized().adjusted(-rad, -rad, +rad, +rad);
+
+    update(updateRect);
+
+    previousMousePos = mousePos;
+}
+
+void Widget::stopRuling(QPointF mousePos)
+{
+    QPointF pagePos = getPagePosFromMousePos(mousePos, drawingOnPage);
+
+    if (currentCurve.points.length() > 1)
+    {
+        currentCurve.points.removeAt(1);
+        currentCurve.pressures.removeAt(1);
+    }
+
+    currentCurve.points.append(pagePos);
+    currentCurve.pressures.append(1);
+
+    AddCurveCommand* addCommand = new AddCurveCommand(this, drawingOnPage, currentCurve);
+    undoStack.push(addCommand);
+
+    currentState = state::IDLE;
+
+    update();
+}
+
+void Widget::startCircling(QPointF mousePos)
+{
+    currentDocument->setDocumentChanged(true);
+    emit modified();
+
+    int pageNum = getPageFromMousePos(mousePos);
+    QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
+
+    Curve newCurve;
+//    newCurve.points.append(pagePos);
+//    newCurve.pressures.append(1);
+    newCurve.penWidth = currentPenWidth;
+    newCurve.color = currentColor;
+    currentCurve = newCurve;
+    currentState = state::CIRCLING;
+
+    previousMousePos = mousePos;
+    firstMousePos = mousePos;
+    drawingOnPage = pageNum;
+}
+
+void Widget::continueCircling(QPointF mousePos)
+{
+    QPointF pagePos = getPagePosFromMousePos(mousePos, drawingOnPage);
+    QPointF previousPagePos = getPagePosFromMousePos(previousMousePos, drawingOnPage);
+    QPointF firstPagePos = getPagePosFromMousePos(firstMousePos, drawingOnPage);
+
+    QPointF oldPagePos = pagePos;
+
+//    if (currentCurve.points.length() > 1)
+//    {
+//        oldPagePos = currentCurve.points.at(1);
+//        currentCurve.points.removeAt(1);
+//        currentCurve.pressures.removeAt(1);
+//    }
+
+    Curve oldCurve = currentCurve;
+
+    currentCurve.points.clear();
+    currentCurve.pressures.clear();
+
+    qreal radius = QLineF(firstPagePos, pagePos).length();
+    qreal phi0 = QLineF(firstPagePos, pagePos).angle() * M_PI / 180.0;
+
+    int N = 100;
+    for (int i = 0; i < N; ++i)
+    {
+        qreal phi = phi0 + i * (2.0 * M_PI / (N-1));
+        qreal x = firstPagePos.x() + radius * cos(phi);
+        qreal y = firstPagePos.y() - radius * sin(phi);
+        currentCurve.points.append(QPointF(x,y));
+        currentCurve.pressures.append(1.0);
+    }
+
+    QTransform scaleTrans;
+    scaleTrans = scaleTrans.scale(zoom,zoom);
+
+    QRect clipRect = scaleTrans.mapRect(currentCurve.points.boundingRect()).toRect();
+    QRect oldClipRect = scaleTrans.mapRect(oldCurve.points.boundingRect()).toRect();
+    clipRect = clipRect.normalized().united(oldClipRect.normalized());
+    int clipRad = zoom*currentPenWidth / 2 + 2;
+    clipRect = clipRect.normalized().adjusted(-clipRad, -clipRad, clipRad, clipRad);
+    updateBufferRegion(drawingOnPage, clipRect);
+
+    for (int i = 0; i < currentCurve.points.length()-1; ++i)
+    {
+        drawOnBuffer(currentCurve.points.at(i), currentCurve.points.at(i+1), 1);
+    }
+
+
+    QRect updateRect(firstMousePos.toPoint(), mousePos.toPoint());
+    QRect oldUpdateRect(firstMousePos.toPoint(), previousMousePos.toPoint());
+    updateRect = updateRect.normalized().united(oldUpdateRect.normalized());
+    int rad = currentPenWidth * zoom / 2 + 2;
+    updateRect = updateRect.normalized().adjusted(-rad, -rad, +rad, +rad);
+
+    update(updateRect);
+    update();
+
+    previousMousePos = mousePos;
+}
+
+void Widget::stopCircling(QPointF mousePos)
+{
+    QPointF pagePos = getPagePosFromMousePos(mousePos, drawingOnPage);
+
+    AddCurveCommand* addCommand = new AddCurveCommand(this, drawingOnPage, currentCurve);
+    undoStack.push(addCommand);
+
+    currentState = state::IDLE;
+
+    update();
 }
 
 void Widget::startDrawing(QPointF mousePos, qreal pressure)
@@ -808,6 +1030,17 @@ void Widget::zoomFitWidth()
     update();
 }
 
+void Widget::zoomFitHeight()
+{
+    QSize widgetSize = this->parentWidget()->size();
+    int pageNum = getCurrentPage();
+    zoom = widgetSize.height() / currentDocument->pages[pageNum].getHeight();
+
+    updateAllPageBuffers();
+    setGeometry(getWidgetGeometry());
+    update();
+}
+
 void Widget::pageFirst()
 {
     scrollDocumentToPageNum(0);
@@ -926,8 +1159,16 @@ void Widget::scrollDocumentToPageNum(int pageNum)
 
 void Widget::setCurrentTool(tool toolID)
 {
+    if (toolID == tool::SELECT && currentState == state::SELECTED)
+    {
+        letGoSelection();
+    }
     currentTool = toolID;
     if (toolID == tool::PEN)
+        setCursor(penCursor);
+    if (toolID == tool::RULER)
+        setCursor(penCursor);
+    if (toolID == tool::CIRCLE)
         setCursor(penCursor);
     if (toolID == tool::ERASER)
         setCursor(eraserCursor);
@@ -961,6 +1202,18 @@ void Widget::paste()
     currentSelection = clipboard;
     currentSelection.pageNum = getCurrentPage();
     currentState = state::SELECTED;
+
+    qreal dx = currentDocument->pages[getCurrentPage()].getWidth() / 2.0 - currentSelection.selectionPolygon.boundingRect().center().x();
+    qreal dy = currentDocument->pages[getCurrentPage()].getHeight() / 2.0 - currentSelection.selectionPolygon.boundingRect().center().y();
+
+    QTransform myTrans;
+    myTrans = myTrans.translate(dx, dy);
+
+    for (int i = 0; i < currentSelection.curves.size(); ++i)
+    {
+        currentSelection.curves[i].points = myTrans.map(currentSelection.curves[i].points);
+    }
+    currentSelection.finalize();
     update();
 }
 
@@ -1006,4 +1259,53 @@ void Widget::setCurrentColor(QColor newColor)
         ChangeColorOfSelectionCommand *changeColorCommand = new ChangeColorOfSelectionCommand(this, newColor);
         undoStack.push(changeColorCommand);
     }
+}
+
+QColor Widget::getCurrentColor()
+{
+    return currentColor;
+}
+
+void Widget::veryFine()
+{
+    setCurrentPenWidth(veryFinePenWidth);
+    emit updateGUI();
+}
+
+void Widget::fine()
+{
+    setCurrentPenWidth(finePenWidth);
+    emit updateGUI();
+}
+
+void Widget::medium()
+{
+    setCurrentPenWidth(mediumPenWidth);
+    emit updateGUI();
+}
+
+void Widget::thick()
+{
+    setCurrentPenWidth(thickPenWidth);
+    emit updateGUI();
+}
+
+void Widget::veryThick()
+{
+    setCurrentPenWidth(veryThickPenWidth);
+    emit updateGUI();
+}
+
+void Widget::rotateSelection(qreal angle)
+{
+    QTransform rotateTrans;
+
+    qreal dx = currentSelection.selectionPolygon.boundingRect().center().x();
+    qreal dy = currentSelection.selectionPolygon.boundingRect().center().y();
+
+    rotateTrans = rotateTrans.translate(dx, dy).rotate(-angle).translate(-dx, -dy);
+    TransformSelectionCommand* transCommand = new TransformSelectionCommand(this, getCurrentPage(), rotateTrans);
+    undoStack.push(transCommand);
+//    currentSelection.finalize();
+    update();
 }

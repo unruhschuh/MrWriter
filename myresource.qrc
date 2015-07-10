@@ -47,5 +47,14 @@
         <file>images/pageUpIcon.png</file>
         <file>images/Icon1024.png</file>
         <file>images/pageDownPlusIcon.png</file>
+        <file>images/rulerIcon.png</file>
+        <file>images/circleIcon.png</file>
+        <file>images/mediumPenWidthIcon.png</file>
+        <file>images/thickPenWidthIcon.png</file>
+        <file>images/finePenWidthIcon.png</file>
+        <file>images/veryFinePenWidthIcon.png</file>
+        <file>images/veryThickPenWidthIcon.png</file>
+        <file>images/fullscreenIcon.png</file>
+        <file>images/zoomFitHeightIcon.png</file>
     </qresource>
 </RCC>

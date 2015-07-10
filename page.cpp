@@ -1,4 +1,5 @@
 #include "page.h"
+#include <QDebug>
 
 Page::Page()
 {
@@ -46,15 +47,23 @@ void Page::paint(QPainter &painter, qreal zoom, QRectF region)
         {
             QPen pen;
             pen.setColor(curve.color);
+            QVector<qreal> dashPattern;
+//            dashPattern << 3 << 3;
+            dashPattern << 0.5 << 3;
+//            pen.setDashPattern(dashPattern);
             pen.setCapStyle(Qt::RoundCap);
+//            pen.setCapStyle(Qt::FlatCap);
             painter.setPen(pen);
-
+            qreal dashOffset = 0.0;
             for (int j = 1; j < curve.points.length(); ++j)
             {
                 qreal tmpPenWidth = zoom * curve.penWidth * (curve.pressures.at(j-1) + curve.pressures.at(j)) / 2.0;
                 pen.setWidthF(tmpPenWidth);
+//                pen.setDashOffset(dashOffset);
                 painter.setPen(pen);
                 painter.drawLine(zoom * curve.points.at(j-1), zoom * curve.points.at(j));
+                dashOffset += 1.0/tmpPenWidth * (QLineF(zoom * curve.points.at(j-1), zoom * curve.points.at(j))).length();
+//                qDebug() << dashOffset;
             }
         }
     }
