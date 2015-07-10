@@ -267,6 +267,26 @@ void MainWindow::createActions()
     connect(handAct, SIGNAL(triggered()), this, SLOT(hand()));
     this->addAction(handAct); // add to make shortcut work if menubar is hidden
 
+    solidPatternAct = new QAction(QIcon(":/images/solidPatternIcon.png"), tr("solid line"), this);
+    solidPatternAct->setStatusTip(tr("solid line"));
+    solidPatternAct->setCheckable(true);
+    connect(solidPatternAct, SIGNAL(triggered()), mainWidget, SLOT(solidPattern()));
+
+    dashPatternAct = new QAction(QIcon(":/images/dashPatternIcon.png"), tr("dash line"), this);
+    dashPatternAct->setStatusTip(tr("dash line"));
+    dashPatternAct->setCheckable(true);
+    connect(dashPatternAct, SIGNAL(triggered()), mainWidget, SLOT(dashPattern()));
+
+    dashDotPatternAct = new QAction(QIcon(":/images/dashDotPatternIcon.png"), tr("dash dot line"), this);
+    dashDotPatternAct->setStatusTip(tr("dash dot line"));
+    dashDotPatternAct->setCheckable(true);
+    connect(dashDotPatternAct, SIGNAL(triggered()), mainWidget, SLOT(dashDotPattern()));
+
+    dotPatternAct = new QAction(QIcon(":/images/dotPatternIcon.png"), tr("dot line"), this);
+    dotPatternAct->setStatusTip(tr("dot line"));
+    dotPatternAct->setCheckable(true);
+    connect(dotPatternAct, SIGNAL(triggered()), mainWidget, SLOT(dotPattern()));
+
     veryFinePenWidthAct = new QAction(QIcon(":/images/veryFinePenWidthIcon.png"), tr("Very Fine"), this);
     veryFinePenWidthAct->setStatusTip(tr("Very Fine Pen Width"));
     veryFinePenWidthAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_1));
@@ -436,6 +456,14 @@ void MainWindow::createMenus()
     penWidthMenu->addAction(thickPenWidthAct);
     penWidthMenu->addAction(veryThickPenWidthAct);
 
+//    toolsMenu->addSeparator();
+
+    patternMenu = toolsMenu->addMenu(tr("Line Pattern"));
+    patternMenu->addAction(solidPatternAct);
+    patternMenu->addAction(dashPatternAct);
+    patternMenu->addAction(dashDotPatternAct);
+    patternMenu->addAction(dotPatternAct);
+
     viewMenu = menuBar()->addMenu(tr("&View"));
     viewMenu->addAction(zoomInAct);
     viewMenu->addAction(zoomOutAct);
@@ -500,6 +528,14 @@ void MainWindow::createToolBars()
     toolsToolBar->addAction(finePenWidthAct);
     toolsToolBar->addAction(mediumPenWidthAct);
     toolsToolBar->addAction(thickPenWidthAct);
+
+    toolsToolBar->addSeparator();
+
+    patternToolButton = new QToolButton();
+    patternToolButton->setMenu(patternMenu);
+    patternToolButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
+    patternToolButton->setPopupMode(QToolButton::InstantPopup);
+    toolsToolBar->addWidget(patternToolButton);
 
     toolsToolBar->addSeparator();
 
@@ -890,6 +926,22 @@ void MainWindow::updateGUI()
     mediumPenWidthAct->setChecked(currentPenWidth == Widget::mediumPenWidth);
     thickPenWidthAct->setChecked(currentPenWidth == Widget::thickPenWidth);
     veryThickPenWidthAct->setChecked(currentPenWidth == Widget::veryThickPenWidth);
+
+    QVector<qreal> currentPattern = mainWidget->getCurrentPattern();
+
+    solidPatternAct->setChecked(currentPattern == Curve::solidLinePattern);
+    dashPatternAct->setChecked(currentPattern == Curve::dashLinePattern);
+    dashDotPatternAct->setChecked(currentPattern == Curve::dashDotLinePattern);
+    dotPatternAct->setChecked(currentPattern == Curve::dotLinePattern);
+
+    if (currentPattern == Curve::solidLinePattern)
+        patternToolButton->setIcon(QIcon(":/images/solidPatternIcon.png"));
+    if (currentPattern == Curve::dashLinePattern)
+        patternToolButton->setIcon(QIcon(":/images/dashPatternIcon.png"));
+    if (currentPattern == Curve::dashDotLinePattern)
+        patternToolButton->setIcon(QIcon(":/images/dashDotPatternIcon.png"));
+    if (currentPattern == Curve::dotLinePattern)
+        patternToolButton->setIcon(QIcon(":/images/dotPatternIcon.png"));
 
     fullscreenAct->setChecked(isFullScreen());
     statusbarAct->setChecked(statusBar()->isVisible());

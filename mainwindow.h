@@ -4,6 +4,7 @@
 #include <QMainWindow>
 
 #include <QLabel>
+#include <QToolButton>
 
 #include "widget.h"
 #include <QScrollArea>
@@ -116,6 +117,11 @@ private:
     QAction *selectAct;
     QAction *handAct;
 
+    QAction *solidPatternAct;
+    QAction *dashPatternAct;
+    QAction *dashDotPatternAct;
+    QAction *dotPatternAct;
+
     QAction *rotateAct;
 
     QAction *veryFinePenWidthAct;
@@ -149,11 +155,14 @@ private:
     QToolBar *viewToolBar;
     QToolBar *toolsToolBar;
 
+    QToolButton *patternToolButton;
+
     QMenu *fileMenu;
     QMenu *editMenu;
     QMenu *pageMenu;
     QMenu *toolsMenu;
     QMenu *penWidthMenu;
+    QMenu *patternMenu;
     QMenu *viewMenu;
     QMenu *helpMenu;
 

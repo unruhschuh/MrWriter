@@ -56,5 +56,9 @@
         <file>images/veryThickPenWidthIcon.png</file>
         <file>images/fullscreenIcon.png</file>
         <file>images/zoomFitHeightIcon.png</file>
+        <file>images/solidPatternIcon.png</file>
+        <file>images/dotPatternIcon.png</file>
+        <file>images/dashPatternIcon.png</file>
+        <file>images/dashDotPatternIcon.png</file>
     </qresource>
 </RCC>

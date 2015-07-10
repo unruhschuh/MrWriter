@@ -615,6 +615,7 @@ void Widget::startRuling(QPointF mousePos)
     QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
 
     Curve newCurve;
+    newCurve.pattern = currentPattern;
     newCurve.points.append(pagePos);
     newCurve.pressures.append(1);
     newCurve.penWidth = currentPenWidth;
@@ -697,6 +698,7 @@ void Widget::startCircling(QPointF mousePos)
     Curve newCurve;
 //    newCurve.points.append(pagePos);
 //    newCurve.pressures.append(1);
+    newCurve.pattern = currentPattern;
     newCurve.penWidth = currentPenWidth;
     newCurve.color = currentColor;
     currentCurve = newCurve;
@@ -789,6 +791,7 @@ void Widget::startDrawing(QPointF mousePos, qreal pressure)
     QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
 
     Curve newCurve;
+    newCurve.pattern = currentPattern;
     newCurve.points.append(pagePos);
     newCurve.pressures.append(pressure);
     newCurve.penWidth = currentPenWidth;
@@ -1308,4 +1311,35 @@ void Widget::rotateSelection(qreal angle)
     undoStack.push(transCommand);
 //    currentSelection.finalize();
     update();
+}
+
+void Widget::setCurrentPattern(QVector<qreal> newPattern)
+{
+    currentPattern = newPattern;
+    emit updateGUI();
+}
+
+QVector<qreal> Widget::getCurrentPattern()
+{
+    return currentPattern;
+}
+
+void Widget::solidPattern()
+{
+    setCurrentPattern(Curve::solidLinePattern);
+}
+
+void Widget::dashPattern()
+{
+    setCurrentPattern(Curve::dashLinePattern);
+}
+
+void Widget::dashDotPattern()
+{
+    setCurrentPattern(Curve::dashDotLinePattern);
+}
+
+void Widget::dotPattern()
+{
+    setCurrentPattern(Curve::dotLinePattern);
 }

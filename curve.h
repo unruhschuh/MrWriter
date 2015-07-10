@@ -9,8 +9,9 @@
 class Curve
 {
 public:
-    enum class dashPattern { SolidLine, DashLine, DashDotLine, DotLine };
+//    enum class dashPattern { SolidLine, DashLine, DashDotLine, DotLine };
 
+    const static QVector<qreal> solidLinePattern;
     const static QVector<qreal> dashLinePattern;
     const static QVector<qreal> dashDotLinePattern;
     const static QVector<qreal> dotLinePattern;
@@ -18,7 +19,7 @@ public:
     Curve();
     QPolygonF points;
     QVector<qreal> pressures;
-    dashPattern pattern;
+    QVector<qreal> pattern;
     qreal penWidth;
     QColor color;
 };

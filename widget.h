@@ -78,6 +78,9 @@ public:
     QColor currentColor;
     qreal currentPenWidth;
 
+    void setCurrentPattern(QVector<qreal> newPattern);
+    QVector<qreal> getCurrentPattern();
+
     Selection currentSelection;
 
     int selectingOnPage;
@@ -91,6 +94,8 @@ public:
 private:
 
     void scrollDocumentToPageNum(int pageNum);
+
+    QVector<qreal> currentPattern = Curve::solidLinePattern;
 
     QCursor penCursor;
     QCursor eraserCursor;
@@ -163,6 +168,11 @@ private slots:
     void medium();
     void thick();
     void veryThick();
+
+    void solidPattern();
+    void dashPattern();
+    void dashDotPattern();
+    void dotPattern();
 
 signals:
     void pen();
