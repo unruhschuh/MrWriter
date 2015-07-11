@@ -9,6 +9,8 @@ class Document
 {
 public:
     Document();
+    Document(const Document& doc);
+    Document& operator=(const Document& doc) {};
     void exportPDF(QString fileName);
     bool loadXOJ(QString fileName);
     bool saveXOJ(QString fileName);
@@ -37,8 +39,8 @@ public:
     const static QColor yellow;
     const static QColor white;
 
-    const QVector<QString> standardColorNames = QVector<QString>() << "black" << "blue" << "red" << "green" << "gray" << "lightblue" << "lightgreen" << "magenta" << "orange" << "yellow" << "white";
-    const QVector<QColor> standardColors = QVector<QColor>() << black << blue << red << green << gray << lightblue << lightgreen << magenta << orange << yellow << white;
+    const static QVector<QString> standardColorNames; // = QVector<QString>() << "black" << "blue" << "red" << "green" << "gray" << "lightblue" << "lightgreen" << "magenta" << "orange" << "yellow" << "white";
+    const static QVector<QColor> standardColors; // = QVector<QColor>() << black << blue << red << green << gray << lightblue << lightgreen << magenta << orange << yellow << white;
 
     QString toRGBA(QString argb);
     QString toARGB(QString rgba);

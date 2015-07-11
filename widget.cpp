@@ -197,6 +197,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
 
     if (eventType == QEvent::MouseButtonRelease)
     {
+        undoStack.endMacro();
         setPreviousTool();
     }
 
@@ -367,6 +368,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
                 }
                 if (currentTool == tool::ERASER)
                 {
+                    undoStack.beginMacro("erase");
                     erase(mousePos);
                     return;
                 }
@@ -384,6 +386,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
             {
                 previousTool = currentTool;
                 emit eraser();
+                undoStack.beginMacro("erase");
                 erase(mousePos);
             }
         }
@@ -591,6 +594,7 @@ void Widget::stopSelecting(QPointF mousePos)
         CreateSelectionCommand* selectCommand = new CreateSelectionCommand(this, pageNum, curvesInSelection);
         undoStack.push(selectCommand);
     }
+    emit updateGUI();
     update();
 }
 
@@ -876,7 +880,7 @@ void Widget::erase(QPointF mousePos)
     {
         for (int i = curves->size()-1; i >= 0; --i)
         {
-            const Curve curve = curves->at(i);
+            Curve curve = curves->at(i);
             if (rectE.intersects(curve.points.boundingRect()) || !curve.points.boundingRect().isValid() ) // this is done for speed
             {
                 for (int j = 0; j < curve.points.length()-1; ++j)
@@ -916,11 +920,21 @@ void Widget::erase(QPointF mousePos)
                             splitCurve.points.append(iPoint);
                             splitCurve.pressures = splitCurve.pressures.mid(0,j+1);
                             splitCurve.pressures.append(1);
-                            (*curves)[i].points = (*curves)[i].points.mid(j+1);
-                            (*curves)[i].points.prepend(iPoint);
-                            (*curves)[i].pressures = (*curves)[i].pressures.mid(j+1);
-                            (*curves)[i].pressures.prepend(1);
-                            curves->insert(i, splitCurve);
+                            curve.points = curve.points.mid(j+1);
+                            curve.points.prepend(iPoint);
+                            curve.pressures = curve.pressures.mid(j+1);
+                            curve.pressures.prepend(1);
+//                            (*curves)[i].points = (*curves)[i].points.mid(j+1);
+//                            (*curves)[i].points.prepend(iPoint);
+//                            (*curves)[i].pressures = (*curves)[i].pressures.mid(j+1);
+//                            (*curves)[i].pressures.prepend(1);
+                            RemoveCurveCommand *removeCurveCommand = new RemoveCurveCommand(this, pageNum, i, false);
+                            undoStack.push(removeCurveCommand);
+                            AddCurveCommand *addCurveCommand = new AddCurveCommand(this, pageNum, curve, i, false);
+                            undoStack.push(addCurveCommand);
+                            addCurveCommand = new AddCurveCommand(this, pageNum, splitCurve, i, false);
+                            undoStack.push(addCurveCommand);
+//                            curves->insert(i, splitCurve);
                             i += 2;
                             qDebug() << iPoint;
                             break;
@@ -1029,7 +1043,6 @@ int Widget::getCurrentPage()
     QPoint globalMousePos = parentWidget()->mapToGlobal(QPoint(0,0)) + QPoint(parentWidget()->size().width()/2, parentWidget()->size().height()/2);
     QPoint pos = this->mapFromGlobal(globalMousePos);
     int pageNum = this->getPageFromMousePos(pos);
-
 
     return pageNum;
 //    return getPageFromMousePos(QPointF(0.0, 2.0));
@@ -1249,23 +1262,26 @@ void Widget::scrollDocumentToPageNum(int pageNum)
 
 void Widget::setCurrentTool(tool toolID)
 {
-    if (toolID == tool::SELECT && currentState == state::SELECTED)
+    if (currentState == state::IDLE || currentState == state::SELECTED)
     {
-        letGoSelection();
+        if (toolID == tool::SELECT && currentState == state::SELECTED)
+        {
+            letGoSelection();
+        }
+        currentTool = toolID;
+        if (toolID == tool::PEN)
+            setCursor(penCursor);
+        if (toolID == tool::RULER)
+            setCursor(penCursor);
+        if (toolID == tool::CIRCLE)
+            setCursor(penCursor);
+        if (toolID == tool::ERASER)
+            setCursor(eraserCursor);
+        if (toolID == tool::SELECT)
+            setCursor(Qt::CrossCursor);
+        if (toolID == tool::HAND)
+            setCursor(Qt::OpenHandCursor);
     }
-    currentTool = toolID;
-    if (toolID == tool::PEN)
-        setCursor(penCursor);
-    if (toolID == tool::RULER)
-        setCursor(penCursor);
-    if (toolID == tool::CIRCLE)
-        setCursor(penCursor);
-    if (toolID == tool::ERASER)
-        setCursor(eraserCursor);
-    if (toolID == tool::SELECT)
-        setCursor(Qt::CrossCursor);
-    if (toolID == tool::HAND)
-        setCursor(Qt::OpenHandCursor);
 }
 
 void Widget::setDocument(Document* newDocument)
@@ -1291,19 +1307,25 @@ void Widget::paste()
     }
     currentSelection = clipboard;
     currentSelection.pageNum = getCurrentPage();
-    currentState = state::SELECTED;
 
-    qreal dx = currentDocument->pages[getCurrentPage()].getWidth() / 2.0 - currentSelection.selectionPolygon.boundingRect().center().x();
-    qreal dy = currentDocument->pages[getCurrentPage()].getHeight() / 2.0 - currentSelection.selectionPolygon.boundingRect().center().y();
+//    qreal dx = currentDocument->pages[getCurrentPage()].getWidth() / 2.0 - currentSelection.selectionPolygon.boundingRect().center().x();
+//    qreal dy = currentDocument->pages[getCurrentPage()].getHeight() / 2.0 - currentSelection.selectionPolygon.boundingRect().center().y();
+
+    QPoint globalMousePos = parentWidget()->mapToGlobal(QPoint(0,0)) + QPoint(parentWidget()->size().width()/2, parentWidget()->size().height()/2);
+    QPoint mousePos = this->mapFromGlobal(globalMousePos);
+    QPointF selectionPos = getPagePosFromMousePos(mousePos, getCurrentPage()) - currentSelection.selectionPolygon.boundingRect().center();
+//    QPointF selectionPos = getPagePosFromMousePos(QPointF(scrollArea->width()/2.0, scrollArea->height()/2.0), getCurrentPage()) - currentSelection.selectionPolygon.boundingRect().center();
 
     QTransform myTrans;
-    myTrans = myTrans.translate(dx, dy);
+    myTrans = myTrans.translate(selectionPos.x(), selectionPos.y());
 
     for (int i = 0; i < currentSelection.curves.size(); ++i)
     {
         currentSelection.curves[i].points = myTrans.map(currentSelection.curves[i].points);
     }
     currentSelection.finalize();
+
+    currentState = state::SELECTED;
     update();
 }
 

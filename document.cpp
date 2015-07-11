@@ -3,6 +3,7 @@
 #include "qcompressor.h"
 
 #include <QPdfWriter>
+#include <QPrinter>
 #include <QPageSize>
 #include <iostream>
 #include <QXmlStreamReader>
@@ -27,6 +28,9 @@ const QColor Document::orange = QColor(255,128,0);
 const QColor Document::yellow = QColor(255,255,0);
 const QColor Document::white  = QColor(255,255,255);
 
+const QVector<QString> Document::standardColorNames = QVector<QString>() << "black" << "blue" << "red" << "green" << "gray" << "lightblue" << "lightgreen" << "magenta" << "orange" << "yellow" << "white";
+const QVector<QColor> Document::standardColors = QVector<QColor>() << Document::black << Document::blue << Document::red << Document::green << Document::gray << Document::lightblue << Document::lightgreen << Document::magenta << Document::orange << Document::yellow << Document::white;
+
 Document::Document()
 {
     for (int i = 0; i < 1; ++i)
@@ -37,6 +41,14 @@ Document::Document()
     setDocumentChanged(false);
 }
 
+Document::Document(const Document& doc)
+{
+    for (int i = 0; i < doc.pages.size(); ++i)
+    {
+        pages.append(doc.pages.at(i));
+    }
+}
+
 void Document::paintPage(int pageNum, QPainter &painter, qreal zoom)
 {
     pages[pageNum].paint(painter, zoom);
@@ -45,19 +57,23 @@ void Document::paintPage(int pageNum, QPainter &painter, qreal zoom)
 void Document::exportPDF(QString fileName)
 {
 //    QPdfWriter pdfWriter("/Users/tom/Desktop/qpdfwriter.pdf");
-    QPdfWriter pdfWriter(fileName);
+//    QPdfWriter pdfWriter(fileName);
+    QPrinter pdfWriter(QPrinter::HighResolution);
+    pdfWriter.setOutputFormat(QPrinter::PdfFormat);
+    pdfWriter.setOutputFileName(fileName);
+
     pdfWriter.setPageSize(QPageSize(QSize(pages[0].getWidth(), pages[0].getHeight())));
     pdfWriter.setResolution(72);
     pdfWriter.pageLayout().setUnits(QPageLayout::Point);
     QPainter painter;
 
-    std::cout << "PDF " << pdfWriter.colorCount() << std::endl;
+//    std::cout << "PDF " << pdfWriter.colorCount() << std::endl;
 
     painter.begin(&pdfWriter);
     painter.setRenderHint(QPainter::Antialiasing, true);
     for (int pageNum = 0; pageNum < pages.size(); ++pageNum)
     {
-        paintPage(pageNum, painter, 1.0);
+        pages[pageNum].paint(painter, 1.0);
 
         if (pageNum+1 < pages.size())
         {

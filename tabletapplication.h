@@ -1,10 +1,12 @@
-#include <QApplication>
-
-#include "selection.h"
-
 #ifndef TABLETAPPLICATION_H
 #define TABLETAPPLICATION_H
 
+#include <QApplication>
+
+#include "selection.h"
+//#include "mainwindow.h"
+#include <QMainWindow>
+#include <QVector>
 
 class TabletApplication : public QApplication
 {
@@ -13,6 +15,8 @@ public:
         : QApplication(argv, args) {}
 
     bool isUsingTablet();
+
+    QVector<QMainWindow*> mainWindows;
 
     Selection clipboard;
 

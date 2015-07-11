@@ -1,8 +1,8 @@
-#include "page.h"
-#include "curve.h"
-
 #ifndef SELECTION_H
 #define SELECTION_H
+
+#include "page.h"
+#include "curve.h"
 
 class Selection : public Page
 {

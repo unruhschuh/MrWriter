@@ -2,12 +2,11 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-
 #include <QLabel>
 #include <QToolButton>
+#include <QScrollArea>
 
 #include "widget.h"
-#include <QScrollArea>
 
 class MainWindow : public QMainWindow
 {
@@ -24,6 +23,8 @@ protected:
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
 
 private slots:
+    void newWindow();
+    void cloneWindow();
     void newFile();
     void openFile();
     bool saveFile();
@@ -81,6 +82,8 @@ private:
     QLabel pageStatus;
 
     // actions
+    QAction *newWindowAct;
+    QAction *cloneWindowAct;
     QAction *newFileAct;
     QAction *openFileAct;
     QAction *saveFileAct;
@@ -166,7 +169,7 @@ private:
     QMenu *viewMenu;
     QMenu *helpMenu;
 
-    Document* currentDocument;
+//    Document* currentDocument;
 
 };
 

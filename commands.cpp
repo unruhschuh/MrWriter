@@ -1,50 +1,77 @@
 #include "commands.h"
-#include <mainwindow.h>
+#include "mainwindow.h"
 
 /******************************************************************************
 ** AddCurveCommand
 */
 
-AddCurveCommand::AddCurveCommand(Widget *newWidget, int newPageNum, const Curve &newCurve, QUndoCommand *parent) : QUndoCommand(parent)
+AddCurveCommand::AddCurveCommand(Widget *newWidget, int newPageNum, const Curve &newCurve, int newCurveNum, bool newUpdate, QUndoCommand *parent) : QUndoCommand(parent)
 {
     setText(MainWindow::tr("Add Curve"));
     pageNum = newPageNum;
     widget = newWidget;
     curve = newCurve;
+    curveNum = newCurveNum;
+    update = newUpdate;
 }
 
 void AddCurveCommand::undo()
 {
-    widget->currentDocument->pages[pageNum].curves.removeLast();
-    widget->updateBuffer(pageNum);
-    widget->update();
+    if (curveNum == -1)
+    {
+        widget->currentDocument->pages[pageNum].curves.removeLast();
+    } else {
+        widget->currentDocument->pages[pageNum].curves.removeAt(curveNum);
+    }
+    if (update)
+    {
+        widget->updateBuffer(pageNum);
+        widget->update();
+    }
 }
 
 void AddCurveCommand::redo()
 {
-    widget->currentDocument->pages[pageNum].curves.append(curve);
-    widget->updateBuffer(pageNum);
-    widget->update();
+    if (curveNum == -1)
+    {
+        widget->currentDocument->pages[pageNum].curves.append(curve);
+    } else {
+        widget->currentDocument->pages[pageNum].curves.insert(curveNum, curve);
+    }
+    if (update)
+    {
+        widget->updateBuffer(pageNum);
+        widget->update();
+    }
 }
 
 /******************************************************************************
 ** RemoveCurveCommand
 */
 
-RemoveCurveCommand::RemoveCurveCommand(Widget *newWidget, int newPageNum, int newCurveNum, QUndoCommand *parent) : QUndoCommand(parent)
+RemoveCurveCommand::RemoveCurveCommand(Widget *newWidget, int newPageNum, int newCurveNum, bool newUpdate, QUndoCommand *parent) : QUndoCommand(parent)
 {
     setText(MainWindow::tr("Remove Curve"));
     pageNum = newPageNum;
     widget = newWidget;
     curveNum = newCurveNum;
     curve = widget->currentDocument->pages[pageNum].curves[curveNum];
+    update = newUpdate;
 }
 
 void RemoveCurveCommand::undo()
 {
     widget->currentDocument->pages[pageNum].curves.insert(curveNum, curve);
-    widget->updateBuffer(pageNum);
-    widget->update();
+    qreal zoom = widget->zoom;
+    QRect updateRect = curve.points.boundingRect().toRect();
+    updateRect = QRect(zoom * updateRect.topLeft(), zoom * updateRect.bottomRight());
+    int delta = zoom * 10;
+    updateRect.adjust(-delta,-delta, delta, delta);
+    if (update)
+    {
+        widget->updateBufferRegion(pageNum, updateRect);
+        widget->update();
+    }
 }
 
 void RemoveCurveCommand::redo()
@@ -56,9 +83,11 @@ void RemoveCurveCommand::redo()
     updateRect = QRect(zoom * updateRect.topLeft(), zoom * updateRect.bottomRight());
     int delta = zoom * 10;
     updateRect.adjust(-delta,-delta, delta, delta);
-    widget->updateBufferRegion(pageNum, updateRect);
-//    widget->updateBuffer(pageNum);
-    widget->update();
+    if (update)
+    {
+        widget->updateBufferRegion(pageNum, updateRect);
+        widget->update();
+    }
 }
 
 /******************************************************************************

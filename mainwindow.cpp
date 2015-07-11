@@ -21,8 +21,6 @@ along with MrWriter.  If not, see <http://www.gnu.org/licenses/>.
 #####################################################################
 */
 
-#include "widget.h"
-//#include <QtWidgets>
 #include <QScrollArea>
 #include <QScrollBar>
 #include <QAction>
@@ -37,6 +35,7 @@ along with MrWriter.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <iostream>
 
+#include "widget.h"
 #include "document.h"
 #include "version.h"
 #include "mainwindow.h"
@@ -103,6 +102,18 @@ void MainWindow::setTitle()
 
 void MainWindow::createActions()
 {
+    newWindowAct = new QAction(tr("New &Window"), this);
+    newWindowAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Modifier::SHIFT + Qt::Key_N));
+    newWindowAct->setStatusTip(tr("New Window"));
+    connect(newWindowAct, SIGNAL(triggered()), this, SLOT(newWindow()));
+    this->addAction(newWindowAct);
+
+    cloneWindowAct = new QAction(tr("Clone Window"), this);
+    cloneWindowAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Modifier::SHIFT + Qt::Key_C));
+    cloneWindowAct->setStatusTip(tr("Clone Window"));
+    connect(cloneWindowAct, SIGNAL(triggered()), this, SLOT(cloneWindow()));
+    this->addAction(cloneWindowAct);
+
     newFileAct = new QAction(QIcon(":/images/newIcon.png"), tr("&New file"), this);
     newFileAct->setShortcuts(QKeySequence::New);
     newFileAct->setStatusTip(tr("New File"));
@@ -417,6 +428,8 @@ void MainWindow::createActions()
 void MainWindow::createMenus()
 {
     fileMenu = menuBar()->addMenu(tr("&File"));
+    fileMenu->addAction(newWindowAct);
+    fileMenu->addAction(cloneWindowAct);
     fileMenu->addAction(newFileAct);
     fileMenu->addAction(openFileAct);
     fileMenu->addAction(saveFileAct);
@@ -872,7 +885,12 @@ void MainWindow::closeEvent(QCloseEvent *event)
     if (maybeSave())
     {
         event->accept();
-        QGuiApplication::exit(0); // fix for calling closeEvent twice, see https://bugreports.qt.io/browse/QTBUG-43344
+        TabletApplication *myApp = static_cast<TabletApplication*>(qApp);
+        myApp->mainWindows.removeOne(this);
+        if (myApp->mainWindows.isEmpty())
+        {
+            QGuiApplication::exit(0); // fix for calling closeEvent twice, see https://bugreports.qt.io/browse/QTBUG-43344
+        }
     } else {
         event->ignore();
     }
@@ -945,6 +963,15 @@ void MainWindow::updateGUI()
 
     fullscreenAct->setChecked(isFullScreen());
     statusbarAct->setChecked(statusBar()->isVisible());
+
+    if (mainWidget->getCurrentState() == Widget::state::SELECTED)
+    {
+        cutAct->setEnabled(true);
+        copyAct->setEnabled(true);
+    } else {
+        cutAct->setDisabled(true);
+        copyAct->setDisabled(true);
+    }
 //    toolbarAct->setChecked()
 
     verticalScrolling();
@@ -956,4 +983,27 @@ void MainWindow::rotate()
 //    book ok;
     qreal angle = QInputDialog::getDouble(this, tr("Rotate"), tr("Degrees:"));
     mainWidget->rotateSelection(angle);
+}
+
+void MainWindow::newWindow()
+{
+    MainWindow *window = new MainWindow();
+    static_cast<TabletApplication*>(qApp)->mainWindows.append(window);
+    window->show();
+}
+
+void MainWindow::cloneWindow()
+{
+    MainWindow *window = new MainWindow();
+    window->mainWidget->currentDocument->pages.clear();
+    window->mainWidget->pageBuffer.clear();
+    qDebug() << window->mainWidget->currentDocument->pages.size();
+    static_cast<TabletApplication*>(qApp)->mainWindows.append(window);
+    for (int i = 0; i < mainWidget->currentDocument->pages.size(); ++i)
+    {
+        window->mainWidget->currentDocument->pages.append(mainWidget->currentDocument->pages.at(i));
+        window->mainWidget->pageBuffer.append(mainWidget->pageBuffer.at(i));
+    }
+    window->mainWidget->update();
+    window->show();
 }

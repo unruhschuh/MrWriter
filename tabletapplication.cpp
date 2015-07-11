@@ -1,4 +1,5 @@
 #include "tabletapplication.h"
+//#include "mainwindow.h"
 
 bool TabletApplication::event(QEvent *event)
 {
