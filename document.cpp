@@ -9,6 +9,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QErrorMessage>
+#include <QDebug>
 
 #include <zlib.h>
 
@@ -102,6 +103,8 @@ bool Document::loadXOJ(QString fileName)
 
     pages.clear();
 
+    int strokeCount = 0;
+
     while (!reader.atEnd())
     {
         reader.readNext();
@@ -130,6 +133,7 @@ bool Document::loadXOJ(QString fileName)
             if (tool == "pen")
             {
                 Curve newCurve;
+                newCurve.pattern = Curve::solidLinePattern;
                 QStringRef color = attributes.value("", "color");
                 newCurve.color = stringToColor(color.toString());
                 QStringRef strokeWidth = attributes.value("", "width");
@@ -151,6 +155,8 @@ bool Document::loadXOJ(QString fileName)
                     newCurve.pressures.append(1.0);
                 }
                 pages.last().curves.append(newCurve);
+                strokeCount++;
+                qDebug() << strokeCount;
             }
         }
     }

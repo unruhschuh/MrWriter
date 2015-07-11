@@ -850,27 +850,114 @@ void Widget::erase(QPointF mousePos)
 
     qreal eraserWidth = 10;
 
-    QLineF lineA = QLineF(pagePos + QPointF(-eraserWidth,-eraserWidth) / 2, pagePos + QPointF( eraserWidth,  eraserWidth) / 2);
-    QLineF lineB = QLineF(pagePos + QPointF( eraserWidth,-eraserWidth) / 2, pagePos + QPointF(-eraserWidth,  eraserWidth) / 2); // lineA and lineB form a cross X
+//    QLineF lineA = QLineF(pagePos + QPointF(-eraserWidth,-eraserWidth) / 2, pagePos + QPointF( eraserWidth,  eraserWidth) / 2);
+//    QLineF lineB = QLineF(pagePos + QPointF( eraserWidth,-eraserWidth) / 2, pagePos + QPointF(-eraserWidth,  eraserWidth) / 2); // lineA and lineB form a cross X
+
+    QLineF lineA = QLineF(pagePos + QPointF(-eraserWidth,-eraserWidth) / 2, pagePos + QPointF(-eraserWidth,  eraserWidth) / 2);
+    QLineF lineB = QLineF(pagePos + QPointF(-eraserWidth, eraserWidth) / 2, pagePos + QPointF( eraserWidth,  eraserWidth) / 2);
+    QLineF lineC = QLineF(pagePos + QPointF( eraserWidth, eraserWidth) / 2, pagePos + QPointF( eraserWidth, -eraserWidth) / 2);
+    QLineF lineD = QLineF(pagePos + QPointF( eraserWidth,-eraserWidth) / 2, pagePos + QPointF(-eraserWidth, -eraserWidth) / 2); // lineA B C D form a square
 
     QRectF rectE = QRectF(pagePos + QPointF(-eraserWidth, eraserWidth) / 2, pagePos + QPointF( eraserWidth, -eraserWidth) / 2);
 
     QVector<int> curvesToDelete;
     QPointF iPoint;
 
+    bool realEraser = true;
+
+    QPointF iPointA;
+    QPointF iPointB;
+    QPointF iPointC;
+    QPointF iPointD;
+
+    bool intersected;
+
+    if (realEraser)
+    {
+        for (int i = curves->size()-1; i >= 0; --i)
+        {
+            const Curve curve = curves->at(i);
+            if (rectE.intersects(curve.points.boundingRect()) || !curve.points.boundingRect().isValid() ) // this is done for speed
+            {
+                for (int j = 0; j < curve.points.length()-1; ++j)
+                {
+                    QLineF line = QLineF(curve.points.at(j), curve.points.at(j+1));
+                    if (line.intersect(lineA, &iPointA) == QLineF::BoundedIntersection && iPointA != curve.points.first() && iPointA != curve.points.last())
+                    {
+                        iPoint = iPointA;
+                        intersected = true;
+                    }
+                    else if (line.intersect(lineB, &iPointB) == QLineF::BoundedIntersection && iPointB != curve.points.first() && iPointB != curve.points.last())
+                    {
+                        iPoint = iPointB;
+                        intersected = true;
+                    }
+                    else if (line.intersect(lineC, &iPointC) == QLineF::BoundedIntersection && iPointC != curve.points.first() && iPointC != curve.points.last())
+                    {
+                        iPoint = iPointC;
+                        intersected = true;
+                    }
+                    else if (line.intersect(lineD, &iPointD) == QLineF::BoundedIntersection && iPointD != curve.points.first() && iPointD != curve.points.last())
+                    {
+                        iPoint = iPointD;
+                        intersected = true;
+                    }
+                    else
+                    {
+                        intersected = false;
+                    }
+
+                    if (intersected)
+                    {
+//                        if (iPoint != curve.points.first() && iPoint != curve.points.last())
+                        {
+                            Curve splitCurve = curve;
+                            splitCurve.points = splitCurve.points.mid(0,j+1);
+                            splitCurve.points.append(iPoint);
+                            splitCurve.pressures = splitCurve.pressures.mid(0,j+1);
+                            splitCurve.pressures.append(1);
+                            (*curves)[i].points = (*curves)[i].points.mid(j+1);
+                            (*curves)[i].points.prepend(iPoint);
+                            (*curves)[i].pressures = (*curves)[i].pressures.mid(j+1);
+                            (*curves)[i].pressures.prepend(1);
+                            curves->insert(i, splitCurve);
+                            i += 2;
+                            qDebug() << iPoint;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+//    return;
+
+    eraserWidth = eraserWidth * 0.99;
+    lineA = QLineF(pagePos + QPointF(-eraserWidth,-eraserWidth) / 2, pagePos + QPointF(-eraserWidth,  eraserWidth) / 2);
+    lineB = QLineF(pagePos + QPointF(-eraserWidth, eraserWidth) / 2, pagePos + QPointF( eraserWidth,  eraserWidth) / 2);
+    lineC = QLineF(pagePos + QPointF( eraserWidth, eraserWidth) / 2, pagePos + QPointF( eraserWidth, -eraserWidth) / 2);
+    lineD = QLineF(pagePos + QPointF( eraserWidth,-eraserWidth) / 2, pagePos + QPointF(-eraserWidth, -eraserWidth) / 2); // lineA B C D form a square
+
+    rectE = QRectF(pagePos + QPointF(-eraserWidth, eraserWidth) / 2, pagePos + QPointF( eraserWidth, -eraserWidth) / 2);
+
     for (int i = 0; i < curves->size(); ++i)
     {
         const Curve curve = curves->at(i);
-        for (int j = 0; j < curve.points.length()-1; ++j)
+        if (rectE.intersects(curve.points.boundingRect()) || !curve.points.boundingRect().isValid() ) // this is done for speed
         {
-            QLineF line = QLineF(curve.points.at(j), curve.points.at(j+1));
-            if (line.intersect(lineA, &iPoint) == QLineF::BoundedIntersection ||
-                line.intersect(lineB, &iPoint) == QLineF::BoundedIntersection ||
-                rectE.contains(curve.points.at(j)) ||
-                rectE.contains(curve.points.at(j+1)))
+            for (int j = 0; j < curve.points.length()-1; ++j)
             {
-                curvesToDelete.append(i);
-                break;
+                QLineF line = QLineF(curve.points.at(j), curve.points.at(j+1));
+                if (line.intersect(lineA, &iPoint) == QLineF::BoundedIntersection ||
+                    line.intersect(lineB, &iPoint) == QLineF::BoundedIntersection ||
+                    line.intersect(lineC, &iPoint) == QLineF::BoundedIntersection ||
+                    line.intersect(lineD, &iPoint) == QLineF::BoundedIntersection ||
+                    rectE.contains(curve.points.at(j)) ||
+                    rectE.contains(curve.points.at(j+1)))
+                {
+                    curvesToDelete.append(i);
+                    break;
+                }
             }
         }
     }

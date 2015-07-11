@@ -58,7 +58,8 @@ void Page::paint(QPainter &painter, qreal zoom, QRectF region)
                 pen.setWidthF(tmpPenWidth);
                 painter.setPen(pen);
                 painter.drawLine(zoom * curve.points.at(j-1), zoom * curve.points.at(j));
-                dashOffset += 1.0/tmpPenWidth * (QLineF(zoom * curve.points.at(j-1), zoom * curve.points.at(j))).length();
+                if (tmpPenWidth != 0)
+                    dashOffset += 1.0/tmpPenWidth * (QLineF(zoom * curve.points.at(j-1), zoom * curve.points.at(j))).length();
             }
         }
     }
