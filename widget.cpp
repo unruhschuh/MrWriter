@@ -40,6 +40,7 @@ Widget::Widget(QWidget *parent) : QWidget(parent)
 
     currentTool = tool::PEN;
     previousTool = tool::NONE;
+    realEraser = false;
     setCursor(penCursorBitmap);
 
     currentDocument = new Document();
@@ -185,10 +186,18 @@ void Widget::paintEvent(QPaintEvent *)
 //    std::cerr << "paint "; toc();
 }
 
-void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::MouseButtons buttons, QTabletEvent::PointerType pointerType, QEvent::Type eventType, qreal pressure, bool tabletEvent)
+void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::MouseButtons buttons, Qt::KeyboardModifiers keyboardModifiers, QTabletEvent::PointerType pointerType, QEvent::Type eventType, qreal pressure, bool tabletEvent)
 {
     int pageNum = getPageFromMousePos(mousePos);
     QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
+
+    bool invertEraser;
+    if (keyboardModifiers & Qt::ShiftModifier)
+    {
+        invertEraser = true;
+    } else {
+        invertEraser = false;
+    }
 
     if (tabletEvent)
     {
@@ -369,7 +378,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
                 if (currentTool == tool::ERASER)
                 {
                     undoStack.beginMacro("erase");
-                    erase(mousePos);
+                    erase(mousePos, invertEraser);
                     return;
                 }
                 if (currentTool == tool::SELECT)
@@ -387,14 +396,14 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
                 previousTool = currentTool;
                 emit eraser();
                 undoStack.beginMacro("erase");
-                erase(mousePos);
+                erase(mousePos, invertEraser);
             }
         }
         if (eventType == QEvent::MouseMove)
         {
             if (pointerType == QTabletEvent::Eraser || currentTool == tool::ERASER)
             {
-                erase(mousePos);
+                erase(mousePos, invertEraser);
             }
             if (currentTool == tool::HAND)
             {
@@ -439,7 +448,9 @@ void Widget::tabletEvent(QTabletEvent *event)
         eventType = QEvent::MouseButtonRelease;
     }
 
-    mouseAndTabletEvent(mousePos, event->button(), event->buttons(), event->pointerType(), eventType, pressure, true);
+    Qt::KeyboardModifiers keyboardModifiers = event->modifiers();
+
+    mouseAndTabletEvent(mousePos, event->button(), event->buttons(), keyboardModifiers, event->pointerType(), eventType, pressure, true);
 
     penDown = true;
 }
@@ -455,7 +466,8 @@ void Widget::mousePressEvent(QMouseEvent *event)
             QPointF mousePos = event->localPos();
             qreal pressure = 1;
 
-            mouseAndTabletEvent(mousePos, event->button(), event->buttons(), QTabletEvent::Pen, event->type(), pressure, false);
+            Qt::KeyboardModifiers keyboardModifiers = event->modifiers();
+            mouseAndTabletEvent(mousePos, event->button(), event->buttons(), keyboardModifiers, QTabletEvent::Pen, event->type(), pressure, false);
         }
     }
 }
@@ -471,7 +483,8 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
             QPointF mousePos = event->localPos();
             qreal pressure = 1;
 
-            mouseAndTabletEvent(mousePos, event->button(), event->buttons(), QTabletEvent::Pen, event->type(), pressure, false);
+            Qt::KeyboardModifiers keyboardModifiers = event->modifiers();
+            mouseAndTabletEvent(mousePos, event->button(), event->buttons(), keyboardModifiers, QTabletEvent::Pen, event->type(), pressure, false);
         }
     }
 }
@@ -487,7 +500,8 @@ void Widget::mouseReleaseEvent(QMouseEvent *event)
             QPointF mousePos = event->localPos();
             qreal pressure = 1;
 
-            mouseAndTabletEvent(mousePos, event->button(), event->buttons(), QTabletEvent::Pen, event->type(), pressure, false);
+            Qt::KeyboardModifiers keyboardModifiers = event->modifiers();
+            mouseAndTabletEvent(mousePos, event->button(), event->buttons(), keyboardModifiers, QTabletEvent::Pen, event->type(), pressure, false);
         }
     }
     penDown = false;
@@ -845,7 +859,7 @@ void Widget::stopDrawing(QPointF mousePos, qreal pressure)
     update();
 }
 
-void Widget::erase(QPointF mousePos)
+void Widget::erase(QPointF mousePos, bool invertEraser)
 {
     int pageNum = getPageFromMousePos(mousePos);
     QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
@@ -867,8 +881,6 @@ void Widget::erase(QPointF mousePos)
     QVector<int> curvesToDelete;
     QPointF iPoint;
 
-    bool realEraser = true;
-
     QPointF iPointA;
     QPointF iPointB;
     QPointF iPointC;
@@ -876,7 +888,7 @@ void Widget::erase(QPointF mousePos)
 
     bool intersected;
 
-    if (realEraser)
+    if (realEraser || (!realEraser && invertEraser))
     {
         for (int i = curves->size()-1; i >= 0; --i)
         {
@@ -919,15 +931,13 @@ void Widget::erase(QPointF mousePos)
                             splitCurve.points = splitCurve.points.mid(0,j+1);
                             splitCurve.points.append(iPoint);
                             splitCurve.pressures = splitCurve.pressures.mid(0,j+1);
-                            splitCurve.pressures.append(1);
+                            qreal lastPressure = splitCurve.pressures.last();
+                            splitCurve.pressures.append(lastPressure);
                             curve.points = curve.points.mid(j+1);
                             curve.points.prepend(iPoint);
                             curve.pressures = curve.pressures.mid(j+1);
-                            curve.pressures.prepend(1);
-//                            (*curves)[i].points = (*curves)[i].points.mid(j+1);
-//                            (*curves)[i].points.prepend(iPoint);
-//                            (*curves)[i].pressures = (*curves)[i].pressures.mid(j+1);
-//                            (*curves)[i].pressures.prepend(1);
+                            qreal firstPressure = curve.pressures.first();
+                            curve.pressures.prepend(firstPressure);
                             RemoveCurveCommand *removeCurveCommand = new RemoveCurveCommand(this, pageNum, i, false);
                             undoStack.push(removeCurveCommand);
                             AddCurveCommand *addCurveCommand = new AddCurveCommand(this, pageNum, curve, i, false);
@@ -1093,13 +1103,21 @@ void Widget::zoomIn()
 //    QSize widgetSize = this->size();
 //    QPointF widgetMidPoint = QPointF(widgetSize.width(), widgetSize.height());
 //    currentCOSPos = currentCOSPos + (1 - ZOOM_STEP) * (0.5 * widgetMidPoint - currentCOSPos);
+
+    int previousH = scrollArea->horizontalScrollBar()->value();
+    int previousV = scrollArea->verticalScrollBar()->value();
+
     zoom *= ZOOM_STEP;
     if (zoom > MAX_ZOOM)
+    {
         zoom = MAX_ZOOM;
+    }
     updateAllPageBuffers();
     setGeometry(getWidgetGeometry());
     update();
 
+    scrollArea->horizontalScrollBar()->setValue(ZOOM_STEP * previousH + (ZOOM_STEP - 1) * scrollArea->size().width()/2);
+    scrollArea->verticalScrollBar()->setValue(ZOOM_STEP * previousV + (ZOOM_STEP - 1) * scrollArea->size().height()/2);
 }
 
 void Widget::zoomOut()
@@ -1107,6 +1125,9 @@ void Widget::zoomOut()
 //    QSize widgetSize = this->size();
 //    QPointF widgetMidPoint = QPointF(widgetSize.width(), widgetSize.height());
 //    currentCOSPos = currentCOSPos + (1 - 1/ZOOM_STEP) * (0.5 * widgetMidPoint - currentCOSPos);
+    int previousH = scrollArea->horizontalScrollBar()->value();
+    int previousV = scrollArea->verticalScrollBar()->value();
+
     zoom /= ZOOM_STEP;
     if (zoom < MIN_ZOOM)
         zoom = MIN_ZOOM;
@@ -1114,6 +1135,8 @@ void Widget::zoomOut()
     setGeometry(getWidgetGeometry());
     update();
 
+    scrollArea->horizontalScrollBar()->setValue(1/ZOOM_STEP * previousH - (ZOOM_STEP - 1) * scrollArea->size().width()/2);
+    scrollArea->verticalScrollBar()->setValue(1/ZOOM_STEP * previousV - (ZOOM_STEP - 1) * scrollArea->size().height()/2);
 }
 
 void Widget::zoomTo(qreal newZoom)
@@ -1418,7 +1441,7 @@ void Widget::rotateSelection(qreal angle)
     rotateTrans = rotateTrans.translate(dx, dy).rotate(-angle).translate(-dx, -dy);
     TransformSelectionCommand* transCommand = new TransformSelectionCommand(this, getCurrentPage(), rotateTrans);
     undoStack.push(transCommand);
-//    currentSelection.finalize();
+    currentSelection.finalize();
     update();
 }
 

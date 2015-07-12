@@ -73,7 +73,7 @@ void Document::exportPDF(QString fileName)
     painter.setRenderHint(QPainter::Antialiasing, true);
     for (int pageNum = 0; pageNum < pages.size(); ++pageNum)
     {
-        pages[pageNum].paint(painter, 1.0);
+        pages[pageNum].paint(painter, 1.0, QRect(0,0,0,0), true);
 
         if (pageNum+1 < pages.size())
         {

@@ -42,7 +42,7 @@ public:
     qreal getCurrentPenWidth() { return currentPenWidth; };
 
 
-    void mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::MouseButtons buttons, QTabletEvent::PointerType pointerType, QEvent::Type eventType, qreal pressure, bool tabletEvent);
+    void mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::MouseButtons buttons, Qt::KeyboardModifiers keyboardModifiers, QTabletEvent::PointerType pointerType, QEvent::Type eventType, qreal pressure, bool tabletEvent);
 
     void updateAllPageBuffers();
     void updateBuffer(int i);
@@ -110,6 +110,7 @@ private:
 
     tool currentTool;
     tool previousTool;
+    bool realEraser;
 
     qreal minWidthMultiplier = 0.0;
     qreal maxWidthMultiplier = 1.25;
@@ -142,7 +143,7 @@ private:
 
     void setPreviousTool();
 
-    void erase(QPointF mousePos);
+    void erase(QPointF mousePos, bool invertEraser = false);
 
 private slots:
     void undo();
