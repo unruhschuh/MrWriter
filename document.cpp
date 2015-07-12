@@ -230,6 +230,26 @@ bool Document::saveXOJ(QString fileName)
             writer.writeStartElement("stroke");
             writer.writeAttribute(QXmlStreamAttribute("tool", "pen"));
             writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(pages[i].curves[j].color.name(QColor::HexArgb))));
+            QString patternString;
+            if (pages[i].curves[j].pattern == Curve::solidLinePattern)
+            {
+                patternString = "solid";
+            }
+            else if (pages[i].curves[j].pattern == Curve::dashLinePattern)
+            {
+                patternString = "dash";
+            }
+            else if (pages[i].curves[j].pattern == Curve::dashDotLinePattern)
+            {
+                patternString = "dashdot";
+            }
+            else if (pages[i].curves[j].pattern == Curve::dotLinePattern)
+            {
+                patternString = "dot";
+            } else {
+                patternString = "solid";
+            }
+            writer.writeAttribute(QXmlStreamAttribute("style", patternString));
             qreal width = pages[i].curves[i].penWidth;
             QString widthString;
             widthString.append(QString::number(width));

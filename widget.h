@@ -112,6 +112,8 @@ private:
     tool previousTool;
     bool realEraser;
 
+    qreal currentDashOffset;
+
     qreal minWidthMultiplier = 0.0;
     qreal maxWidthMultiplier = 1.25;
 

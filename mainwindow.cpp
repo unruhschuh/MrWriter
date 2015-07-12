@@ -354,6 +354,11 @@ void MainWindow::createActions()
     connect(fullscreenAct, SIGNAL(triggered()), this, SLOT(fullscreen()));
     this->addAction(fullscreenAct); // add to make shortcut work if menubar is hidden
 
+    maximizeAct = new QAction(tr("Maximize"), this);
+    maximizeAct->setShortcut(QKeySequence(Qt::Key_M));
+    connect(maximizeAct, SIGNAL(triggered()), this, SLOT(maximize()));
+    this->addAction(maximizeAct);
+
     // colorActions
     blackAct = new QAction(QIcon(":/images/blackIcon.png"), tr("black"), this);
     blackAct->setStatusTip(tr("black"));
@@ -1006,4 +1011,9 @@ void MainWindow::cloneWindow()
     }
     window->mainWidget->update();
     window->show();
+}
+
+void MainWindow::maximize()
+{
+    showMaximized();
 }

@@ -49,6 +49,7 @@ private slots:
     void toolbar();
     void statusbar();
     void fullscreen();
+    void maximize();
 
     void black();
     void blue();
@@ -136,6 +137,7 @@ private:
     QAction *toolbarAct;
     QAction *statusbarAct;
     QAction *fullscreenAct;
+    QAction *maximizeAct;
 
     // color actions
     QAction *blackAct;

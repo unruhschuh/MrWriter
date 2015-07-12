@@ -117,9 +117,17 @@ void Widget::drawOnBuffer(QPointF from, QPointF to, qreal pressure)
     painter.begin(&pageBuffer[drawingOnPage]);
     painter.setRenderHint(QPainter::Antialiasing, true);
 
-    pen.setWidthF(zoom * currentPenWidth * pressure);
+    qreal tmpPenWidth = zoom * currentPenWidth * pressure;
+    pen.setWidthF(tmpPenWidth);
     pen.setColor(currentColor);
     pen.setCapStyle(Qt::RoundCap);
+    if (currentCurve.pattern != Curve::solidLinePattern)
+    {
+        pen.setDashPattern(currentCurve.pattern);
+        pen.setDashOffset(currentDashOffset);
+        if (tmpPenWidth != 0)
+            currentDashOffset += 1.0/tmpPenWidth * (QLineF(zoom * from, zoom * to)).length();
+    }
     painter.setPen(pen);
     painter.drawLine(zoom * from, zoom * to);
 
@@ -655,6 +663,8 @@ void Widget::continueRuling(QPointF mousePos)
 
     QPointF oldPagePos = pagePos;
 
+    currentDashOffset = 0.0;
+
     if (currentCurve.points.length() > 1)
     {
         oldPagePos = currentCurve.points.at(1);
@@ -733,6 +743,8 @@ void Widget::continueCircling(QPointF mousePos)
     QPointF previousPagePos = getPagePosFromMousePos(previousMousePos, drawingOnPage);
     QPointF firstPagePos = getPagePosFromMousePos(firstMousePos, drawingOnPage);
 
+    currentDashOffset = 0.0;
+
     QPointF oldPagePos = pagePos;
 
 //    if (currentCurve.points.length() > 1)
@@ -807,6 +819,8 @@ void Widget::startDrawing(QPointF mousePos, qreal pressure)
 
     int pageNum = getPageFromMousePos(mousePos);
     QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
+
+    currentDashOffset = 0.0;
 
     Curve newCurve;
     newCurve.pattern = currentPattern;
