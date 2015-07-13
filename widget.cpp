@@ -71,26 +71,11 @@ void Widget::updateAllPageBuffers()
     for (int buffNum = 0; buffNum < currentDocument->pages.size(); ++buffNum)
     {
         future.append(QtConcurrent::run(this, &Widget::updateBuffer, buffNum));
-        //        updateBuffer(buffNum);
     }
     for (int buffNum = 0; buffNum < currentDocument->pages.size(); ++buffNum)
     {
         future[buffNum].waitForFinished();
     }
-
-//    bool finished = false;
-//    while (!finished)
-//    {
-//        finished = true;
-//        for (int buffNum = 0; buffNum < currentDocument->pages.size(); ++buffNum)
-//        {
-//            qDebug() << buffNum << future[buffNum].isFinished();
-//            if (future[buffNum].isFinished() == false)
-//            {
-//                finished = false;
-//            }
-//        }
-//    }
 }
 
 void Widget::updateBuffer(int buffNum)
