@@ -19,6 +19,10 @@ public:
 
     QPolygonF selectionPolygon;
 
+    QImage buffer;
+    QPointF buffPos = QPointF(0,0);
+    qreal lastZoom = 0.0;
+
     int pageNum;
 
 private:

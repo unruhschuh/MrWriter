@@ -1017,3 +1017,8 @@ void MainWindow::maximize()
 {
     showMaximized();
 }
+
+bool MainWindow::loadXOJ(QString fileName)
+{
+    return mainWidget->currentDocument->loadXOJ(fileName);
+}

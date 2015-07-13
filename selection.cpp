@@ -1,19 +1,37 @@
 #include "selection.h"
 
 #include <iostream>
+#include <QDebug>
 
 Selection::Selection()
 {
     setWidth(10.0);
     setHeight(10.0);
     setBackgroundColor(QColor(255,255,255, 0)); // transparent
+    lastZoom = 0.0;
 }
 
 void Selection::paint(QPainter &painter, qreal zoom)
 {
     painter.setRenderHint(QPainter::Antialiasing, true);
 
-    Page::paint(painter, zoom);
+    if (lastZoom != zoom)
+    {
+        qDebug() << "test";
+        lastZoom = zoom;
+        QPainter imgPainter;
+        buffer = QImage(getWidth(), getHeight(), QImage::Format_ARGB32_Premultiplied);
+        buffer.fill(QColor(255,0,0,50));
+        imgPainter.setCompositionMode(QPainter::CompositionMode_Multiply);
+        imgPainter.begin(&buffer);
+        Page::paint(imgPainter, zoom);
+        imgPainter.end();
+    }
+
+//    Page::paint(painter, zoom);
+
+//    painter.setCompositionMode(QPainter::CompositionMode_Xor);
+    painter.drawImage(buffPos, buffer);
 
     QPen pen;
     pen.setStyle(Qt::DashLine);
@@ -33,6 +51,7 @@ void Selection::transform(QTransform transform, int newPageNum)
     {
         curves[i].points = transform.map(curves[i].points);
     }
+    buffPos = transform.map(buffPos);
     pageNum = newPageNum;
 }
 
@@ -51,7 +70,7 @@ void Selection::finalize()
     setWidth(boundingRect.width());
     setHeight(boundingRect.height());
 
-    std::cout << getWidth() << ", " << getHeight() << std::endl;
+//    std::cout << getWidth() << ", " << getHeight() << std::endl;
 }
 
 void Selection::addCurve(Curve newCurve)

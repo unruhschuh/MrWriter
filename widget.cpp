@@ -72,7 +72,7 @@ void Widget::updateBuffer(int buffNum)
     Page page = currentDocument->pages.at(buffNum);
     int pixelWidth = zoom * page.getWidth();
     int pixelHeight = zoom * page.getHeight();
-    QImage image(pixelWidth, pixelHeight, QImage::Format_ARGB8565_Premultiplied);
+    QImage image(pixelWidth, pixelHeight, QImage::Format_ARGB32_Premultiplied);
 
     image.fill(page.backgroundColor);
 
@@ -149,22 +149,30 @@ QRect Widget::getWidgetGeometry()
     return QRect(0, 0, width, height);
 }
 
-void Widget::paintEvent(QPaintEvent *)
+void Widget::paintEvent(QPaintEvent *event)
 {
     QRect widgetGeometry = getWidgetGeometry();
-    resize(widgetGeometry.width(), widgetGeometry.height());
-//    tic();
     QPalette p(palette());
-//    p.setColor(QPalette::Background, Qt::lightGray);
     setAutoFillBackground(true);
     setPalette(p);
 
     QPainter painter(this);
+
+    if (currentState == state::DRAWING)
+    {
+        QRectF rectSource;
+        QTransform trans;
+        for (int i = 0; i < drawingOnPage; ++i)
+        {
+            trans = trans.translate(0, -(pageBuffer.at(i).height() + PAGE_GAP));
+        }
+        rectSource = trans.mapRect(event->rect());
+        qDebug() << rectSource;
+        painter.drawImage(event->rect(), pageBuffer.at(drawingOnPage), rectSource);
+        return;
+    }
+
 //    painter.setRenderHint(QPainter::Antialiasing, true);
-
-//    painter.translate(currentCOSPos);
-
-//    qreal currentYPos = 0.0;
 
     for (int i = 0; i < pageBuffer.size(); ++i)
     {

@@ -20,8 +20,11 @@ public:
 
     Selection clipboard;
 
-private:
+protected:
     bool event(QEvent *event) Q_DECL_OVERRIDE;
+
+private:
+//    bool event(QEvent *event) Q_DECL_OVERRIDE;
 
     bool usingTablet = false;
 
