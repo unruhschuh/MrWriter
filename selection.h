@@ -17,6 +17,8 @@ public:
 
     void finalize();
 
+    void updateBuffer(qreal zoom);
+
     QPolygonF selectionPolygon;
 
     QImage buffer;

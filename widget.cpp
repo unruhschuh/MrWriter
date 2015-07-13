@@ -620,6 +620,7 @@ void Widget::stopSelecting(QPointF mousePos)
             currentSelection.curves.prepend(currentDocument->pages[pageNum].curves.at(curvesInSelection.at(i)));
         }
         currentSelection.finalize();
+        currentSelection.updateBuffer(zoom);
 
         CreateSelectionCommand* selectCommand = new CreateSelectionCommand(this, pageNum, curvesInSelection);
         undoStack.push(selectCommand);
@@ -1050,7 +1051,7 @@ void Widget::continueMovingSelection(QPointF mousePos)
     undoStack.push(transSelectCommand);
 
     previousPagePos = pagePos;
-    update();
+//    update(currentSelection.selectionPolygon.boundingRect().toRect());
 }
 
 int Widget::getPageFromMousePos(QPointF mousePos)
@@ -1415,6 +1416,7 @@ void Widget::setCurrentColor(QColor newColor)
     {
         ChangeColorOfSelectionCommand *changeColorCommand = new ChangeColorOfSelectionCommand(this, newColor);
         undoStack.push(changeColorCommand);
+        currentSelection.updateBuffer(zoom);
     }
 }
 
@@ -1464,6 +1466,7 @@ void Widget::rotateSelection(qreal angle)
     TransformSelectionCommand* transCommand = new TransformSelectionCommand(this, getCurrentPage(), rotateTrans);
     undoStack.push(transCommand);
     currentSelection.finalize();
+    currentSelection.updateBuffer(zoom);
     update();
 }
 

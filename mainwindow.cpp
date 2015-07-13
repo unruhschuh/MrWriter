@@ -114,6 +114,12 @@ void MainWindow::createActions()
     connect(cloneWindowAct, SIGNAL(triggered()), this, SLOT(cloneWindow()));
     this->addAction(cloneWindowAct);
 
+    closeWindowAct = new QAction(tr("Close Window"), this);
+    closeWindowAct->setShortcut(QKeySequence(QKeySequence::Close));
+    closeWindowAct->setStatusTip(tr("Close Window"));
+    connect(closeWindowAct, SIGNAL(triggered()), this, SLOT(close()));
+    this->addAction(closeWindowAct);
+
     newFileAct = new QAction(QIcon(":/images/newIcon.png"), tr("&New file"), this);
     newFileAct->setShortcuts(QKeySequence::New);
     newFileAct->setStatusTip(tr("New File"));
@@ -435,10 +441,13 @@ void MainWindow::createMenus()
     fileMenu = menuBar()->addMenu(tr("&File"));
     fileMenu->addAction(newWindowAct);
     fileMenu->addAction(cloneWindowAct);
+    fileMenu->addAction(closeWindowAct);
+    fileMenu->addSeparator();
     fileMenu->addAction(newFileAct);
     fileMenu->addAction(openFileAct);
     fileMenu->addAction(saveFileAct);
     fileMenu->addAction(exportPDFAct);
+//    fileMenu->addAction(quitAct);
 
     editMenu = menuBar()->addMenu(tr("&Edit"));
     editMenu->addAction(undoAct);
@@ -611,6 +620,7 @@ void MainWindow::openFile()
 
     if(openDocument->loadXOJ(fileName))
     {
+        mainWidget->letGoSelection();
         mainWidget->setDocument(openDocument);
         setTitle();
         modified();
@@ -1009,8 +1019,17 @@ void MainWindow::cloneWindow()
         window->mainWidget->currentDocument->pages.append(mainWidget->currentDocument->pages.at(i));
         window->mainWidget->pageBuffer.append(mainWidget->pageBuffer.at(i));
     }
-    window->mainWidget->update();
+    window->mainWidget->currentSelection = mainWidget->currentSelection;
+    window->mainWidget->setCurrentState(mainWidget->getCurrentState());
+    window->mainWidget->zoom = mainWidget->zoom;
+
     window->show();
+    window->mainWidget->update();
+
+    window->mainWidget->setGeometry(window->mainWidget->getWidgetGeometry());
+    window->scrollArea->updateGeometry();
+    window->scrollArea->verticalScrollBar()->setValue(scrollArea->verticalScrollBar()->value());
+    window->scrollArea->horizontalScrollBar()->setValue(scrollArea->horizontalScrollBar()->value());
 }
 
 void MainWindow::maximize()
@@ -1022,3 +1041,4 @@ bool MainWindow::loadXOJ(QString fileName)
 {
     return mainWidget->currentDocument->loadXOJ(fileName);
 }
+

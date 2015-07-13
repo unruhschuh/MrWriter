@@ -11,28 +11,35 @@ Selection::Selection()
     lastZoom = 0.0;
 }
 
+void Selection::updateBuffer(qreal zoom)
+{
+    QPainter imgPainter;
+    buffer = QImage(zoom * getWidth(), zoom * getHeight(), QImage::Format_ARGB32_Premultiplied);
+    qDebug() << buffer.hasAlphaChannel();
+    buffer.fill(qRgba(0,0,0,0));
+    buffer.setAlphaChannel(buffer);
+    imgPainter.begin(&buffer);
+    imgPainter.setRenderHint(QPainter::Antialiasing, true);
+    Page::paint(imgPainter, zoom);
+    imgPainter.end();
+    buffPos = QPointF(0,0);
+}
+
 void Selection::paint(QPainter &painter, qreal zoom)
 {
-    painter.setRenderHint(QPainter::Antialiasing, true);
-
     if (lastZoom != zoom)
     {
-        qDebug() << "test";
         lastZoom = zoom;
-        QPainter imgPainter;
-        buffer = QImage(getWidth(), getHeight(), QImage::Format_ARGB32_Premultiplied);
-        buffer.fill(QColor(255,0,0,50));
-        imgPainter.setCompositionMode(QPainter::CompositionMode_Multiply);
-        imgPainter.begin(&buffer);
-        Page::paint(imgPainter, zoom);
-        imgPainter.end();
+        updateBuffer(zoom);
+        qDebug() << getWidth() << getHeight();
     }
 
 //    Page::paint(painter, zoom);
 
 //    painter.setCompositionMode(QPainter::CompositionMode_Xor);
-    painter.drawImage(buffPos, buffer);
+    painter.drawImage(zoom * buffPos, buffer);
 
+    painter.setRenderHint(QPainter::Antialiasing, true);
     QPen pen;
     pen.setStyle(Qt::DashLine);
     pen.setCapStyle(Qt::RoundCap);
@@ -42,6 +49,7 @@ void Selection::paint(QPainter &painter, qreal zoom)
     scaleTrans = scaleTrans.scale(zoom,zoom);
     painter.drawPolygon(scaleTrans.map(selectionPolygon), Qt::OddEvenFill);
     painter.setRenderHint(QPainter::Antialiasing, false);
+
 }
 
 void Selection::transform(QTransform transform, int newPageNum)
@@ -67,8 +75,9 @@ void Selection::finalize()
     boundingRect = boundingRect.adjusted(-ad,-ad,ad,ad);
     selectionPolygon = QPolygonF(boundingRect);
 
-    setWidth(boundingRect.width());
-    setHeight(boundingRect.height());
+//    setWidth(boundingRect.width());
+//    setHeight(boundingRect.height());
+
 
 //    std::cout << getWidth() << ", " << getHeight() << std::endl;
 }

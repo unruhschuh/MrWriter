@@ -188,8 +188,15 @@ void TransformSelectionCommand::undo()
 
 void TransformSelectionCommand::redo()
 {
+    QRect updateRect = widget->currentSelection.selectionPolygon.boundingRect().toRect();
     widget->currentSelection.transform(transform, pageNum);
-    widget->updateBuffer(pageNum);
+//    widget->updateBuffer(pageNum);
+    updateRect = updateRect.united(widget->currentSelection.selectionPolygon.boundingRect().toRect());
+    QTransform scaleTrans;
+    scaleTrans = scaleTrans.scale(widget->zoom, widget->zoom);
+    updateRect = scaleTrans.mapRect(updateRect);
+    updateRect.adjust(-1, -1, 1, 1);
+//    widget->update(updateRect);
     widget->update();
 }
 

@@ -60,6 +60,7 @@ public:
     QColor getCurrentColor();
 
     void setDocument(Document* newDocument);
+    void letGoSelection();
 
     void newFile();
 //    void openFile();
@@ -138,7 +139,6 @@ private:
     void startSelecting(QPointF mousePos);
     void continueSelecting(QPointF mousePos);
     void stopSelecting(QPointF mousePos);
-    void letGoSelection();
 
     void startMovingSelection(QPointF mousePos);
     void continueMovingSelection(QPointF mousePos);

@@ -86,6 +86,7 @@ private:
     // actions
     QAction *newWindowAct;
     QAction *cloneWindowAct;
+    QAction *closeWindowAct;
     QAction *newFileAct;
     QAction *openFileAct;
     QAction *saveFileAct;
