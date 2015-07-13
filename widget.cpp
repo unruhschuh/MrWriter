@@ -15,6 +15,7 @@
 #include <QScrollArea>
 #include <QScrollBar>
 #include <QDebug>
+#include <QtConcurrent>
 #include <qmath.h>
 
 #define PAGE_GAP 10.0
@@ -61,10 +62,35 @@ Widget::Widget(QWidget *parent) : QWidget(parent)
 void Widget::updateAllPageBuffers()
 {
     pageBuffer.clear();
+    QVector<QFuture<void> > future;
+    pageBuffer.clear();
     for (int buffNum = 0; buffNum < currentDocument->pages.size(); ++buffNum)
     {
-        updateBuffer(buffNum);
+        pageBuffer.append(QImage());
     }
+    for (int buffNum = 0; buffNum < currentDocument->pages.size(); ++buffNum)
+    {
+        future.append(QtConcurrent::run(this, &Widget::updateBuffer, buffNum));
+        //        updateBuffer(buffNum);
+    }
+    for (int buffNum = 0; buffNum < currentDocument->pages.size(); ++buffNum)
+    {
+        future[buffNum].waitForFinished();
+    }
+
+//    bool finished = false;
+//    while (!finished)
+//    {
+//        finished = true;
+//        for (int buffNum = 0; buffNum < currentDocument->pages.size(); ++buffNum)
+//        {
+//            qDebug() << buffNum << future[buffNum].isFinished();
+//            if (future[buffNum].isFinished() == false)
+//            {
+//                finished = false;
+//            }
+//        }
+//    }
 }
 
 void Widget::updateBuffer(int buffNum)
@@ -85,12 +111,14 @@ void Widget::updateBuffer(int buffNum)
 
     painter.end();
 
-    if (pageBuffer.length() <= buffNum)
-    {
-        pageBuffer.append(image);
-    } else {
-        pageBuffer.replace(buffNum, image);
-    }
+    pageBuffer.replace(buffNum, image);
+
+//    if (pageBuffer.length() <= buffNum)
+//    {
+//        pageBuffer.append(image);
+//    } else {
+//        pageBuffer.replace(buffNum, image);
+//    }
 }
 
 void Widget::updateBufferRegion(int buffNum, QRectF clipRect)
