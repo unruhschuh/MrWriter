@@ -31,6 +31,7 @@ along with MrWriter.  If not, see <http://www.gnu.org/licenses/>.
 #include <QMessageBox>
 #include <QStatusBar>
 #include <QInputDialog>
+#include <QSysInfo>
 #include <qdebug.h>
 
 #include <iostream>
@@ -508,9 +509,30 @@ void MainWindow::createMenus()
 
 void MainWindow::createToolBars()
 {
-    QSize iconSize = QSize(24,24);
+    QSize iconSize;
+    if (QSysInfo::productType().compare("android") == 0)
+    {
+        iconSize = QSize(48,48);
+    } else {
+        iconSize = QSize(24,24);
+    }
 
     fileToolBar = addToolBar(tr("File"));
+    if (QSysInfo::productType().compare("android") == 0)
+    {
+        mainMenuButton = new QToolButton();
+        mainMenuButton->setText("Menu");
+        mainMenuButton->setPopupMode(QToolButton::InstantPopup);
+        mainMenu = new QMenu("Menu");
+        mainMenu->addMenu(fileMenu);
+        mainMenu->addMenu(editMenu);
+        mainMenu->addMenu(pageMenu);
+        mainMenu->addMenu(toolsMenu);
+        mainMenu->addMenu(viewMenu);
+        mainMenu->addMenu(helpMenu);
+        mainMenuButton->setMenu(mainMenu);
+        fileToolBar->addWidget(mainMenuButton);
+    }
     fileToolBar->addAction(newFileAct);
     fileToolBar->addAction(openFileAct);
     fileToolBar->addAction(saveFileAct);

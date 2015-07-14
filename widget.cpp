@@ -16,6 +16,7 @@
 #include <QScrollBar>
 #include <QDebug>
 #include <QtConcurrent>
+#include <QSettings>
 #include <qmath.h>
 
 #define PAGE_GAP 10.0
@@ -26,6 +27,9 @@
 
 Widget::Widget(QWidget *parent) : QWidget(parent)
 {
+    QSettings settings;
+//    qDebug() << settings.applicationVersion();
+
     currentState = state::IDLE;
 
     // setup cursors
@@ -122,7 +126,7 @@ void Widget::updateBufferRegion(int buffNum, QRectF clipRect)
     painter.end();
 }
 
-void Widget::drawOnBuffer(QPointF from, QPointF to, qreal pressure)
+void Widget::drawOnBuffer(QPointF from, QPointF to, qreal pressureFrom, qreal pressureTo)
 {
     QPen pen;
 
@@ -130,7 +134,7 @@ void Widget::drawOnBuffer(QPointF from, QPointF to, qreal pressure)
     painter.begin(&pageBuffer[drawingOnPage]);
     painter.setRenderHint(QPainter::Antialiasing, true);
 
-    qreal tmpPenWidth = zoom * currentPenWidth * pressure;
+    qreal tmpPenWidth = zoom * currentPenWidth * (pressureFrom + pressureTo) / 2.0;
     pen.setWidthF(tmpPenWidth);
     pen.setColor(currentColor);
     pen.setCapStyle(Qt::RoundCap);
@@ -703,7 +707,7 @@ void Widget::continueRuling(QPointF mousePos)
     int clipRad = zoom*currentPenWidth / 2 + 2;
     clipRect = clipRect.normalized().adjusted(-clipRad, -clipRad, clipRad, clipRad);
     updateBufferRegion(drawingOnPage, clipRect);
-    drawOnBuffer(firstPagePos, pagePos, 1);
+    drawOnBuffer(firstPagePos, pagePos, 1, 1);
 
     QRect updateRect(firstMousePos.toPoint(), mousePos.toPoint());
     QRect oldUpdateRect(firstMousePos.toPoint(), previousMousePos.toPoint());
@@ -806,7 +810,7 @@ void Widget::continueCircling(QPointF mousePos)
 
     for (int i = 0; i < currentCurve.points.length()-1; ++i)
     {
-        drawOnBuffer(currentCurve.points.at(i), currentCurve.points.at(i+1), 1);
+        drawOnBuffer(currentCurve.points.at(i), currentCurve.points.at(i+1), 1, 1);
     }
 
 
@@ -863,9 +867,10 @@ void Widget::continueDrawing(QPointF mousePos, qreal pressure)
     QPointF pagePos = getPagePosFromMousePos(mousePos, drawingOnPage);
     QPointF previousPagePos = getPagePosFromMousePos(previousMousePos, drawingOnPage);
 
+    qreal previousPressure = currentCurve.pressures.last();
     currentCurve.points.append(pagePos);
     currentCurve.pressures.append(pressure);
-    drawOnBuffer(previousPagePos, pagePos, pressure);
+    drawOnBuffer(previousPagePos, pagePos, previousPressure, pressure);
 
     QRect updateRect(previousMousePos.toPoint(), mousePos.toPoint());
     int rad = currentPenWidth * zoom / 2 + 2;
@@ -885,7 +890,7 @@ void Widget::stopDrawing(QPointF mousePos, qreal pressure)
     currentCurve.pressures.append(pressure);
 
 //    currentDocument->pages[drawingOnPage].curves.append(currentCurve);
-    AddCurveCommand* addCommand = new AddCurveCommand(this, drawingOnPage, currentCurve);
+    AddCurveCommand* addCommand = new AddCurveCommand(this, drawingOnPage, currentCurve, -1, false);
     undoStack.push(addCommand);
 
 //    drawing = false;

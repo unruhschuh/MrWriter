@@ -173,6 +173,11 @@ private:
     QMenu *viewMenu;
     QMenu *helpMenu;
 
+    // for android
+    QToolButton *mainMenuButton;
+    QMenu *mainMenu;
+
+
 //    Document* currentDocument;
 
 };

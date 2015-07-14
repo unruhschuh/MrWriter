@@ -47,7 +47,7 @@ public:
     void updateAllPageBuffers();
     void updateBuffer(int i);
     void updateBufferRegion(int buffNum, QRectF clipRect);
-    void drawOnBuffer(QPointF from, QPointF to, qreal pressure);
+    void drawOnBuffer(QPointF from, QPointF to, qreal pressureFrom, qreal pressureTo);
     int getPageFromMousePos(QPointF mousePos);
     QPointF getPagePosFromMousePos(QPointF mousePos, int pageNum);
     QRect getWidgetGeometry();

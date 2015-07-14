@@ -11,8 +11,7 @@
 class TabletApplication : public QApplication
 {
 public:
-    TabletApplication(int &argv, char **args)
-        : QApplication(argv, args) {}
+    TabletApplication(int &argc, char **argv);
 
     bool isUsingTablet();
 

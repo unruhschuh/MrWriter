@@ -10,6 +10,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QErrorMessage>
+#include <QSvgGenerator>
 #include <QDebug>
 
 #include <zlib.h>
@@ -54,15 +55,44 @@ void Document::paintPage(int pageNum, QPainter &painter, qreal zoom)
     pages[pageNum].paint(painter, zoom);
 }
 
+/* will become exportSVG
+void Document::exportPDF(QString fileName)
+{
+    QPainter painter;
+    QSvgGenerator svgGenerator;
+    for (int pageNum = 0; pageNum < pages.size(); ++pageNum)
+    {
+        svgGenerator.setFileName(fileName); //.prepend(QString::number(pageNum)));
+        svgGenerator.setSize(QSize(pages[pageNum].getWidth(), pages[pageNum].getHeight()));
+//        svgGenerator.setViewBox(QRect(0, 0, pages[pageNum+1].getWidth(), pages[pageNum+1].getHeight()));
+        svgGenerator.setResolution(72);
+        if (!painter.begin(&svgGenerator))
+        {
+            qDebug() << "error";
+        }
+
+        pages[pageNum].paint(painter, 1.0);
+        painter.end();
+    }
+}
+*/
+
 void Document::exportPDF(QString fileName)
 {
 //    QPdfWriter pdfWriter("/Users/tom/Desktop/qpdfwriter.pdf");
 //    QPdfWriter pdfWriter(fileName);
+
     QPrinter pdfWriter(QPrinter::HighResolution);
     pdfWriter.setOutputFormat(QPrinter::PdfFormat);
     pdfWriter.setOutputFileName(fileName);
+//    pdfWriter.setMargins();
 
-    pdfWriter.setPageSize(QPageSize(QSize(pages[0].getWidth(), pages[0].getHeight())));
+    pdfWriter.setPageSize(QPageSize(QSizeF(pages[0].getWidth(), pages[0].getHeight()), QPageSize::Point));
+    qreal zoomW =  ((qreal)pdfWriter.pageRect().width()) / ((qreal)pdfWriter.paperRect().width());
+    qreal zoomH =  ((qreal)pdfWriter.pageRect().height()) / ((qreal)pdfWriter.paperRect().height());
+    qreal zoom;
+    if (zoomH < zoomW)
+        zoom = zoomH;
     pdfWriter.setResolution(72);
     pdfWriter.pageLayout().setUnits(QPageLayout::Point);
     QPainter painter;
@@ -73,7 +103,7 @@ void Document::exportPDF(QString fileName)
     painter.setRenderHint(QPainter::Antialiasing, true);
     for (int pageNum = 0; pageNum < pages.size(); ++pageNum)
     {
-        pages[pageNum].paint(painter, 1.0, QRect(0,0,0,0), true);
+        pages[pageNum].paint(painter, zoom, QRect(0,0,0,0), true);
 
         if (pageNum+1 < pages.size())
         {
