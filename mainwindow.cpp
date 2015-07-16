@@ -40,6 +40,7 @@ along with MrWriter.  If not, see <http://www.gnu.org/licenses/>.
 #include "document.h"
 #include "version.h"
 #include "mainwindow.h"
+#include "pagesettingsdialog.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
@@ -239,6 +240,10 @@ void MainWindow::createActions()
     pageRemoveAct = new QAction(tr("Remove Current Page"), this);
     pageRemoveAct->setStatusTip(tr("Remove Current Page"));
     connect(pageRemoveAct, SIGNAL(triggered()), mainWidget, SLOT(pageRemove()));
+
+    pageSettingsAct = new QAction(tr("Page Settings"), this);
+    pageSettingsAct->setStatusTip(tr("Page Settings"));
+    connect(pageSettingsAct, SIGNAL(triggered()), this, SLOT(pageSettings()));
 
     penAct = new QAction(QIcon(":/images/penIcon.png"), tr("Pen"), this);
     penAct->setStatusTip(tr("Pen Tool"));
@@ -467,6 +472,8 @@ void MainWindow::createMenus()
     pageMenu->addAction(pageAddEndAct);
     pageMenu->addSeparator();
     pageMenu->addAction(pageRemoveAct);
+    pageMenu->addSeparator();
+    pageMenu->addAction(pageSettingsAct);
 
     toolsMenu = menuBar()->addMenu(tr("&Tools"));
     toolsMenu->addAction(penAct);
@@ -1064,3 +1071,10 @@ bool MainWindow::loadXOJ(QString fileName)
     return mainWidget->currentDocument->loadXOJ(fileName);
 }
 
+void MainWindow::pageSettings()
+{
+    PageSettingsDialog* pageDialog = new PageSettingsDialog(this);
+    pageDialog->show();
+    pageDialog->raise();
+    pageDialog->activateWindow();
+}

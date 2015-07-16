@@ -52,6 +52,8 @@ private slots:
     void fullscreen();
     void maximize();
 
+    void pageSettings();
+
     void black();
     void blue();
     void red();
@@ -115,6 +117,8 @@ private:
     QAction *pageAddAfterAct;
 
     QAction *pageRemoveAct;
+
+    QAction *pageSettingsAct;
 
     QAction *penAct;
     QAction *rulerAct;

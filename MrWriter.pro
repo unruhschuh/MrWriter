@@ -15,7 +15,8 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = MrWriter
 TEMPLATE = app
 
-HEADERS  += version.h
+HEADERS  += version.h \
+    pagesettingsdialog.h
 
 VERSION_MAJOR = MY_MAJOR_VERSION
 VERSION_MINOR = MY_MINOR_VERSION
@@ -29,7 +30,8 @@ SOURCES += main.cpp\
     qcompressor.cpp \
     selection.cpp \
     commands.cpp \
-    tabletapplication.cpp
+    tabletapplication.cpp \
+    pagesettingsdialog.cpp
 
 HEADERS  += mainwindow.h \
     widget.h \

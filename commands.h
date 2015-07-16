@@ -10,7 +10,7 @@
 class AddCurveCommand : public QUndoCommand
 {
 public:
-    AddCurveCommand(Widget *newWidget, int newPageNum, const Curve &newCurve, int newCurveNum = -1, bool newUpdate = true, QUndoCommand *parent = 0);
+    AddCurveCommand(Widget *newWidget, int newPageNum, const Curve &newCurve, int newCurveNum = -1, bool newUpdate = true, bool newUpdateSuccessive = true, QUndoCommand *parent = 0);
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
 
@@ -20,6 +20,7 @@ private:
     int curveNum;
     int pageNum;
     bool update;
+    bool updateSuccessive;
 };
 
 class RemoveCurveCommand : public QUndoCommand
@@ -117,6 +118,33 @@ private:
     Widget* widget;
     Page page;
     int pageNum;
+};
+
+class PasteCommand : public QUndoCommand
+{
+public:
+    PasteCommand(Widget* newWidget, Selection newSelection, QUndoCommand *parent = 0);
+    void undo() Q_DECL_OVERRIDE;
+    void redo() Q_DECL_OVERRIDE;
+
+private:
+    Widget* widget;
+    Selection pasteSelection;
+    Selection previousSelection;
+    Widget::state previousState;
+};
+
+class CutCommand : public QUndoCommand
+{
+public:
+    CutCommand(Widget* newWidget, QUndoCommand *parent = 0);
+    void undo() Q_DECL_OVERRIDE;
+    void redo() Q_DECL_OVERRIDE;
+
+private:
+    Widget* widget;
+    Selection previousSelection;
+    Widget::state previousState;
 };
 
 #endif

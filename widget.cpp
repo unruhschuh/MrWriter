@@ -168,7 +168,7 @@ QRect Widget::getWidgetGeometry()
 
 void Widget::paintEvent(QPaintEvent *event)
 {
-    QRect widgetGeometry = getWidgetGeometry();
+//    QRect widgetGeometry = getWidgetGeometry();
     QPalette p(palette());
     setAutoFillBackground(true);
     setPalette(p);
@@ -184,7 +184,6 @@ void Widget::paintEvent(QPaintEvent *event)
             trans = trans.translate(0, -(pageBuffer.at(i).height() + PAGE_GAP));
         }
         rectSource = trans.mapRect(event->rect());
-        qDebug() << rectSource;
         painter.drawImage(event->rect(), pageBuffer.at(drawingOnPage), rectSource);
         return;
     }
@@ -206,17 +205,13 @@ void Widget::paintEvent(QPaintEvent *event)
 
         painter.drawImage(rectTarget, pageBuffer.at(i), rectSource);
 
-//        if ((selecting || selected) && i == currentSelection.pageNum)
         if ((currentState == state::SELECTING || currentState == state::SELECTED || currentState == state::MODIFYING_SELECTION) && i == currentSelection.pageNum)
         {
             currentSelection.paint(painter, zoom);
         }
 
-
-//        currentYPos += (rectSource.height() + PAGE_GAP*zoom);
         painter.translate(QPointF(0.0, rectSource.height() + PAGE_GAP));
     }
-//    std::cerr << "paint "; toc();
 }
 
 void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::MouseButtons buttons, Qt::KeyboardModifiers keyboardModifiers, QTabletEvent::PointerType pointerType, QEvent::Type eventType, qreal pressure, bool tabletEvent)
@@ -890,7 +885,7 @@ void Widget::stopDrawing(QPointF mousePos, qreal pressure)
     currentCurve.pressures.append(pressure);
 
 //    currentDocument->pages[drawingOnPage].curves.append(currentCurve);
-    AddCurveCommand* addCommand = new AddCurveCommand(this, drawingOnPage, currentCurve, -1, false);
+    AddCurveCommand* addCommand = new AddCurveCommand(this, drawingOnPage, currentCurve, -1, false, true);
     undoStack.push(addCommand);
 
 //    drawing = false;
@@ -981,13 +976,12 @@ void Widget::erase(QPointF mousePos, bool invertEraser)
                             curve.pressures.prepend(firstPressure);
                             RemoveCurveCommand *removeCurveCommand = new RemoveCurveCommand(this, pageNum, i, false);
                             undoStack.push(removeCurveCommand);
-                            AddCurveCommand *addCurveCommand = new AddCurveCommand(this, pageNum, curve, i, false);
+                            AddCurveCommand *addCurveCommand = new AddCurveCommand(this, pageNum, curve, i, false, false);
                             undoStack.push(addCurveCommand);
-                            addCurveCommand = new AddCurveCommand(this, pageNum, splitCurve, i, false);
+                            addCurveCommand = new AddCurveCommand(this, pageNum, splitCurve, i, false, false);
                             undoStack.push(addCurveCommand);
 //                            curves->insert(i, splitCurve);
                             i += 2;
-                            qDebug() << iPoint;
                             break;
                         }
                     }
@@ -1110,7 +1104,6 @@ QPointF Widget::getPagePosFromMousePos(QPointF mousePos, int pageNum)
     }
 //    y -= (pageNum) * (currentDocument->pages[0].getHeight() * zoom + PAGE_GAP);
 
-//    QPointF pagePos = (QPointF(x,y) - currentCOSPos) / zoom;
     QPointF pagePos = (QPointF(x,y)) / zoom;
 
 
@@ -1119,11 +1112,6 @@ QPointF Widget::getPagePosFromMousePos(QPointF mousePos, int pageNum)
 
 void Widget::newFile()
 {
-//    if (currentDocument->getDocumentChanged())
-//    {
-//        return;
-//    }
-
     letGoSelection();
 
     delete currentDocument;
@@ -1365,40 +1353,41 @@ void Widget::copy()
 
 void Widget::paste()
 {
-    if (currentState == state::SELECTED)
-    {
-        letGoSelection();
-    }
-    currentSelection = clipboard;
-    currentSelection.pageNum = getCurrentPage();
-
-//    qreal dx = currentDocument->pages[getCurrentPage()].getWidth() / 2.0 - currentSelection.selectionPolygon.boundingRect().center().x();
-//    qreal dy = currentDocument->pages[getCurrentPage()].getHeight() / 2.0 - currentSelection.selectionPolygon.boundingRect().center().y();
+    Selection tmpSelection = clipboard;
+    tmpSelection.pageNum = getCurrentPage();
 
     QPoint globalMousePos = parentWidget()->mapToGlobal(QPoint(0,0)) + QPoint(parentWidget()->size().width()/2, parentWidget()->size().height()/2);
     QPoint mousePos = this->mapFromGlobal(globalMousePos);
-    QPointF selectionPos = getPagePosFromMousePos(mousePos, getCurrentPage()) - currentSelection.selectionPolygon.boundingRect().center();
-//    QPointF selectionPos = getPagePosFromMousePos(QPointF(scrollArea->width()/2.0, scrollArea->height()/2.0), getCurrentPage()) - currentSelection.selectionPolygon.boundingRect().center();
+    QPointF selectionPos = getPagePosFromMousePos(mousePos, getCurrentPage()) - tmpSelection.selectionPolygon.boundingRect().center();
 
     QTransform myTrans;
     myTrans = myTrans.translate(selectionPos.x(), selectionPos.y());
 
-    for (int i = 0; i < currentSelection.curves.size(); ++i)
+    for (int i = 0; i < tmpSelection.curves.size(); ++i)
     {
-        currentSelection.curves[i].points = myTrans.map(currentSelection.curves[i].points);
+        tmpSelection.curves[i].points = myTrans.map(tmpSelection.curves[i].points);
     }
-    currentSelection.finalize();
+    tmpSelection.finalize();
+    tmpSelection.updateBuffer(zoom);
 
-    currentState = state::SELECTED;
-    update();
+    undoStack.beginMacro("Paste");
+    if (currentState == state::SELECTED)
+    {
+        letGoSelection();
+    }
+    PasteCommand *pasteCommand = new PasteCommand(this, tmpSelection);
+    undoStack.push(pasteCommand);
+    undoStack.endMacro();
 }
 
 void Widget::cut()
 {
-    clipboard = currentSelection;
-    currentSelection = Selection();
-    currentState = state::IDLE;
-    update();
+    CutCommand* cutCommand = new CutCommand(this);
+    undoStack.push(cutCommand);
+//    clipboard = currentSelection;
+//    currentSelection = Selection();
+//    currentState = state::IDLE;
+//    update();
 }
 
 void Widget::undo()

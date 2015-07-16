@@ -83,6 +83,7 @@ public:
     QVector<qreal> getCurrentPattern();
 
     Selection currentSelection;
+    Selection &clipboard = static_cast<TabletApplication*>(qApp)->clipboard;
 
     int selectingOnPage;
 
@@ -102,7 +103,6 @@ private:
     QCursor eraserCursor;
 
     Curve currentCurve;
-    Selection &clipboard = static_cast<TabletApplication*>(qApp)->clipboard;
 
     state currentState;
 

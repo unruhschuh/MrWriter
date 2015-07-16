@@ -5,7 +5,7 @@
 ** AddCurveCommand
 */
 
-AddCurveCommand::AddCurveCommand(Widget *newWidget, int newPageNum, const Curve &newCurve, int newCurveNum, bool newUpdate, QUndoCommand *parent) : QUndoCommand(parent)
+AddCurveCommand::AddCurveCommand(Widget *newWidget, int newPageNum, const Curve &newCurve, int newCurveNum, bool newUpdate, bool newUpdateSuccessive, QUndoCommand *parent) : QUndoCommand(parent)
 {
     setText(MainWindow::tr("Add Curve"));
     pageNum = newPageNum;
@@ -13,6 +13,7 @@ AddCurveCommand::AddCurveCommand(Widget *newWidget, int newPageNum, const Curve 
     curve = newCurve;
     curveNum = newCurveNum;
     update = newUpdate;
+    updateSuccessive = newUpdateSuccessive;
 }
 
 void AddCurveCommand::undo()
@@ -42,6 +43,8 @@ void AddCurveCommand::redo()
     {
         widget->updateBuffer(pageNum);
         widget->update();
+    } else if (updateSuccessive) {
+        update = true; // update is turned off for the first redo
     }
 }
 
@@ -307,4 +310,57 @@ void RemovePageCommand::redo()
     widget->update();
 }
 
+/******************************************************************************
+** RemovePageCommand
+*/
+
+PasteCommand::PasteCommand(Widget *newWidget, Selection newSelection, QUndoCommand *parent) : QUndoCommand(parent)
+{
+    setText(MainWindow::tr("Paste"));
+    widget = newWidget;
+    pasteSelection = newSelection;
+    previousSelection = widget->currentSelection;
+    previousState = widget->getCurrentState();
+}
+
+void PasteCommand::undo()
+{
+    widget->currentSelection = previousSelection;
+    widget->setCurrentState(previousState);
+    widget->update();
+}
+
+void PasteCommand::redo()
+{
+    widget->currentSelection = pasteSelection;
+    widget->setCurrentState(Widget::state::SELECTED);
+    widget->update();
+}
+
+/******************************************************************************
+** CutPageCommand
+*/
+
+CutCommand::CutCommand(Widget *newWidget, QUndoCommand *parent) : QUndoCommand(parent)
+{
+    setText(MainWindow::tr("Cut"));
+    widget = newWidget;
+    previousSelection = widget->currentSelection;
+    previousState = widget->getCurrentState();
+}
+
+void CutCommand::undo()
+{
+    widget->currentSelection = previousSelection;
+    widget->setCurrentState(previousState);
+    widget->update();
+}
+
+void CutCommand::redo()
+{
+    widget->clipboard = previousSelection;
+    widget->currentSelection = Selection();
+    widget->setCurrentState(Widget::state::IDLE);
+    widget->update();
+}
 
