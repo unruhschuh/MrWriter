@@ -33,6 +33,7 @@ along with MrWriter.  If not, see <http://www.gnu.org/licenses/>.
 #include <QInputDialog>
 #include <QSysInfo>
 #include <qdebug.h>
+#include <QPageSize>
 
 #include <iostream>
 
@@ -1073,8 +1074,27 @@ bool MainWindow::loadXOJ(QString fileName)
 
 void MainWindow::pageSettings()
 {
-    PageSettingsDialog* pageDialog = new PageSettingsDialog(this);
-    pageDialog->show();
-    pageDialog->raise();
-    pageDialog->activateWindow();
+    int pageNum = mainWidget->getCurrentPage();
+    qreal width = mainWidget->currentDocument->pages[pageNum].getWidth();
+    qreal height = mainWidget->currentDocument->pages[pageNum].getHeight();
+    PageSettingsDialog* pageDialog = new PageSettingsDialog(QPageSize(QSizeF(width, height), QPageSize::Point), this);
+    pageDialog->setWindowModality(Qt::WindowModal);
+    if(pageDialog->exec() == QDialog::Accepted)
+    {
+        if (pageDialog->currentPageSize.isValid())
+        {
+            qDebug() << "valid";
+            width = pageDialog->currentPageSize.sizePoints().width();
+            height = pageDialog->currentPageSize.sizePoints().height();
+            mainWidget->currentDocument->pages[pageNum].setWidth(width);
+            mainWidget->currentDocument->pages[pageNum].setHeight(height);
+            qDebug() << width << height << mainWidget->currentDocument->pages[pageNum].getWidth() << mainWidget->currentDocument->pages[pageNum].getHeight();
+            mainWidget->updateBuffer(pageNum);
+            mainWidget->update();
+        }
+    }
+
+//    pageDialog->show();
+//    pageDialog->raise();
+//    pageDialog->activateWindow();
 }

@@ -6,24 +6,23 @@
 #include <QLineEdit>
 #include <QPushButton>
 
-#include <QVector>
 #include <QString>
-#include <QSizeF>
+#include <QPageSize>
 
 class PageSettingsDialog : public QDialog
 {
     Q_OBJECT
 public:
-    explicit PageSettingsDialog(QWidget *parent = 0);
+    explicit PageSettingsDialog(const QPageSize& newPageSize, QWidget *parent = 0);
+    QPageSize currentPageSize;
 
 signals:
 
 public slots:
+    void textChanged();
+    void standardPaperSizesComboChanged();
 
 private:
-    const static QVector<QString> standardPaperNames;
-    const static QVector<QSizeF> standardPaperSizes;
-
     QComboBox* standardPaperSizesComboBox;
     QLineEdit* widthLineEdit;
     QLineEdit* heightLineEdit;

@@ -1,26 +1,30 @@
 #include "pagesettingsdialog.h"
 
 #include <QFormLayout>
+#include <QPageSize>
+#include <QDebug>
 
-const QVector<QString> PageSettingsDialog::standardPaperNames = { "A0", "A1", "A2", "A3", "A4", "A5"};
-const QVector<QSizeF>  PageSettingsDialog::standardPaperSizes = { QSizeF(2384, 3371),
-                                                                  QSizeF(1685, 2384),
-                                                                  QSizeF(1190, 1684),
-                                                                  QSizeF(842, 1190),
-                                                                  QSizeF(595, 842),
-                                                                  QSizeF(420, 595) };
-
-
-PageSettingsDialog::PageSettingsDialog(QWidget *parent) : QDialog(parent)
+PageSettingsDialog::PageSettingsDialog(const QPageSize& newPageSize, QWidget *parent) : QDialog(parent)
 {
     standardPaperSizesComboBox = new QComboBox(this);
-    for (int i = 0; i < standardPaperNames.size(); ++i)
+
+    for (int i = 0; i < QPageSize::LastPageSize; ++i)
     {
-        standardPaperSizesComboBox->addItem(standardPaperNames.at(i), standardPaperSizes.at(i));
+        QPageSize::PageSizeId pageSizeId = static_cast<QPageSize::PageSizeId>(i);
+        standardPaperSizesComboBox->addItem(QPageSize(pageSizeId).name(), pageSizeId);
     }
+    connect(standardPaperSizesComboBox, SIGNAL(currentIndexChanged(QString)), this, SLOT(standardPaperSizesComboChanged()));
+
+    QDoubleValidator* validator = new QDoubleValidator;
+    validator->setBottom(1.0);
 
     widthLineEdit = new QLineEdit(this);
+    widthLineEdit->setValidator(validator);
+    connect(widthLineEdit, SIGNAL(textChanged(QString)), this, SLOT(textChanged()));
+
     heightLineEdit = new QLineEdit(this);
+    widthLineEdit->setValidator(validator);
+    connect(heightLineEdit, SIGNAL(textChanged(QString)), this, SLOT(textChanged()));
 
     okButton = new QPushButton(tr("OK"), this);
     okButton->setDefault(true);
@@ -30,13 +34,43 @@ PageSettingsDialog::PageSettingsDialog(QWidget *parent) : QDialog(parent)
     formLayout->addRow(tr("Standard paper sizes:"), standardPaperSizesComboBox);
     formLayout->addRow(tr("&Width:"), widthLineEdit);
     formLayout->addRow(tr("&Height:"), heightLineEdit);
+    formLayout->addRow
     formLayout->addRow(okButton, cancelButton);
 
     setLayout(formLayout);
 
     setWindowTitle(tr("Page Settings"));
-    setModal(true);
 
-    connect(cancelButton, SIGNAL(clicked()), this, SLOT(close()));
+    qDebug() << currentPageSize;
+    widthLineEdit->setText(QString::number(newPageSize.size(QPageSize::Millimeter).width()));
+    heightLineEdit->setText(QString::number(newPageSize.size(QPageSize::Millimeter).height()));
+
+    connect(cancelButton, SIGNAL(clicked()), this, SLOT(reject()));
+    connect(okButton, SIGNAL(clicked()), this, SLOT(accept()));
 }
 
+void PageSettingsDialog::textChanged()
+{
+    qreal width = widthLineEdit->text().toDouble();
+    qreal height = heightLineEdit->text().toDouble();
+    currentPageSize = QPageSize(QSizeF(width, height), QPageSize::Millimeter);
+    qDebug() << currentPageSize;
+
+    int index = standardPaperSizesComboBox->findData(currentPageSize.id());
+    standardPaperSizesComboBox->blockSignals(true);
+    standardPaperSizesComboBox->setCurrentIndex(index);
+    standardPaperSizesComboBox->blockSignals(false);
+}
+
+void PageSettingsDialog::standardPaperSizesComboChanged()
+{
+    widthLineEdit->blockSignals(true);
+    heightLineEdit->blockSignals(true);
+    QPageSize tmpPageSize = QPageSize(static_cast<QPageSize::PageSizeId>(standardPaperSizesComboBox->currentData().toInt()));
+    widthLineEdit->setText(QString::number(tmpPageSize.size(QPageSize::Millimeter).width()));
+    heightLineEdit->setText(QString::number(tmpPageSize.size(QPageSize::Millimeter).height()));
+    widthLineEdit->blockSignals(false);
+    heightLineEdit->blockSignals(false);
+
+    currentPageSize = tmpPageSize;
+}
