@@ -88,9 +88,10 @@ void Document::exportPDF(QString fileName)
 //    pdfWriter.setMargins();
 
     pdfWriter.setPageSize(QPageSize(QSizeF(pages[0].getWidth(), pages[0].getHeight()), QPageSize::Point));
+    pdfWriter.setPageMargins(QMarginsF(0,0,0,0));
     qreal zoomW =  ((qreal)pdfWriter.pageRect().width()) / ((qreal)pdfWriter.paperRect().width());
     qreal zoomH =  ((qreal)pdfWriter.pageRect().height()) / ((qreal)pdfWriter.paperRect().height());
-    qreal zoom;
+    qreal zoom = zoomW;
     if (zoomH < zoomW)
         zoom = zoomH;
     pdfWriter.setResolution(72);
@@ -103,6 +104,12 @@ void Document::exportPDF(QString fileName)
     painter.setRenderHint(QPainter::Antialiasing, true);
     for (int pageNum = 0; pageNum < pages.size(); ++pageNum)
     {
+        if (pages[pageNum].backgroundColor != QColor("white"))
+        {
+            QRectF pageRect = pdfWriter.pageRect(QPrinter::Point);
+            pageRect.translate(-pageRect.topLeft());
+            painter.fillRect(pageRect, pages[pageNum].backgroundColor);
+        }
         pages[pageNum].paint(painter, zoom, QRect(0,0,0,0), true);
 
         if (pageNum+1 < pages.size())
@@ -280,7 +287,7 @@ bool Document::saveXOJ(QString fileName)
                 patternString = "solid";
             }
             writer.writeAttribute(QXmlStreamAttribute("style", patternString));
-            qreal width = pages[i].curves[i].penWidth;
+            qreal width = pages[i].curves[j].penWidth;
             QString widthString;
             widthString.append(QString::number(width));
             for (int k = 0; k < pages[i].curves[j].pressures.size()-1; ++k)

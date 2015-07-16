@@ -16,7 +16,8 @@ TARGET = MrWriter
 TEMPLATE = app
 
 HEADERS  += version.h \
-    pagesettingsdialog.h
+    pagesettingsdialog.h \
+    colorbutton.h
 
 VERSION_MAJOR = MY_MAJOR_VERSION
 VERSION_MINOR = MY_MINOR_VERSION
@@ -31,7 +32,8 @@ SOURCES += main.cpp\
     selection.cpp \
     commands.cpp \
     tabletapplication.cpp \
-    pagesettingsdialog.cpp
+    pagesettingsdialog.cpp \
+    colorbutton.cpp
 
 HEADERS  += mainwindow.h \
     widget.h \

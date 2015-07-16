@@ -1077,24 +1077,22 @@ void MainWindow::pageSettings()
     int pageNum = mainWidget->getCurrentPage();
     qreal width = mainWidget->currentDocument->pages[pageNum].getWidth();
     qreal height = mainWidget->currentDocument->pages[pageNum].getHeight();
-    PageSettingsDialog* pageDialog = new PageSettingsDialog(QPageSize(QSizeF(width, height), QPageSize::Point), this);
+    PageSettingsDialog* pageDialog = new PageSettingsDialog(QSizeF(width, height),
+                                                            mainWidget->currentDocument->pages[pageNum].backgroundColor, this);
     pageDialog->setWindowModality(Qt::WindowModal);
     if(pageDialog->exec() == QDialog::Accepted)
     {
         if (pageDialog->currentPageSize.isValid())
         {
             qDebug() << "valid";
-            width = pageDialog->currentPageSize.sizePoints().width();
-            height = pageDialog->currentPageSize.sizePoints().height();
+            width = pageDialog->currentPageSize.width();
+            height = pageDialog->currentPageSize.height();
             mainWidget->currentDocument->pages[pageNum].setWidth(width);
             mainWidget->currentDocument->pages[pageNum].setHeight(height);
-            qDebug() << width << height << mainWidget->currentDocument->pages[pageNum].getWidth() << mainWidget->currentDocument->pages[pageNum].getHeight();
+            mainWidget->currentDocument->pages[pageNum].setBackgroundColor(pageDialog->backgroundColor);
             mainWidget->updateBuffer(pageNum);
+            mainWidget->setGeometry(mainWidget->getWidgetGeometry());
             mainWidget->update();
         }
     }
-
-//    pageDialog->show();
-//    pageDialog->raise();
-//    pageDialog->activateWindow();
 }
