@@ -100,6 +100,8 @@ private:
     QVector<qreal> currentPattern = Curve::solidLinePattern;
 
     QCursor penCursor;
+    QCursor circleCursor;
+    QCursor rulerCursor;
     QCursor eraserCursor;
 
     Curve currentCurve;

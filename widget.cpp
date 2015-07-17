@@ -38,6 +38,16 @@ Widget::Widget(QWidget *parent) : QWidget(parent)
     penCursorBitmap.setMask(QBitmap(penCursorMask));
     penCursor = QCursor(penCursorBitmap, -1, -1);
 
+    QPixmap circleCursorBitmap = QPixmap(":/images/circleCursor.png");
+    QPixmap circleCursorMask  = QPixmap(":/images/circleCursorMask.png");
+    circleCursorBitmap.setMask(QBitmap(circleCursorMask));
+    circleCursor = QCursor(circleCursorBitmap, -1, -1);
+
+    QPixmap rulerCursorBitmap = QPixmap(":/images/rulerCursor.png");
+    QPixmap rulerCursorMask  = QPixmap(":/images/rulerCursorMask.png");
+    rulerCursorBitmap.setMask(QBitmap(rulerCursorMask));
+    rulerCursor = QCursor(rulerCursorBitmap, -1, -1);
+
     QPixmap eraserCursorBitmap = QPixmap(":/images/eraserCursor.png");
     QPixmap eraserCursorMask  = QPixmap(":/images/eraserCursorMask.png");
     eraserCursorBitmap.setMask(QBitmap(eraserCursorMask));
@@ -1326,9 +1336,9 @@ void Widget::setCurrentTool(tool toolID)
         if (toolID == tool::PEN)
             setCursor(penCursor);
         if (toolID == tool::RULER)
-            setCursor(penCursor);
+            setCursor(rulerCursor);
         if (toolID == tool::CIRCLE)
-            setCursor(penCursor);
+            setCursor(circleCursor);
         if (toolID == tool::ERASER)
             setCursor(eraserCursor);
         if (toolID == tool::SELECT)
