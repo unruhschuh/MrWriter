@@ -96,8 +96,6 @@ PageSettingsDialog::PageSettingsDialog(const QSizeF& newPageSize, const QColor& 
 
     connect(cancelButton, SIGNAL(clicked()), this, SLOT(reject()));
     connect(okButton, SIGNAL(clicked()), this, SLOT(accept()));
-
-    standardPaperSizesComboBox->setCurrentIndex(standardPaperSizesComboBox->count()-1);
 }
 
 void PageSettingsDialog::textChanged()
@@ -106,8 +104,24 @@ void PageSettingsDialog::textChanged()
     qreal height = heightLineEdit->text().toDouble();
     currentPageSize = QSizeF(width, height);
 
+    bool foundPageSize = false;
+    int index = 0;
+    for (index = 0; index < myStandardPageSizes.size(); ++index)
+    {
+        if (width == myStandardPageSizes[index].width() &&
+            height == myStandardPageSizes[index].height())
+        {
+            foundPageSize = true;
+            break;
+        }
+    }
     standardPaperSizesComboBox->blockSignals(true);
-    standardPaperSizesComboBox->setCurrentIndex(standardPaperSizesComboBox->count());
+    if (foundPageSize)
+    {
+        standardPaperSizesComboBox->setCurrentIndex(index);
+    } else {
+        standardPaperSizesComboBox->setCurrentIndex(standardPaperSizesComboBox->count()-1);
+    }
     standardPaperSizesComboBox->blockSignals(false);
 }
 
