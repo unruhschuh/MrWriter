@@ -1470,7 +1470,7 @@ void Widget::rotateSelection(qreal angle)
     qreal dy = currentSelection.selectionPolygon.boundingRect().center().y();
 
     rotateTrans = rotateTrans.translate(dx, dy).rotate(-angle).translate(-dx, -dy);
-    TransformSelectionCommand* transCommand = new TransformSelectionCommand(this, getCurrentPage(), rotateTrans);
+    TransformSelectionCommand* transCommand = new TransformSelectionCommand(this, currentSelection.pageNum, rotateTrans);
     undoStack.push(transCommand);
     currentSelection.finalize();
     currentSelection.updateBuffer(zoom);

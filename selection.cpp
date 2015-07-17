@@ -19,7 +19,15 @@ void Selection::updateBuffer(qreal zoom)
     buffer.setAlphaChannel(buffer);
     imgPainter.begin(&buffer);
     imgPainter.setRenderHint(QPainter::Antialiasing, true);
+
+    QTransform trans;
+    qreal dx = selectionPolygon.boundingRect().topLeft().x();
+    qreal dy = selectionPolygon.boundingRect().topLeft().y();
+    trans = trans.translate(-dx, -dy);
+    transform(trans, pageNum);
     Page::paint(imgPainter, zoom);
+    trans = trans.translate(2*dx, 2*dy);
+    transform(trans, pageNum);
     imgPainter.end();
     buffPos = QPointF(0,0);
 }
@@ -35,7 +43,7 @@ void Selection::paint(QPainter &painter, qreal zoom)
 //    Page::paint(painter, zoom);
 
 //    painter.setCompositionMode(QPainter::CompositionMode_Xor);
-    painter.drawImage(zoom * buffPos, buffer);
+    painter.drawImage(zoom * selectionPolygon.boundingRect().topLeft(), buffer);
 
     painter.setRenderHint(QPainter::Antialiasing, true);
     QPen pen;
@@ -67,14 +75,13 @@ void Selection::finalize()
     for (int i = 0; i < curves.size(); ++i)
     {
         boundingRect = boundingRect.united(curves.at(i).points.boundingRect());
-//        selectionPolygon = selectionPolygon.united(curves.at(i).points);
     }
     qreal ad = 10;
     boundingRect = boundingRect.adjusted(-ad,-ad,ad,ad);
     selectionPolygon = QPolygonF(boundingRect);
 
-//    setWidth(boundingRect.width());
-//    setHeight(boundingRect.height());
+    setWidth(boundingRect.width());
+    setHeight(boundingRect.height());
 
 
 //    std::cout << getWidth() << ", " << getHeight() << std::endl;
