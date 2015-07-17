@@ -52,7 +52,7 @@ Widget::Widget(QWidget *parent) : QWidget(parent)
 
     currentPenWidth = 1.41;
     currentColor = QColor(0,0,0);
-    zoom = 1;
+    zoom = 1.0;
 
     currentCOSPos.setX(0.0);
     currentCOSPos.setY(0.0);
@@ -1176,8 +1176,10 @@ void Widget::zoomTo(qreal newZoom)
 
 void Widget::zoomFitWidth()
 {
-    QSize widgetSize = this->parentWidget()->size();
+//    QSize widgetSize = this->parentWidget()->size();
+    QSize widgetSize = scrollArea->size();
     int pageNum = getCurrentPage();
+    qDebug() << widgetSize;
     zoom = widgetSize.width() / currentDocument->pages[pageNum].getWidth();
 
     updateAllPageBuffers();

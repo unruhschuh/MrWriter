@@ -22,6 +22,9 @@ public:
 
 protected:
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
+    void showEvent(QShowEvent *event) Q_DECL_OVERRIDE;
+
+public slots:
 
 private slots:
     void newWindow();
@@ -70,6 +73,12 @@ private slots:
 
     void about();
 
+    void saveMyState();
+    void loadMyState();
+
+    void saveMyGeometry();
+    void loadMyGeometry();
+
     void verticalScrolling();
 
     bool maybeSave();
@@ -84,6 +93,8 @@ private:
     void createMenus();
 
     QLabel pageStatus;
+    QLabel penWidthStatus;
+    QLabel colorStatus;
 
     // actions
     QAction *newWindowAct;
@@ -160,6 +171,9 @@ private:
 
     QAction *aboutAct;
     QAction *aboutQtAct;
+
+    QAction *saveMyStateAct;
+    QAction *loadMyStateAct;
 
     QToolBar *fileToolBar;
     QToolBar *editToolBar;

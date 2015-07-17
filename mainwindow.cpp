@@ -34,6 +34,7 @@ along with MrWriter.  If not, see <http://www.gnu.org/licenses/>.
 #include <QSysInfo>
 #include <qdebug.h>
 #include <QPageSize>
+#include <QSettings>
 
 #include <iostream>
 
@@ -45,7 +46,7 @@ along with MrWriter.  If not, see <http://www.gnu.org/licenses/>.
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
-    this->resize(1024,768);
+//    this->resize(1024,768);
 
     mainWidget = new Widget(this);
     connect(mainWidget, SIGNAL(select()), this, SLOT(select()));
@@ -62,22 +63,32 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     scrollArea = new QScrollArea(this);
     scrollArea->setWidget(mainWidget);
     scrollArea->setAlignment(Qt::AlignHCenter);
+//    scrollArea->setPalette(QPalette(QColor(130,255,130)));
+
 //    mainWidget->setGeometry(0,0,100,100);
 //    scrollArea->setWidgetResizable(true);
 
+    loadMyGeometry();
     setCentralWidget(scrollArea);
 
 //    setCentralWidget(mainWidget);
 
     mainWidget->scrollArea = scrollArea;
 
+    QWidget *sep1 = new QWidget();
+    sep1->setFixedWidth(10);
+    QWidget *sep2 = new QWidget();
+    sep2->setFixedWidth(10);
+
+    statusBar()->addPermanentWidget(&colorStatus);
+    statusBar()->addPermanentWidget(sep1);
+    statusBar()->addPermanentWidget(&penWidthStatus);
+    statusBar()->addPermanentWidget(sep2);
     statusBar()->addPermanentWidget(&pageStatus);
 
     createActions();
     createMenus();
     createToolBars();
-
-    mainWidget->zoomTo(1.0);
 
     updateGUI();
 }
@@ -185,11 +196,13 @@ void MainWindow::createActions()
     this->addAction(cutAct); // add to make shortcut work if menubar is hidden
 
     zoomInAct = new QAction(QIcon(":/images/zoomInIcon.png"), tr("Zoom &In"), this);
+    zoomInAct->setShortcut(QKeySequence::ZoomIn);
     zoomInAct->setStatusTip(tr("Zoom In"));
     connect(zoomInAct, SIGNAL(triggered()), this, SLOT(zoomIn()));
     this->addAction(zoomInAct); // add to make shortcut work if menubar is hidden
 
     zoomOutAct = new QAction(QIcon(":/images/zoomOutIcon.png"), tr("Zoom &Out"), this); // QAction(QIcon(":/images/new.png"), tr("&New"), this);
+    zoomOutAct->setShortcut(QKeySequence::ZoomOut);
     zoomOutAct->setStatusTip(tr("Zoom Out"));
     connect(zoomOutAct, SIGNAL(triggered()), this, SLOT(zoomOut()));
     this->addAction(zoomOutAct); // add to make shortcut work if menubar is hidden
@@ -245,6 +258,14 @@ void MainWindow::createActions()
     pageSettingsAct = new QAction(tr("Page Settings"), this);
     pageSettingsAct->setStatusTip(tr("Page Settings"));
     connect(pageSettingsAct, SIGNAL(triggered()), this, SLOT(pageSettings()));
+
+    saveMyStateAct = new QAction(tr("Save window state"), this);
+    saveMyStateAct->setStatusTip(tr("Save window state"));
+    connect(saveMyStateAct, SIGNAL(triggered()), this, SLOT(saveMyState()));
+
+    loadMyStateAct = new QAction(tr("Load window state"), this);
+    loadMyStateAct->setStatusTip(tr("Load window state"));
+    connect(loadMyStateAct, SIGNAL(triggered()), this, SLOT(loadMyState()));
 
     penAct = new QAction(QIcon(":/images/penIcon.png"), tr("Pen"), this);
     penAct->setStatusTip(tr("Pen Tool"));
@@ -374,25 +395,33 @@ void MainWindow::createActions()
 
     // colorActions
     blackAct = new QAction(QIcon(":/images/blackIcon.png"), tr("black"), this);
+    blackAct->setShortcut(QKeySequence(Qt::Key_Q));
     blackAct->setStatusTip(tr("black"));
     blackAct->setCheckable(true);
     blackAct->setChecked(true);
     connect(blackAct, SIGNAL(triggered()), this, SLOT(black()));
+    this->addAction(blackAct); // add to make shortcut work if menubar is hidden
 
     redAct = new QAction(QIcon(":/images/redIcon.png"), tr("red"), this);
+    redAct->setShortcut(QKeySequence(Qt::Key_W));
     redAct->setStatusTip(tr("red"));
     redAct->setCheckable(true);
     connect(redAct, SIGNAL(triggered()), this, SLOT(red()));
+    this->addAction(redAct); // add to make shortcut work if menubar is hidden
 
     blueAct = new QAction(QIcon(":/images/blueIcon.png"), tr("blue"), this);
+    blueAct->setShortcut(QKeySequence(Qt::Key_E));
     blueAct->setStatusTip(tr("blue"));
     blueAct->setCheckable(true);
     connect(blueAct, SIGNAL(triggered()), this, SLOT(blue()));
+    this->addAction(blueAct); // add to make shortcut work if menubar is hidden
 
     greenAct = new QAction(QIcon(":/images/greenIcon.png"), tr("green"), this);
+    greenAct->setShortcut(QKeySequence(Qt::Key_R));
     greenAct->setStatusTip(tr("green"));
     greenAct->setCheckable(true);
     connect(greenAct, SIGNAL(triggered()), this, SLOT(green()));
+    this->addAction(greenAct); // add to make shortcut work if menubar is hidden
 
     grayAct = new QAction(QIcon(":/images/grayIcon.png"), tr("gray"), this);
     grayAct->setStatusTip(tr("gray"));
@@ -509,6 +538,9 @@ void MainWindow::createMenus()
     viewMenu->addAction(toolbarAct);
     viewMenu->addAction(statusbarAct);
     viewMenu->addAction(fullscreenAct);
+    viewMenu->addSeparator();
+    viewMenu->addAction(saveMyStateAct);
+    viewMenu->addAction(loadMyStateAct);
 
     helpMenu = menuBar()->addMenu(tr("&Help"));
     helpMenu->addAction(aboutAct);
@@ -526,6 +558,7 @@ void MainWindow::createToolBars()
     }
 
     fileToolBar = addToolBar(tr("File"));
+    fileToolBar->setObjectName("fileToolBar");
     if (QSysInfo::productType().compare("android") == 0)
     {
         mainMenuButton = new QToolButton();
@@ -548,6 +581,7 @@ void MainWindow::createToolBars()
     fileToolBar->setIconSize(iconSize);
 
     editToolBar = addToolBar(tr("Edit"));
+    editToolBar->setObjectName("editToolBar");
     editToolBar->addAction(cutAct);
     editToolBar->addAction(copyAct);
     editToolBar->addAction(pasteAct);
@@ -557,6 +591,7 @@ void MainWindow::createToolBars()
     editToolBar->setIconSize(iconSize);
 
     viewToolBar = addToolBar(tr("View"));
+    viewToolBar->setObjectName("viewToolBar");
     viewToolBar->addAction(pageFirstAct);
     viewToolBar->addAction(pageUpAct);
     viewToolBar->addAction(pageDownAct);
@@ -573,6 +608,7 @@ void MainWindow::createToolBars()
     addToolBarBreak();
 
     toolsToolBar = addToolBar(tr("Tools"));
+    toolsToolBar->setObjectName("toolsToolBar");
     toolsToolBar->addAction(penAct);
     toolsToolBar->addAction(rulerAct);
     toolsToolBar->addAction(circleAct);
@@ -925,6 +961,12 @@ void MainWindow::verticalScrolling()
 
 }
 
+void MainWindow::showEvent(QShowEvent *event)
+{
+    QMainWindow::showEvent(event);
+    mainWidget->zoomFitWidth();
+}
+
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     if (maybeSave())
@@ -932,6 +974,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
         event->accept();
         TabletApplication *myApp = static_cast<TabletApplication*>(qApp);
         myApp->mainWindows.removeOne(this);
+        saveMyGeometry();
         if (myApp->mainWindows.isEmpty())
         {
             QGuiApplication::exit(0); // fix for calling closeEvent twice, see https://bugreports.qt.io/browse/QTBUG-43344
@@ -1019,6 +1062,12 @@ void MainWindow::updateGUI()
     }
 //    toolbarAct->setChecked()
 
+    QPixmap pixmap(16, 16);
+    pixmap.fill(mainWidget->currentColor);
+    colorStatus.setPixmap(pixmap);
+
+    penWidthStatus.setText(QString::number(mainWidget->currentPenWidth));
+
     verticalScrolling();
     setTitle();
 }
@@ -1095,4 +1144,32 @@ void MainWindow::pageSettings()
             mainWidget->update();
         }
     }
+}
+
+void MainWindow::saveMyState()
+{
+    QSettings settings;
+    settings.beginGroup("MainWindow");
+    settings.setValue("windowState", saveState());
+    settings.endGroup();
+}
+
+void MainWindow::loadMyState()
+{
+    QSettings settings;
+    restoreState(settings.value("MainWindow/windowState").toByteArray());
+}
+
+void MainWindow::saveMyGeometry()
+{
+    QSettings settings;
+    settings.beginGroup("MainWindow");
+    settings.setValue("geometry", saveGeometry());
+    settings.endGroup();
+}
+
+void MainWindow::loadMyGeometry()
+{
+    QSettings settings;
+    restoreGeometry(settings.value("MainWindow/geometry").toByteArray());
 }
