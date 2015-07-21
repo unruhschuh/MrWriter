@@ -1075,7 +1075,7 @@ void MainWindow::updateGUI()
 void MainWindow::rotate()
 {
 //    book ok;
-    qreal angle = QInputDialog::getDouble(this, tr("Rotate"), tr("Degrees:"));
+    qreal angle = QInputDialog::getDouble(this, tr("Rotate"), tr("Degrees:"), 0, -2147483647, 2147483647, 10);
     mainWidget->rotateSelection(angle);
 }
 
