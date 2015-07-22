@@ -320,7 +320,7 @@ bool Document::loadMOJ(QString fileName)
 
     QXmlStreamReader reader;
 
-    // check if it is a gzipped xoj
+    // check if it is a gzipped moj
     QByteArray s = file.read(2);
     if (s.size() == 2)
     {
@@ -398,22 +398,13 @@ bool Document::loadMOJ(QString fileName)
                     newCurve.pattern = Curve::solidLinePattern;
                 }
                 QStringRef strokeWidth = attributes.value("", "width");
-                QStringList strokeWidthList = strokeWidth.toString().split(" ");
-                newCurve.penWidth = strokeWidthList.at(0).toDouble();
-                newCurve.pressures.append(newCurve.penWidth / strokeWidthList.at(0).toDouble());
-                for (int i = 1; i < strokeWidthList.size(); ++i)
-                {
-                    newCurve.pressures.append(2 * strokeWidthList.at(i).toDouble() / newCurve.penWidth - newCurve.pressures.at(i-1));
-                }
+                newCurve.penWidth = strokeWidth.toDouble();
                 QString elementText = reader.readElementText();
                 QStringList elementTextList = elementText.split(" ");
-                for (int i = 0; i+1 < elementTextList.size(); i = i + 2)
+                for (int i = 0; i+2 < elementTextList.size(); i = i + 3)
                 {
                     newCurve.points.append(QPointF(elementTextList.at(i).toDouble(), elementTextList.at(i+1).toDouble()));
-                }
-                while (newCurve.points.size() > newCurve.pressures.size())
-                {
-                    newCurve.pressures.append(1.0);
+                    newCurve.pressures.append(elementTextList.at(i+2).toDouble());
                 }
                 pages.last().curves.append(newCurve);
                 strokeCount++;
@@ -495,21 +486,14 @@ bool Document::saveMOJ(QString fileName)
             }
             writer.writeAttribute(QXmlStreamAttribute("style", patternString));
             qreal width = pages[i].curves[j].penWidth;
-            QString widthString;
-            widthString.append(QString::number(width));
-            for (int k = 0; k < pages[i].curves[j].pressures.size()-1; ++k)
-            {
-                qreal p0 = pages[i].curves[j].pressures[k];
-                qreal p1 = pages[i].curves[j].pressures[k+1];
-                widthString.append(' ');
-                widthString.append(QString::number(0.5 * (p0+p1) * width));
-            }
-            writer.writeAttribute(QXmlStreamAttribute("width", widthString));
+            writer.writeAttribute(QXmlStreamAttribute("width", QString::number(width)));
             for (int k = 0; k < pages[i].curves[j].points.size(); ++k)
             {
                 writer.writeCharacters(QString::number(pages[i].curves[j].points[k].x()));
                 writer.writeCharacters(" ");
                 writer.writeCharacters(QString::number(pages[i].curves[j].points[k].y()));
+                writer.writeCharacters(" ");
+                writer.writeCharacters(QString::number(pages[i].curves[j].pressures[k]));
                 writer.writeCharacters(" ");
             }
             writer.writeEndElement(); // closing "stroke"
