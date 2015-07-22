@@ -43,6 +43,7 @@ along with MrWriter.  If not, see <http://www.gnu.org/licenses/>.
 #include "version.h"
 #include "mainwindow.h"
 #include "pagesettingsdialog.h"
+#include "commands.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
@@ -153,9 +154,18 @@ void MainWindow::createActions()
     this->addAction(saveFileAct);
 
     exportPDFAct = new QAction(QIcon(":/images/savePDFIcon.png"), tr("Export PDF"), this);
-//    exportPDFAct->setShortcuts(QKeySequence(Qt::CTRL + Qt::Key_E));
+    exportPDFAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_E));
+//    zoomFitWidthAct->setShortcut(QKeySequence(Qt::Key_Z));
     exportPDFAct->setStatusTip(tr("Export PDF"));
     connect(exportPDFAct, SIGNAL(triggered()), this, SLOT(exportPDF()));
+
+    importXOJAct = new QAction(tr("Import Xournal File"), this);
+    importXOJAct->setStatusTip(tr("Import Xournal File"));
+    connect(importXOJAct, SIGNAL(triggered()), this, SLOT(importXOJ()));
+
+    exportXOJAct = new QAction(tr("Export Xournal File"), this);
+    exportXOJAct->setStatusTip(tr("Export Xournal File"));
+    connect(exportXOJAct, SIGNAL(triggered()), this, SLOT(exportXOJ()));
 
     undoAct = mainWidget->undoStack.createUndoAction(this);
 //    undoAct = new QAction(QIcon(":/images/undoIcon.png"), tr("&Undo"), this);
@@ -483,6 +493,8 @@ void MainWindow::createMenus()
     fileMenu->addAction(openFileAct);
     fileMenu->addAction(saveFileAct);
     fileMenu->addAction(exportPDFAct);
+    fileMenu->addAction(importXOJAct);
+    fileMenu->addAction(exportXOJAct);
 //    fileMenu->addAction(quitAct);
 
     editMenu = menuBar()->addMenu(tr("&Edit"));
@@ -675,7 +687,89 @@ void MainWindow::openFile()
         dir = mainWidget->currentDocument->getPath();
     }
 
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open XOJ"), dir, tr("Xournal Files (*.xoj)"));
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open MOJ"), dir, tr("MrWriter Files (*.moj)"));
+
+    if (fileName.isNull())
+    {
+        return;
+    }
+
+    Document* openDocument = new Document();
+
+    if(openDocument->loadMOJ(fileName))
+    {
+        mainWidget->letGoSelection();
+        mainWidget->setDocument(openDocument);
+        setTitle();
+        modified();
+    } else {
+        delete openDocument;
+        QMessageBox errMsgBox;
+        errMsgBox.setText("Couldn't open file");
+        errMsgBox.exec();
+    }
+}
+
+bool MainWindow::saveFile()
+{
+    QString dir;
+    QString fileName;
+    if (mainWidget->currentDocument->getDocName().isEmpty())
+    {
+        dir = QDir::homePath();
+        fileName = QFileDialog::getSaveFileName(this, tr("Save MOJ"), dir, tr("MrWriter Files (*.moj)"));
+    } else {
+        dir = mainWidget->currentDocument->getPath();
+        dir.append('/');
+        dir.append(mainWidget->currentDocument->getDocName());
+        dir.append(".moj");
+        fileName = dir;
+    }
+
+    if (fileName.isNull())
+    {
+        return false;
+    }
+
+    if (mainWidget->currentDocument->saveMOJ(fileName))
+    {
+        modified();
+        setTitle();
+        return true;
+    } else {
+        return false;
+    }
+}
+
+void MainWindow::exportPDF()
+{
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Export PDF"), QDir::homePath(), tr("Adobe PDF files (*.PDF)"));
+
+    if (fileName.isNull())
+    {
+        return;
+    }
+
+    mainWidget->currentDocument->exportPDF(fileName);
+}
+
+void MainWindow::importXOJ()
+{
+    if (!maybeSave())
+    {
+        return;
+    }
+
+    QString dir;
+
+    if (mainWidget->currentDocument->getPath().isEmpty())
+    {
+        dir = QDir::homePath();
+    } else {
+        dir = mainWidget->currentDocument->getPath();
+    }
+
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Import XOJ"), dir, tr("Xournal Files (*.xoj)"));
 
     if (fileName.isNull())
     {
@@ -696,22 +790,21 @@ void MainWindow::openFile()
         errMsgBox.setText("Couldn't open file");
         errMsgBox.exec();
     }
-
 }
 
-bool MainWindow::saveFile()
+bool MainWindow::exportXOJ()
 {
     QString dir;
     QString fileName;
     if (mainWidget->currentDocument->getDocName().isEmpty())
     {
         dir = QDir::homePath();
-        fileName = QFileDialog::getSaveFileName(this, tr("Save XOJ"), dir, tr("Xournal Files (*.xoj)"));
+        fileName = QFileDialog::getSaveFileName(this, tr("Export XOJ"), dir, tr("Xournal Files (*.xoj)"));
     } else {
         dir = mainWidget->currentDocument->getPath();
         dir.append('/');
         dir.append(mainWidget->currentDocument->getDocName());
-        dir.append(".xoj");
+        dir.append(".moj");
         fileName = dir;
     }
 
@@ -728,18 +821,6 @@ bool MainWindow::saveFile()
     } else {
         return false;
     }
-}
-
-void MainWindow::exportPDF()
-{
-    QString fileName = QFileDialog::getSaveFileName(this, tr("Export PDF"), QDir::homePath(), tr("Adobe PDF files (*.PDF)"));
-
-    if (fileName.isNull())
-    {
-        return;
-    }
-
-    mainWidget->currentDocument->exportPDF(fileName);
 }
 
 void MainWindow::zoomIn()
@@ -883,7 +964,7 @@ void MainWindow::about()
     aboutText = aboutText.append(MY_PRODUCT_NAME);
     aboutText = aboutText.append(" ");
     aboutText = aboutText.append(version);
-    aboutText = aboutText.append("<br/><br/>Written by Thomas Leitz<br/><br/><a href='http://www.unruhschuh.com'>unruhschuh.com/mrwriter</a></center>");
+    aboutText = aboutText.append("<br/><br/>Written by Thomas Leitz<br/><br/><a href='http://www.unruhschuh.com'>unruhschuh.com/MrWriter</a></center>");
     msgBox.setText(aboutText);
     msgBox.setStandardButtons(QMessageBox::Ok);
     msgBox.setIconPixmap(QIcon(":/images/Icon1024.png").pixmap(QSize(100,100)));
@@ -1134,14 +1215,8 @@ void MainWindow::pageSettings()
         if (pageDialog->currentPageSize.isValid())
         {
             qDebug() << "valid";
-            width = pageDialog->currentPageSize.width();
-            height = pageDialog->currentPageSize.height();
-            mainWidget->currentDocument->pages[pageNum].setWidth(width);
-            mainWidget->currentDocument->pages[pageNum].setHeight(height);
-            mainWidget->currentDocument->pages[pageNum].setBackgroundColor(pageDialog->backgroundColor);
-            mainWidget->updateBuffer(pageNum);
-            mainWidget->setGeometry(mainWidget->getWidgetGeometry());
-            mainWidget->update();
+            ChangePageSettingsCommand *cpsCommand = new ChangePageSettingsCommand(mainWidget, pageNum, pageDialog->currentPageSize, pageDialog->backgroundColor);
+            mainWidget->undoStack.push(cpsCommand);
         }
     }
 }

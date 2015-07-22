@@ -364,3 +364,41 @@ void CutCommand::redo()
     widget->update();
 }
 
+
+/******************************************************************************
+** CutPageCommand
+*/
+
+ChangePageSettingsCommand::ChangePageSettingsCommand(Widget *newWidget, int newPageNum, QSizeF newSize, QColor newBackgroundColor, QUndoCommand *parent)
+{
+    widget = newWidget;
+    pageNum = newPageNum;
+    prevSize = QSizeF(widget->currentDocument->pages[pageNum].getWidth(), widget->currentDocument->pages[pageNum].getHeight());
+    size = newSize;
+    prevBackgroundColor = widget->currentDocument->pages[pageNum].getBackgroundColor();
+    backgroundColor = newBackgroundColor;
+}
+
+void ChangePageSettingsCommand::undo()
+{
+    qreal width = prevSize.width();
+    qreal height = prevSize.height();
+    widget->currentDocument->pages[pageNum].setWidth(width);
+    widget->currentDocument->pages[pageNum].setHeight(height);
+    widget->currentDocument->pages[pageNum].setBackgroundColor(prevBackgroundColor);
+    widget->updateBuffer(pageNum);
+    widget->setGeometry(widget->getWidgetGeometry());
+    widget->update();
+}
+
+void ChangePageSettingsCommand::redo()
+{
+    qreal width = size.width();
+    qreal height = size.height();
+    widget->currentDocument->pages[pageNum].setWidth(width);
+    widget->currentDocument->pages[pageNum].setHeight(height);
+    widget->currentDocument->pages[pageNum].setBackgroundColor(backgroundColor);
+    widget->updateBuffer(pageNum);
+    widget->setGeometry(widget->getWidgetGeometry());
+    widget->update();
+}

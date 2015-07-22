@@ -147,4 +147,20 @@ private:
     Widget::state previousState;
 };
 
+class ChangePageSettingsCommand : public QUndoCommand
+{
+public:
+    ChangePageSettingsCommand(Widget* newWidget, int newPageNum, QSizeF newSize, QColor newBackgroundColor, QUndoCommand *parent = 0);
+    void undo() Q_DECL_OVERRIDE;
+    void redo() Q_DECL_OVERRIDE;
+
+private:
+    Widget *widget;
+    int pageNum;
+    QSizeF prevSize;
+    QSizeF size;
+    QColor prevBackgroundColor;
+    QColor backgroundColor;
+};
+
 #endif

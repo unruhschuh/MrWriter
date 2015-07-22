@@ -12,8 +12,13 @@ public:
     Document(const Document& doc);
     Document& operator=(const Document& doc) {};
     void exportPDF(QString fileName);
+
     bool loadXOJ(QString fileName);
     bool saveXOJ(QString fileName);
+
+    bool loadMOJ(QString fileName);
+    bool saveMOJ(QString fileName);
+
     void paintPage(int pageNum, QPainter &painter, qreal zoom);
 
     bool setDocName(QString newDocName);

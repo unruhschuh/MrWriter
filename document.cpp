@@ -214,15 +214,16 @@ bool Document::loadXOJ(QString fileName)
         }
     }
 
-    QFileInfo fileInfo(file);
+//    QFileInfo fileInfo(file);
     file.close();
 
     if (reader.hasError())
     {
         return false;
     } else {
-        path = fileInfo.absolutePath();
-        docName = fileInfo.completeBaseName();
+//        path = fileInfo.absolutePath();
+//        docName = fileInfo.completeBaseName();
+        setDocumentChanged(true);
         return true;
     }
 
@@ -257,7 +258,213 @@ bool Document::saveXOJ(QString fileName)
         writer.writeAttribute(QXmlStreamAttribute("height", QString::number(pages[i].getHeight())));
         writer.writeEmptyElement("background");
         writer.writeAttribute(QXmlStreamAttribute("type", "solid"));
-//        writer.writeAttribute(QXmlStreamAttribute("color", "white"));
+        writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(pages[i].backgroundColor.name(QColor::HexArgb))));
+        writer.writeAttribute(QXmlStreamAttribute("style", "plain"));
+        writer.writeStartElement("layer");
+
+        for (int j = 0; j < pages[i].curves.size(); ++j)
+        {
+            writer.writeStartElement("stroke");
+            writer.writeAttribute(QXmlStreamAttribute("tool", "pen"));
+            writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(pages[i].curves[j].color.name(QColor::HexArgb))));
+            qreal width = pages[i].curves[j].penWidth;
+            QString widthString;
+            widthString.append(QString::number(width));
+            for (int k = 0; k < pages[i].curves[j].pressures.size()-1; ++k)
+            {
+                qreal p0 = pages[i].curves[j].pressures[k];
+                qreal p1 = pages[i].curves[j].pressures[k+1];
+                widthString.append(' ');
+                widthString.append(QString::number(0.5 * (p0+p1) * width));
+            }
+            writer.writeAttribute(QXmlStreamAttribute("width", widthString));
+            for (int k = 0; k < pages[i].curves[j].points.size(); ++k)
+            {
+                writer.writeCharacters(QString::number(pages[i].curves[j].points[k].x()));
+                writer.writeCharacters(" ");
+                writer.writeCharacters(QString::number(pages[i].curves[j].points[k].y()));
+                writer.writeCharacters(" ");
+            }
+            writer.writeEndElement(); // closing "stroke"
+        }
+
+        writer.writeEndElement(); // closing "layer"
+        writer.writeEndElement(); // closing "page"
+    }
+
+    writer.writeEndDocument();
+
+    QFileInfo fileInfo(file);
+
+    file.close();
+
+    if (writer.hasError())
+    {
+        return false;
+    } else {
+//        setDocumentChanged(false);
+//        path = fileInfo.absolutePath();
+//        docName = fileInfo.completeBaseName();
+        return true;
+    }
+
+}
+
+bool Document::loadMOJ(QString fileName)
+{
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly))
+    {
+        return false;
+    }
+
+    QXmlStreamReader reader;
+
+    // check if it is a gzipped xoj
+    QByteArray s = file.read(2);
+    if (s.size() == 2)
+    {
+        if (s.at(0) == static_cast<char>(0x1f) && s.at(1) == static_cast<char>(0x8b))
+        {
+            // this is a gzipped file
+            file.reset();
+            QByteArray compressedData = file.readAll();
+            QByteArray uncompressedData;
+            if (!QCompressor::gzipDecompress(compressedData, uncompressedData))
+            {
+                return false;
+            }
+            reader.addData(uncompressedData);
+        } else {
+            file.reset();
+            reader.setDevice(&file);
+        }
+    } else {
+        return false;
+    }
+
+    pages.clear();
+
+    int strokeCount = 0;
+
+    while (!reader.atEnd())
+    {
+        reader.readNext();
+        if (reader.name() == "page" && reader.tokenType() == QXmlStreamReader::StartElement)
+        {
+            QXmlStreamAttributes attributes = reader.attributes();
+            QStringRef width = attributes.value("", "width");
+            QStringRef height = attributes.value("", "height");
+            Page newPage;
+            newPage.setWidth(width.toDouble());
+            newPage.setHeight(height.toDouble());
+
+            pages.append(newPage);
+        }
+        if(reader.name() == "background" && reader.tokenType() == QXmlStreamReader::StartElement)
+        {
+            QXmlStreamAttributes attributes = reader.attributes();
+            QStringRef color = attributes.value("", "color");
+            QColor newColor = stringToColor(color.toString());
+            pages.last().backgroundColor = newColor;
+        }
+        if (reader.name() == "stroke" && reader.tokenType() == QXmlStreamReader::StartElement)
+        {
+            QXmlStreamAttributes attributes = reader.attributes();
+            QStringRef tool = attributes.value("", "tool");
+            if (tool == "pen")
+            {
+                Curve newCurve;
+                newCurve.pattern = Curve::solidLinePattern;
+                QStringRef color = attributes.value("", "color");
+                newCurve.color = stringToColor(color.toString());
+                QStringRef style = attributes.value("", "style");
+                if (style.toString().compare("solid") == 0)
+                {
+                    newCurve.pattern = Curve::solidLinePattern;
+                }
+                else if (style.toString().compare("dash") == 0)
+                {
+                    newCurve.pattern = Curve::dashLinePattern;
+                }
+                else if (style.toString().compare("dashdot") == 0)
+                {
+                    newCurve.pattern = Curve::dashDotLinePattern;
+                }
+                else if (style.toString().compare("dot") == 0)
+                {
+                    newCurve.pattern = Curve::dotLinePattern;
+                } else {
+                    newCurve.pattern = Curve::solidLinePattern;
+                }
+                QStringRef strokeWidth = attributes.value("", "width");
+                QStringList strokeWidthList = strokeWidth.toString().split(" ");
+                newCurve.penWidth = strokeWidthList.at(0).toDouble();
+                newCurve.pressures.append(newCurve.penWidth / strokeWidthList.at(0).toDouble());
+                for (int i = 1; i < strokeWidthList.size(); ++i)
+                {
+                    newCurve.pressures.append(2 * strokeWidthList.at(i).toDouble() / newCurve.penWidth - newCurve.pressures.at(i-1));
+                }
+                QString elementText = reader.readElementText();
+                QStringList elementTextList = elementText.split(" ");
+                for (int i = 0; i+1 < elementTextList.size(); i = i + 2)
+                {
+                    newCurve.points.append(QPointF(elementTextList.at(i).toDouble(), elementTextList.at(i+1).toDouble()));
+                }
+                while (newCurve.points.size() > newCurve.pressures.size())
+                {
+                    newCurve.pressures.append(1.0);
+                }
+                pages.last().curves.append(newCurve);
+                strokeCount++;
+                qDebug() << strokeCount;
+            }
+        }
+    }
+
+    QFileInfo fileInfo(file);
+    file.close();
+
+    if (reader.hasError())
+    {
+        return false;
+    } else {
+        path = fileInfo.absolutePath();
+        docName = fileInfo.completeBaseName();
+        return true;
+    }
+
+}
+
+bool Document::saveMOJ(QString fileName)
+{
+    QFile file(fileName);
+    if (!file.open(QIODevice::WriteOnly))
+    {
+        return false;
+    }
+
+    QXmlStreamWriter writer;
+
+    writer.setAutoFormatting(true);
+
+    writer.setDevice(&file);
+
+    writer.writeStartDocument("1.0", false);
+    writer.writeStartElement("MrWriter");
+    writer.writeAttribute(QXmlStreamAttribute("version", "0.1"));
+
+    writer.writeStartElement("title");
+    writer.writeCharacters("MrWriter document - see http://unruhschuh.com/MrWriter/");
+    writer.writeEndElement();
+
+    for (int i = 0; i < pages.size(); ++i)
+    {
+        writer.writeStartElement("page");
+        writer.writeAttribute(QXmlStreamAttribute("width" , QString::number(pages[i].getWidth())));
+        writer.writeAttribute(QXmlStreamAttribute("height", QString::number(pages[i].getHeight())));
+        writer.writeEmptyElement("background");
+        writer.writeAttribute(QXmlStreamAttribute("type", "solid"));
         writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(pages[i].backgroundColor.name(QColor::HexArgb))));
         writer.writeAttribute(QXmlStreamAttribute("style", "plain"));
         writer.writeStartElement("layer");
