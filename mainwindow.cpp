@@ -35,6 +35,7 @@ along with MrWriter.  If not, see <http://www.gnu.org/licenses/>.
 #include <qdebug.h>
 #include <QPageSize>
 #include <QSettings>
+#include <QDateTime>
 
 #include <iostream>
 
@@ -716,7 +717,13 @@ bool MainWindow::saveFile()
     QString fileName;
     if (mainWidget->currentDocument->getDocName().isEmpty())
     {
+        QDateTime dateTime = QDateTime::currentDateTime();
         dir = QDir::homePath();
+        dir.append("/");
+        dir.append(dateTime.toString("yyyy-MM-dd"));
+        dir.append("-Note-");
+        dir.append(dateTime.toString("HH-mm"));
+        dir.append(".moj");
         fileName = QFileDialog::getSaveFileName(this, tr("Save MOJ"), dir, tr("MrWriter Files (*.moj)"));
     } else {
         dir = mainWidget->currentDocument->getPath();
@@ -796,17 +803,9 @@ bool MainWindow::exportXOJ()
 {
     QString dir;
     QString fileName;
-    if (mainWidget->currentDocument->getDocName().isEmpty())
-    {
-        dir = QDir::homePath();
-        fileName = QFileDialog::getSaveFileName(this, tr("Export XOJ"), dir, tr("Xournal Files (*.xoj)"));
-    } else {
-        dir = mainWidget->currentDocument->getPath();
-        dir.append('/');
-        dir.append(mainWidget->currentDocument->getDocName());
-        dir.append(".moj");
-        fileName = dir;
-    }
+//    mainWidget->currentDocument->getDocName().isEmpty()
+    dir = QDir::homePath();
+    fileName = QFileDialog::getSaveFileName(this, tr("Export XOJ"), dir, tr("Xournal Files (*.xoj)"));
 
     if (fileName.isNull())
     {
