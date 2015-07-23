@@ -15,6 +15,8 @@
 #include <QUndoStack>
 #include <QScrollArea>
 
+#include <QTime>
+
 #include "tabletapplication.h"
 #include "curve.h"
 #include "document.h"
@@ -94,6 +96,10 @@ public:
     qreal zoom;
 
 private:
+
+    QTime timer;
+
+    qreal count;
 
     void scrollDocumentToPageNum(int pageNum);
 

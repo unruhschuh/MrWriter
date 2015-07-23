@@ -226,6 +226,23 @@ void Widget::paintEvent(QPaintEvent *event)
 
 void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::MouseButtons buttons, Qt::KeyboardModifiers keyboardModifiers, QTabletEvent::PointerType pointerType, QEvent::Type eventType, qreal pressure, bool tabletEvent)
 {
+    // bencmark
+    if (eventType == QEvent::MouseButtonPress)
+    {
+        timer.start();
+        count = 1;
+    }
+    if (eventType == QEvent::MouseMove)
+    {
+        ++count;
+    }
+    if (eventType == QEvent::MouseButtonRelease)
+    {
+        ++count;
+        qDebug() << static_cast<qreal>(count) / static_cast<qreal>(timer.elapsed()) * 1000.0;
+    }
+    // end benchmark
+
     int pageNum = getPageFromMousePos(mousePos);
     QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
 
