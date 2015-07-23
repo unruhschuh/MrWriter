@@ -194,7 +194,11 @@ void Widget::paintEvent(QPaintEvent *event)
             trans = trans.translate(0, -(pageBuffer.at(i).height() + PAGE_GAP));
         }
         rectSource = trans.mapRect(event->rect());
-        painter.drawImage(event->rect(), pageBuffer.at(drawingOnPage), rectSource);
+
+        QPixmap tmp = QPixmap::fromImage(pageBuffer.at(drawingOnPage));
+        painter.drawPixmap(event->rect(), tmp, rectSource);
+
+//        painter.drawImage(event->rect(), pageBuffer.at(drawingOnPage), rectSource);
         return;
     }
 
