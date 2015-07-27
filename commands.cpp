@@ -278,7 +278,7 @@ void AddPageCommand::redo()
     page.backgroundColor = widget->currentDocument->pages[pageNumForSettings].backgroundColor;
 
     widget->currentDocument->pages.insert(pageNum, page);
-    widget->pageBuffer.insert(pageNum, QImage());
+    widget->pageBuffer.insert(pageNum, QPixmap());
     widget->updateBuffer(pageNum);
     widget->update();
 }
@@ -298,7 +298,7 @@ RemovePageCommand::RemovePageCommand(Widget *newWidget, int newPageNum, QUndoCom
 void RemovePageCommand::undo()
 {
     widget->currentDocument->pages.insert(pageNum, page);
-    widget->pageBuffer.insert(pageNum, QImage());
+    widget->pageBuffer.insert(pageNum, QPixmap());
     widget->updateBuffer(pageNum);
     widget->update();
 }

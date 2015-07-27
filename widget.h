@@ -29,7 +29,7 @@ public:
     explicit Widget(QWidget *parent = 0);
 
     enum class tool  { NONE, PEN    , RULER , CIRCLE  , ERASER   , SELECT                                   , HAND };
-    enum class state { IDLE, DRAWING, RULING, CIRCLING           , SELECTING, SELECTED, MODIFYING_SELECTION        };
+    enum class state { IDLE, DRAWING, RULING, CIRCLING           , SELECTING, SELECTED, MOVING_SELECTION        };
 
     static constexpr qreal veryFinePenWidth  = 0.42;
     static constexpr qreal finePenWidth      = 0.85;
@@ -76,7 +76,7 @@ public:
     void rotateSelection(qreal angle);
 
     Document* currentDocument;
-    QVector<QImage> pageBuffer;
+    QVector<QPixmap> pageBuffer;
 
     QColor currentColor;
     qreal currentPenWidth;

@@ -80,7 +80,7 @@ void Widget::updateAllPageBuffers()
     pageBuffer.clear();
     for (int buffNum = 0; buffNum < currentDocument->pages.size(); ++buffNum)
     {
-        pageBuffer.append(QImage());
+        pageBuffer.append(QPixmap());
     }
     for (int buffNum = 0; buffNum < currentDocument->pages.size(); ++buffNum)
     {
@@ -97,7 +97,8 @@ void Widget::updateBuffer(int buffNum)
     Page page = currentDocument->pages.at(buffNum);
     int pixelWidth = zoom * page.getWidth();
     int pixelHeight = zoom * page.getHeight();
-    QImage image(pixelWidth, pixelHeight, QImage::Format_ARGB32_Premultiplied);
+//    QImage image(pixelWidth, pixelHeight, QImage::Format_ARGB32_Premultiplied);
+    QPixmap image(pixelWidth, pixelHeight);
 
     image.fill(page.backgroundColor);
 
@@ -195,8 +196,8 @@ void Widget::paintEvent(QPaintEvent *event)
         }
         rectSource = trans.mapRect(event->rect());
 
-        QPixmap tmp = QPixmap::fromImage(pageBuffer.at(drawingOnPage));
-        painter.drawPixmap(event->rect(), tmp, rectSource);
+//        QPixmap tmp = QPixmap::fromImage(pageBuffer.at(drawingOnPage));
+        painter.drawPixmap(event->rect(), pageBuffer[drawingOnPage], rectSource);
 
 //        painter.drawImage(event->rect(), pageBuffer.at(drawingOnPage), rectSource);
         return;
@@ -217,9 +218,9 @@ void Widget::paintEvent(QPaintEvent *event)
         rectTarget.setWidth(pageBuffer.at(i).width());
         rectTarget.setHeight(pageBuffer.at(i).height());
 
-        painter.drawImage(rectTarget, pageBuffer.at(i), rectSource);
+        painter.drawPixmap(rectTarget, pageBuffer.at(i), rectSource);
 
-        if ((currentState == state::SELECTING || currentState == state::SELECTED || currentState == state::MODIFYING_SELECTION) && i == currentSelection.pageNum)
+        if ((currentState == state::SELECTING || currentState == state::SELECTED || currentState == state::MOVING_SELECTION) && i == currentSelection.pageNum)
         {
             currentSelection.paint(painter, zoom);
         }
@@ -322,7 +323,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
         }
     }
 
-    if (currentState == Widget::state::IDLE && button == Qt::RightButton)
+    if (currentState == state::IDLE && button == Qt::RightButton)
     {
         previousTool = currentTool;
         startSelecting(mousePos);
@@ -331,7 +332,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
     }
 
 
-    if (currentState == state::MODIFYING_SELECTION)
+    if (currentState == state::MOVING_SELECTION)
     {
         if (eventType == QEvent::MouseMove)
         {
@@ -1075,7 +1076,7 @@ void Widget::startMovingSelection(QPointF mousePos)
 
     int pageNum = getPageFromMousePos(mousePos);
     previousPagePos = getPagePosFromMousePos(mousePos, pageNum);
-    currentState = state::MODIFYING_SELECTION;
+    currentState = state::MOVING_SELECTION;
 }
 
 void Widget::continueMovingSelection(QPointF mousePos)
