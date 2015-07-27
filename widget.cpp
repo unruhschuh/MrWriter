@@ -1,7 +1,7 @@
 #include "widget.h"
 #include "curve.h"
 #include "page.h"
-//#include "tictoc.h"
+#include "tictoc.h"
 #include "document.h"
 #include "commands.h"
 #include "tabletapplication.h"
@@ -373,6 +373,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
         }
         if (eventType == QEvent::MouseMove)
         {
+//            QtConcurrent::run(this, &Widget::continueDrawing, mousePos, pressure);
             continueDrawing(mousePos, pressure);
             return;
         }
@@ -903,10 +904,18 @@ void Widget::continueDrawing(QPointF mousePos, qreal pressure)
     int rad = currentPenWidth * zoom / 2 + 2;
     updateRect = updateRect.normalized().adjusted(-rad, -rad, +rad, +rad);
 
-    update(updateRect);
+//    update(updateRect);
+    tic();
+    repaint(updateRect);
+    toc();
 //    update();
 
     previousMousePos = mousePos;
+}
+
+void Widget::doNothing()
+{
+
 }
 
 void Widget::stopDrawing(QPointF mousePos, qreal pressure)

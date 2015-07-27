@@ -26,6 +26,8 @@ class Widget : public QWidget
 {
     Q_OBJECT
 public:
+    void doNothing();
+
     explicit Widget(QWidget *parent = 0);
 
     enum class tool  { NONE, PEN    , RULER , CIRCLE  , ERASER   , SELECT                                   , HAND };
