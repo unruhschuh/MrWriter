@@ -26,6 +26,7 @@
 #include <QRectF>
 
 Widget::Widget(QWidget *parent) : QWidget(parent)
+//Widget::Widget(QWidget *parent) : QOpenGLWidget(parent)
 {
     QSettings settings;
 //    qDebug() << settings.applicationVersion();
@@ -77,11 +78,17 @@ void Widget::updateAllPageBuffers()
 {
     pageBuffer.clear();
     QVector<QFuture<void> > future;
-    pageBuffer.clear();
     for (int buffNum = 0; buffNum < currentDocument->pages.size(); ++buffNum)
     {
         pageBuffer.append(QPixmap());
     }
+
+//    for (int buffNum = 0; buffNum < currentDocument->pages.size(); ++buffNum)
+//    {
+//        updateBuffer(buffNum);
+//    }
+
+    // shouldn't work, since you're only allowed to draw on pixmaps in the gui thread. but it somehow works.
     for (int buffNum = 0; buffNum < currentDocument->pages.size(); ++buffNum)
     {
         future.append(QtConcurrent::run(this, &Widget::updateBuffer, buffNum));
@@ -240,6 +247,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
     if (eventType == QEvent::MouseMove)
     {
         ++count;
+//        qDebug() << static_cast<qreal>(count) / static_cast<qreal>(timer.elapsed()) * 1000.0;
     }
     if (eventType == QEvent::MouseButtonRelease)
     {
@@ -489,6 +497,8 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
 void Widget::tabletEvent(QTabletEvent *event)
 {
     event->accept();
+
+//    qDebug("tabletevent");
 
 //    event->setAccepted(true);
 
@@ -849,7 +859,7 @@ void Widget::continueCircling(QPointF mousePos)
     updateRect = updateRect.normalized().adjusted(-rad, -rad, +rad, +rad);
 
     update(updateRect);
-    update();
+//    update();
 
     previousMousePos = mousePos;
 }
@@ -905,17 +915,13 @@ void Widget::continueDrawing(QPointF mousePos, qreal pressure)
     updateRect = updateRect.normalized().adjusted(-rad, -rad, +rad, +rad);
 
 //    update(updateRect);
-    tic();
-    repaint(updateRect);
-    toc();
+//    repaint(updateRect);
 //    update();
 
+    if (currentCurve.points.size() % 5 == 0)
+        repaint();
+
     previousMousePos = mousePos;
-}
-
-void Widget::doNothing()
-{
-
 }
 
 void Widget::stopDrawing(QPointF mousePos, qreal pressure)

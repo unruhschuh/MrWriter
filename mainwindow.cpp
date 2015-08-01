@@ -1218,6 +1218,7 @@ void MainWindow::pageSettings()
             mainWidget->undoStack.push(cpsCommand);
         }
     }
+    delete pageDialog;
 }
 
 void MainWindow::saveMyState()

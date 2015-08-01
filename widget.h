@@ -9,6 +9,7 @@
 #define MAX_ZOOM 10.0
 
 #include <QWidget>
+#include <QOpenGLWidget>
 #include <QVector>
 #include <QPainter>
 #include <QTabletEvent>
@@ -23,11 +24,10 @@
 #include "selection.h"
 
 class Widget : public QWidget
+//class Widget : public QOpenGLWidget
 {
     Q_OBJECT
 public:
-    void doNothing();
-
     explicit Widget(QWidget *parent = 0);
 
     enum class tool  { NONE, PEN    , RULER , CIRCLE  , ERASER   , SELECT                                   , HAND };
