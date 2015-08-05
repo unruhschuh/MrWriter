@@ -918,7 +918,7 @@ void Widget::continueDrawing(QPointF mousePos, qreal pressure)
 //    repaint(updateRect);
 //    update();
 
-    if (currentCurve.points.size() % 5 == 0)
+//    if (currentCurve.points.size() % 5 == 0)
         repaint();
 
     previousMousePos = mousePos;

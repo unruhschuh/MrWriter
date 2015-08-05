@@ -400,11 +400,25 @@ bool Document::loadMOJ(QString fileName)
                 QStringRef strokeWidth = attributes.value("", "width");
                 newCurve.penWidth = strokeWidth.toDouble();
                 QString elementText = reader.readElementText();
-                QStringList elementTextList = elementText.split(" ");
-                for (int i = 0; i+2 < elementTextList.size(); i = i + 3)
+                QStringList elementTextList = elementText.trimmed().split(" ");
+                for (int i = 0; i+1 < elementTextList.size(); i = i + 2)
                 {
                     newCurve.points.append(QPointF(elementTextList.at(i).toDouble(), elementTextList.at(i+1).toDouble()));
-                    newCurve.pressures.append(elementTextList.at(i+2).toDouble());
+                }
+                QStringRef pressures = attributes.value("pressures");
+                QStringList pressuresList = pressures.toString().trimmed().split(" ");
+                for (int i = 0; i < pressuresList.length(); ++i)
+                {
+                    if (pressuresList.length() == 0)
+                    {
+                        newCurve.pressures.append(1.0);
+                    } else {
+                        newCurve.pressures.append(pressuresList.at(i).toDouble());
+                    }
+                }
+                if (newCurve.pressures.size() != newCurve.points.size())
+                {
+                    return false;
                 }
                 pages.last().curves.append(newCurve);
                 strokeCount++;
@@ -444,9 +458,10 @@ bool Document::saveMOJ(QString fileName)
     writer.writeStartDocument("1.0", false);
     writer.writeStartElement("MrWriter");
     writer.writeAttribute(QXmlStreamAttribute("version", "0.1"));
+    writer.writeAttribute(QXmlStreamAttribute("document-version", "0"));
 
     writer.writeStartElement("title");
-    writer.writeCharacters("MrWriter document - see http://unruhschuh.com/MrWriter/");
+    writer.writeCharacters("MrWriter document - see http://unruhschuh.com/mrwriter/");
     writer.writeEndElement();
 
     for (int i = 0; i < pages.size(); ++i)
@@ -487,15 +502,21 @@ bool Document::saveMOJ(QString fileName)
             writer.writeAttribute(QXmlStreamAttribute("style", patternString));
             qreal width = pages[i].curves[j].penWidth;
             writer.writeAttribute(QXmlStreamAttribute("width", QString::number(width)));
+            QString pressures;
+            for (int k = 0; k < pages[i].curves[j].pressures.length(); ++k)
+            {
+                pressures.append(QString::number(pages[i].curves[j].pressures[k])).append(" ");
+            }
+            writer.writeAttribute((QXmlStreamAttribute("pressures", pressures.trimmed())));
+            QString points;
             for (int k = 0; k < pages[i].curves[j].points.size(); ++k)
             {
-                writer.writeCharacters(QString::number(pages[i].curves[j].points[k].x()));
-                writer.writeCharacters(" ");
-                writer.writeCharacters(QString::number(pages[i].curves[j].points[k].y()));
-                writer.writeCharacters(" ");
-                writer.writeCharacters(QString::number(pages[i].curves[j].pressures[k]));
-                writer.writeCharacters(" ");
+                points.append(QString::number(pages[i].curves[j].points[k].x()));
+                points.append(" ");
+                points.append(QString::number(pages[i].curves[j].points[k].y()));
+                points.append(" ");
             }
+            writer.writeCharacters(points.trimmed());
             writer.writeEndElement(); // closing "stroke"
         }
 
