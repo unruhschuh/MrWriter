@@ -851,15 +851,16 @@ void Widget::continueCircling(QPointF mousePos)
         drawOnBuffer(currentCurve.points.at(i), currentCurve.points.at(i+1), 1, 1);
     }
 
-
-    QRect updateRect(firstMousePos.toPoint(), mousePos.toPoint());
-    QRect oldUpdateRect(firstMousePos.toPoint(), previousMousePos.toPoint());
-    updateRect = updateRect.normalized().united(oldUpdateRect.normalized());
+/*
+//    QRect updateRect(firstMousePos.toPoint(), mousePos.toPoint());
+//    QRect oldUpdateRect(firstMousePos.toPoint(), previousMousePos.toPoint());
+    QRect updateRect = currentCurve.points.boundingRect().toRect();
+//    updateRect = updateRect.normalized().united(oldUpdateRect.normalized());
     int rad = currentPenWidth * zoom / 2 + 2;
     updateRect = updateRect.normalized().adjusted(-rad, -rad, +rad, +rad);
-
-    update(updateRect);
-//    update();
+*/
+//    update(updateRect);
+    update();
 
     previousMousePos = mousePos;
 }
@@ -914,12 +915,12 @@ void Widget::continueDrawing(QPointF mousePos, qreal pressure)
     int rad = currentPenWidth * zoom / 2 + 2;
     updateRect = updateRect.normalized().adjusted(-rad, -rad, +rad, +rad);
 
-//    update(updateRect);
+    update(updateRect);
 //    repaint(updateRect);
 //    update();
 
 //    if (currentCurve.points.size() % 5 == 0)
-        repaint();
+//        repaint();
 
     previousMousePos = mousePos;
 }
