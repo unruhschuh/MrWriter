@@ -19,11 +19,6 @@ int main(int argc, char *argv[])
 
     const QStringList args = parser.positionalArguments();
 
-    for (int i = 0; i < args.size(); ++i)
-    {
-        qDebug() << args.at(i);
-    }
-
     MainWindow *w = new MainWindow();
     a.mainWindows.append(w);
 
@@ -46,6 +41,7 @@ int main(int argc, char *argv[])
         }
     }
     w->show();
+    w->updateGUI();
 
     return a.exec();
 }

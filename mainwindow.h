@@ -21,6 +21,8 @@ public:
     bool loadXOJ(QString fileName);
     bool loadMOJ(QString fileName);
 
+    void updateGUI();
+
 protected:
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
     void showEvent(QShowEvent *event) Q_DECL_OVERRIDE;
@@ -49,8 +51,6 @@ private slots:
     void eraser();
     void select();
     void hand();
-
-    void updateGUI();
 
     void modified();
 
