@@ -1201,6 +1201,11 @@ bool MainWindow::loadXOJ(QString fileName)
     return mainWidget->currentDocument->loadXOJ(fileName);
 }
 
+bool MainWindow::loadMOJ(QString fileName)
+{
+    return mainWidget->currentDocument->loadMOJ(fileName);
+}
+
 void MainWindow::pageSettings()
 {
     int pageNum = mainWidget->getCurrentPage();
