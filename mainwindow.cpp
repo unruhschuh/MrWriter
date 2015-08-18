@@ -1082,6 +1082,7 @@ bool MainWindow::maybeSave()
 
 void MainWindow::updateGUI()
 {
+    qInfo() << "updateGUI";
     QColor currentColor = mainWidget->getCurrentColor();
 
     blackAct->setChecked(currentColor == Document::black);

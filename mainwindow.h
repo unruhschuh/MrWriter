@@ -21,13 +21,13 @@ public:
     bool loadXOJ(QString fileName);
     bool loadMOJ(QString fileName);
 
-    void updateGUI();
 
 protected:
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
     void showEvent(QShowEvent *event) Q_DECL_OVERRIDE;
 
 public slots:
+    void updateGUI();
 
 private slots:
     void newWindow();

@@ -238,7 +238,7 @@ void Widget::paintEvent(QPaintEvent *event)
 
 void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::MouseButtons buttons, Qt::KeyboardModifiers keyboardModifiers, QTabletEvent::PointerType pointerType, QEvent::Type eventType, qreal pressure, bool tabletEvent)
 {
-    qInfo() << qApp->queryKeyboardModifiers();
+//    qInfo() << qApp->queryKeyboardModifiers();
 
     // Under Linux the keyboard modifiers are not reported to tabletevent. this should work
     // everywhere.
@@ -374,6 +374,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
         if (eventType == QEvent::MouseButtonRelease)
         {
             stopSelecting(mousePos);
+            emit updateGUI();
             setPreviousTool();
             return;
         }
