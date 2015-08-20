@@ -1439,6 +1439,9 @@ void Widget::paste()
     PasteCommand *pasteCommand = new PasteCommand(this, tmpSelection);
     undoStack.push(pasteCommand);
     undoStack.endMacro();
+
+    currentDocument->setDocumentChanged(true);
+    emit modified();
 }
 
 void Widget::cut()

@@ -9,5 +9,7 @@
 #define MY_MAJOR_VERSION 0
 #define MY_MINOR_VERSION 1
 
+#define MY_DOC_VERSION 0
+
 #endif // VERSION_H
 
