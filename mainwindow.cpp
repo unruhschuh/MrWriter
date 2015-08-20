@@ -1082,6 +1082,7 @@ bool MainWindow::maybeSave()
 
 void MainWindow::updateGUI()
 {
+    qInfo() << "updateGUI";
     QColor currentColor = mainWidget->getCurrentColor();
 
     blackAct->setChecked(currentColor == Document::black);
@@ -1199,6 +1200,13 @@ void MainWindow::maximize()
 bool MainWindow::loadXOJ(QString fileName)
 {
     return mainWidget->currentDocument->loadXOJ(fileName);
+    updateGUI();
+}
+
+bool MainWindow::loadMOJ(QString fileName)
+{
+    return mainWidget->currentDocument->loadMOJ(fileName);
+    updateGUI();
 }
 
 bool MainWindow::loadMOJ(QString fileName)

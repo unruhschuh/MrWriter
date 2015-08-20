@@ -351,6 +351,15 @@ bool Document::loadMOJ(QString fileName)
     while (!reader.atEnd())
     {
         reader.readNext();
+        if (reader.name() == "MrWriter" && reader.tokenType() == QXmlStreamReader::StartElement)
+        {
+            QXmlStreamAttributes attributes = reader.attributes();
+            QStringRef docversion = attributes.value("document-version");
+            if (docversion.toInt() > MY_DOC_VERSION)
+            {
+                // TODO warn about newer document version
+            }
+        }
         if (reader.name() == "page" && reader.tokenType() == QXmlStreamReader::StartElement)
         {
             QXmlStreamAttributes attributes = reader.attributes();

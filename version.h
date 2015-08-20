@@ -11,5 +11,7 @@
 
 #define DOC_VERSION 1
 
+#define MY_DOC_VERSION 0
+
 #endif // VERSION_H
 

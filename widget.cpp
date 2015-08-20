@@ -238,6 +238,12 @@ void Widget::paintEvent(QPaintEvent *event)
 
 void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::MouseButtons buttons, Qt::KeyboardModifiers keyboardModifiers, QTabletEvent::PointerType pointerType, QEvent::Type eventType, qreal pressure, bool tabletEvent)
 {
+//    qInfo() << qApp->queryKeyboardModifiers();
+
+    // Under Linux the keyboard modifiers are not reported to tabletevent. this should work
+    // everywhere.
+    keyboardModifiers = qApp->queryKeyboardModifiers();
+
     // bencmark
     if (eventType == QEvent::MouseButtonPress)
     {
@@ -368,6 +374,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
         if (eventType == QEvent::MouseButtonRelease)
         {
             stopSelecting(mousePos);
+            emit updateGUI();
             setPreviousTool();
             return;
         }
@@ -521,6 +528,9 @@ void Widget::tabletEvent(QTabletEvent *event)
 
     Qt::KeyboardModifiers keyboardModifiers = event->modifiers();
 
+//    qInfo() << keyboardModifiers;
+//    qInfo() << "tabletEvent";
+
     mouseAndTabletEvent(mousePos, event->button(), event->buttons(), keyboardModifiers, event->pointerType(), eventType, pressure, true);
 
     penDown = true;
@@ -528,6 +538,7 @@ void Widget::tabletEvent(QTabletEvent *event)
 
 void Widget::mousePressEvent(QMouseEvent *event)
 {
+//    qInfo() << "mousePressEvent";
     bool usingTablet = static_cast<TabletApplication*>(qApp)->isUsingTablet();
 
     if (!usingTablet)
@@ -1428,6 +1439,9 @@ void Widget::paste()
     PasteCommand *pasteCommand = new PasteCommand(this, tmpSelection);
     undoStack.push(pasteCommand);
     undoStack.endMacro();
+
+    currentDocument->setDocumentChanged(true);
+    emit modified();
 }
 
 void Widget::cut()
