@@ -1209,11 +1209,6 @@ bool MainWindow::loadMOJ(QString fileName)
     updateGUI();
 }
 
-bool MainWindow::loadMOJ(QString fileName)
-{
-    return mainWidget->currentDocument->loadMOJ(fileName);
-}
-
 void MainWindow::pageSettings()
 {
     int pageNum = mainWidget->getCurrentPage();
