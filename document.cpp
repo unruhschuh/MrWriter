@@ -1,6 +1,7 @@
 #include "document.h"
 
 #include "qcompressor.h"
+#include "version.h"
 
 #include <QPdfWriter>
 #include <QPrinter>
@@ -438,7 +439,6 @@ bool Document::loadMOJ(QString fileName)
         docName = fileInfo.completeBaseName();
         return true;
     }
-
 }
 
 bool Document::saveMOJ(QString fileName)
@@ -457,8 +457,11 @@ bool Document::saveMOJ(QString fileName)
 
     writer.writeStartDocument("1.0", false);
     writer.writeStartElement("MrWriter");
-    writer.writeAttribute(QXmlStreamAttribute("version", "0.1"));
-    writer.writeAttribute(QXmlStreamAttribute("document-version", "0"));
+    QString version;
+    version.append(QString::number(MAJOR_VERSION)).append(".").append(QString::number(MINOR_VERSION));
+    writer.writeAttribute(QXmlStreamAttribute("version", version));
+    QString docVersion = QString::number(DOC_VERSION);
+    writer.writeAttribute(QXmlStreamAttribute("docversion", docVersion));
 
     writer.writeStartElement("title");
     writer.writeCharacters("MrWriter document - see http://unruhschuh.com/mrwriter/");

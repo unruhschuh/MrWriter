@@ -3,11 +3,13 @@
 #ifndef VERSION_H
 #define VERSION_H
 
-#define MY_PRODUCT_NAME "MrWriter"
-#define MY_PRODUCT_URL "http://www.unruhschuh.com/MrWriter"
+#define PRODUCT_NAME "MrWriter"
+#define PRODUCT_URL "http://www.unruhschuh.com/mrwriter"
 
-#define MY_MAJOR_VERSION 0
-#define MY_MINOR_VERSION 1
+#define MAJOR_VERSION 0
+#define MINOR_VERSION 1
+
+#define DOC_VERSION 1
 
 #endif // VERSION_H
 

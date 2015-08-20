@@ -109,7 +109,7 @@ void MainWindow::setTitle()
     } else {
         docName = mainWidget->currentDocument->getDocName();
     }
-    QString title = MY_PRODUCT_NAME;
+    QString title = PRODUCT_NAME;
     title.append(" - ");
     title.append(docName);
     title.append("[*]");
@@ -952,15 +952,15 @@ void MainWindow::white()
 void MainWindow::about()
 {
     QString version;
-    version = version.append(QString::number(MY_MAJOR_VERSION));
+    version = version.append(QString::number(MAJOR_VERSION));
     version = version.append(".");
-    version = version.append(QString::number(MY_MINOR_VERSION));
+    version = version.append(QString::number(MINOR_VERSION));
     QMessageBox msgBox(this);
     msgBox.setWindowTitle("About");
     msgBox.setTextFormat(Qt::RichText);   //this is what makes the links clickable
     QString aboutText;
     aboutText = aboutText.append("<center>");
-    aboutText = aboutText.append(MY_PRODUCT_NAME);
+    aboutText = aboutText.append(PRODUCT_NAME);
     aboutText = aboutText.append(" ");
     aboutText = aboutText.append(version);
     aboutText = aboutText.append("<br/><br/>Written by Thomas Leitz<br/><br/><a href='http://www.unruhschuh.com'>unruhschuh.com/MrWriter</a></center>");
@@ -1199,6 +1199,11 @@ void MainWindow::maximize()
 bool MainWindow::loadXOJ(QString fileName)
 {
     return mainWidget->currentDocument->loadXOJ(fileName);
+}
+
+bool MainWindow::loadMOJ(QString fileName)
+{
+    return mainWidget->currentDocument->loadMOJ(fileName);
 }
 
 void MainWindow::pageSettings()

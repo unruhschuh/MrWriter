@@ -1,4 +1,5 @@
 #include <QFileOpenEvent>
+#include <QMessageBox>
 #include "tabletapplication.h"
 #include "mainwindow.h"
 //#include "mainwindow.h"
@@ -26,9 +27,25 @@ bool TabletApplication::event(QEvent *event)
     {
         QString fileName = static_cast<QFileOpenEvent*>(event)->file();
         MainWindow* newWindow = new MainWindow();
-        newWindow->loadXOJ(fileName);
-        mainWindows.append(newWindow);
-        newWindow->show();
+        QStringList fileNameSplitted = fileName.split(".");
+        bool success;
+        if (fileNameSplitted.last().compare(QString("xoj"), Qt::CaseInsensitive) == 0)
+        {
+            success = newWindow->loadXOJ(fileName);
+        } else if(fileNameSplitted.last().compare(QString("moj"), Qt::CaseInsensitive) == 0) {
+            success = newWindow->loadMOJ(fileName);
+        }
+
+        if (success)
+        {
+            mainWindows.append(newWindow);
+            newWindow->show();
+        } else {
+            delete newWindow;
+            QMessageBox errMsgBox;
+            errMsgBox.setText("Couldn't open file");
+            errMsgBox.exec();
+        }
     }
 
     return QApplication::event(event);

@@ -19,8 +19,8 @@ HEADERS  += version.h \
     pagesettingsdialog.h \
     colorbutton.h
 
-VERSION_MAJOR = MY_MAJOR_VERSION
-VERSION_MINOR = MY_MINOR_VERSION
+#VERSION_MAJOR = MY_MAJOR_VERSION
+#VERSION_MINOR = MY_MINOR_VERSION
 
 SOURCES += main.cpp\
         mainwindow.cpp \
