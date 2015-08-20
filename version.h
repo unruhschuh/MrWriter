@@ -13,5 +13,8 @@
 
 #define MY_DOC_VERSION 0
 
+// idea from https://forum.qt.io/topic/41021/solved-how-to-generate-build-number/2
+#define BUILD QString("%1%2").arg(QLocale(QLocale::C).toDate(QString(__DATE__).simplified(), QLatin1String("MMM d yyyy")).toString("yyyyMMdd")).arg(QString("%1%2%3%4%5%6").arg(__TIME__[0]).arg(__TIME__[1]).arg(__TIME__[3]).arg(__TIME__[4]).arg(__TIME__[6]).arg(__TIME__[7]))
+
 #endif // VERSION_H
 

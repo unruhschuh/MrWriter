@@ -963,6 +963,8 @@ void MainWindow::about()
     aboutText = aboutText.append(PRODUCT_NAME);
     aboutText = aboutText.append(" ");
     aboutText = aboutText.append(version);
+    aboutText = aboutText.append(" Build ");
+    aboutText = aboutText.append(BUILD);
     aboutText = aboutText.append("<br/><br/>Written by Thomas Leitz<br/><br/><a href='http://www.unruhschuh.com'>unruhschuh.com/MrWriter</a></center>");
     msgBox.setText(aboutText);
     msgBox.setStandardButtons(QMessageBox::Ok);
