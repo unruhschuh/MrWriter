@@ -538,6 +538,7 @@ void Widget::tabletEvent(QTabletEvent *event)
 
 void Widget::mousePressEvent(QMouseEvent *event)
 {
+    return; // ignore mouse event
 //    qInfo() << "mousePressEvent";
     bool usingTablet = static_cast<TabletApplication*>(qApp)->isUsingTablet();
 
@@ -556,6 +557,7 @@ void Widget::mousePressEvent(QMouseEvent *event)
 
 void Widget::mouseMoveEvent(QMouseEvent *event)
 {
+    return; // ignore mouse event
     bool usingTablet = static_cast<TabletApplication*>(qApp)->isUsingTablet();
 
     if (!usingTablet)
@@ -573,6 +575,7 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
 
 void Widget::mouseReleaseEvent(QMouseEvent *event)
 {
+    return; // ignore mouse event
     bool usingTablet = static_cast<TabletApplication*>(qApp)->isUsingTablet();
 
     if (!usingTablet)
