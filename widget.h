@@ -17,6 +17,7 @@
 #include <QScrollArea>
 
 #include <QTime>
+#include <QTimer>
 
 #include "tabletapplication.h"
 #include "curve.h"
@@ -101,6 +102,8 @@ private:
 
     QTime timer;
 
+    QTimer *updateTimer;
+
     qreal count;
 
     void scrollDocumentToPageNum(int pageNum);
@@ -113,6 +116,7 @@ private:
     QCursor eraserCursor;
 
     Curve currentCurve;
+    QRect currentUpdateRect;
 
     state currentState;
 
@@ -186,6 +190,8 @@ private slots:
     void dashPattern();
     void dashDotPattern();
     void dotPattern();
+
+    void updateWhileDrawing();
 
 signals:
     void pen();

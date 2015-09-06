@@ -17,6 +17,7 @@
 #include <QDebug>
 #include <QtConcurrent>
 #include <QSettings>
+#include <QTimer>
 #include <qmath.h>
 
 #define PAGE_GAP 10.0
@@ -72,6 +73,9 @@ Widget::Widget(QWidget *parent) : QWidget(parent)
 
     parent->updateGeometry();
     parent->update();
+
+    updateTimer = new QTimer(this);
+    connect(updateTimer, SIGNAL(timeout()), this, SLOT(updateWhileDrawing()));
 }
 
 void Widget::updateAllPageBuffers()
@@ -191,6 +195,8 @@ void Widget::paintEvent(QPaintEvent *event)
     setAutoFillBackground(true);
     setPalette(p);
 
+//    qInfo() << "Paint Event";
+
     QPainter painter(this);
 
     if (currentState == state::DRAWING)
@@ -236,6 +242,11 @@ void Widget::paintEvent(QPaintEvent *event)
     }
 }
 
+void Widget::updateWhileDrawing()
+{
+    update(currentUpdateRect);
+}
+
 void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::MouseButtons buttons, Qt::KeyboardModifiers keyboardModifiers, QTabletEvent::PointerType pointerType, QEvent::Type eventType, qreal pressure, bool tabletEvent)
 {
 //    qInfo() << qApp->queryKeyboardModifiers();
@@ -258,7 +269,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
     if (eventType == QEvent::MouseButtonRelease)
     {
         ++count;
-        qDebug() << static_cast<qreal>(count) / static_cast<qreal>(timer.elapsed()) * 1000.0;
+        qInfo() << static_cast<qreal>(count) / static_cast<qreal>(timer.elapsed()) * 1000.0;
     }
     // end benchmark
 
@@ -893,8 +904,12 @@ void Widget::stopCircling(QPointF mousePos)
 
 void Widget::startDrawing(QPointF mousePos, qreal pressure)
 {
+    updateTimer->start(33); // 33 -> 30 fps
+
     currentDocument->setDocumentChanged(true);
     emit modified();
+
+    currentUpdateRect = QRect();
 
     int pageNum = getPageFromMousePos(mousePos);
     QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
@@ -929,7 +944,9 @@ void Widget::continueDrawing(QPointF mousePos, qreal pressure)
     int rad = currentPenWidth * zoom / 2 + 2;
     updateRect = updateRect.normalized().adjusted(-rad, -rad, +rad, +rad);
 
-    update(updateRect);
+    currentUpdateRect = currentUpdateRect.united(updateRect);
+
+//    update(updateRect);
 //    repaint(updateRect);
 //    update();
 
@@ -941,6 +958,8 @@ void Widget::continueDrawing(QPointF mousePos, qreal pressure)
 
 void Widget::stopDrawing(QPointF mousePos, qreal pressure)
 {
+    updateTimer->stop();
+
     QPointF pagePos = getPagePosFromMousePos(mousePos, drawingOnPage);
 
     currentCurve.points.append(pagePos);
