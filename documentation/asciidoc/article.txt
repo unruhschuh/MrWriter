@@ -1,0 +1,29 @@
+// test
+MrWriter
+--------
+
+MrWriter is a programm aimed at replacing pen an paper for note taking as well as blackboards in schools and universities. 
+You can find the newest version at http://www.unruhschuh.com/mrwriter[MrWriter]
+
+Users Guide
+~~~~~~~~~~
+
+Tools
+^^^^^
+
+* pen tool
+* ruler tool
+
+Keyboard shortcuts
+^^^^^^^^^^^^^^^^^^
+MrWriter makes excessive use of keyboard shortcuts. Table TODO shows a complete list of all shortcuts.
+
+.Shortcuts
+|====================
+| action | Key
+| pen tool | 1
+| ruler tool | 2
+| circle tool | 3
+|====================
+
+
