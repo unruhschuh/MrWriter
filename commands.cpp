@@ -14,37 +14,53 @@ AddCurveCommand::AddCurveCommand(Widget *newWidget, int newPageNum, const Curve 
     curveNum = newCurveNum;
     update = newUpdate;
     updateSuccessive = newUpdateSuccessive;
+
+    // delete duplicate points
+    for (int i = curve.points.length()-1; i > 0; --i)
+    {
+        if (curve.points.at(i) == curve.points.at(i-1))
+        {
+            curve.points.removeAt(i);
+            curve.pressures.removeAt(i);
+        }
+    }
 }
 
 void AddCurveCommand::undo()
 {
-    if (curveNum == -1)
+    if (curve.points.length() > 0)
     {
-        widget->currentDocument->pages[pageNum].curves.removeLast();
-    } else {
-        widget->currentDocument->pages[pageNum].curves.removeAt(curveNum);
-    }
-    if (update)
-    {
-        widget->updateBuffer(pageNum);
-        widget->update();
+        if (curveNum == -1)
+        {
+            widget->currentDocument->pages[pageNum].curves.removeLast();
+        } else {
+            widget->currentDocument->pages[pageNum].curves.removeAt(curveNum);
+        }
+        if (update)
+        {
+            widget->updateBuffer(pageNum);
+            widget->update();
+        }
     }
 }
 
 void AddCurveCommand::redo()
 {
-    if (curveNum == -1)
+    if (curve.points.length() > 0)
     {
-        widget->currentDocument->pages[pageNum].curves.append(curve);
-    } else {
-        widget->currentDocument->pages[pageNum].curves.insert(curveNum, curve);
-    }
-    if (update)
-    {
-        widget->updateBuffer(pageNum);
-        widget->update();
-    } else if (updateSuccessive) {
-        update = true; // update is turned off for the first redo
+        if (curveNum == -1)
+        {
+            widget->currentDocument->pages[pageNum].curves.append(curve);
+        } else {
+            widget->currentDocument->pages[pageNum].curves.insert(curveNum, curve);
+        }
+        if (update)
+        {
+            widget->updateBuffer(pageNum);
+            widget->update();
+        } else if (updateSuccessive) {
+            update = true; // update is turned off for the first redo
+        }
     }
 }
 

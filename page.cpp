@@ -77,6 +77,14 @@ void Page::paint(QPainter &painter, qreal zoom, QRectF region, bool pdf)
                 }
             }
         }
+        if (curve.points.length() == 1)
+        {
+            QRectF pointRect(zoom * curve.points[0], QSizeF(0,0));
+            qreal pad = curve.penWidth * zoom / 2;
+            painter.setPen(Qt::NoPen);
+            painter.setBrush(QBrush(curve.color));
+            painter.drawEllipse(pointRect.adjusted(-pad,-pad,pad,pad));
+        }
     }
 }
 

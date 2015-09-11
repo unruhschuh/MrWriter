@@ -170,6 +170,15 @@ void Widget::drawOnBuffer(QPointF from, QPointF to, qreal pressureFrom, qreal pr
     painter.setPen(pen);
     painter.drawLine(zoom * from, zoom * to);
 
+    if (from == to)
+    {
+        QRectF pointRect(zoom * from, QSizeF(0,0));
+        qreal pad = tmpPenWidth / 2;
+        painter.setPen(Qt::NoPen);
+        painter.setBrush(QBrush(currentColor));
+        painter.drawEllipse(pointRect.adjusted(-pad,-pad,pad,pad));
+    }
+
     painter.end();
 }
 
@@ -526,11 +535,14 @@ void Widget::tabletEvent(QTabletEvent *event)
     QEvent::Type eventType;
     if (event->type() == QTabletEvent::TabletPress)
     {
+        qInfo() << "tabletPressEvent";
         eventType = QEvent::MouseButtonPress;
+        penDown = true;
     }
     if (event->type() == QTabletEvent::TabletMove)
     {
         eventType = QEvent::MouseMove;
+        penDown = true;
     }
     if (event->type() == QTabletEvent::TabletRelease)
     {
@@ -544,13 +556,12 @@ void Widget::tabletEvent(QTabletEvent *event)
 
     mouseAndTabletEvent(mousePos, event->button(), event->buttons(), keyboardModifiers, event->pointerType(), eventType, pressure, true);
 
-    penDown = true;
 }
 
 void Widget::mousePressEvent(QMouseEvent *event)
 {
-    return; // ignore mouse event
-//    qInfo() << "mousePressEvent";
+//    return; // ignore mouse event
+    qInfo() << "mousePressEvent";
     bool usingTablet = static_cast<TabletApplication*>(qApp)->isUsingTablet();
 
     if (!usingTablet)
@@ -568,7 +579,8 @@ void Widget::mousePressEvent(QMouseEvent *event)
 
 void Widget::mouseMoveEvent(QMouseEvent *event)
 {
-    return; // ignore mouse event
+//    return; // ignore mouse event
+//    qInfo() << "mouseMoveEvent";
     bool usingTablet = static_cast<TabletApplication*>(qApp)->isUsingTablet();
 
     if (!usingTablet)
@@ -586,7 +598,8 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
 
 void Widget::mouseReleaseEvent(QMouseEvent *event)
 {
-    return; // ignore mouse event
+//    return; // ignore mouse event
+    qInfo() << "mouseReleaseEvent";
     bool usingTablet = static_cast<TabletApplication*>(qApp)->isUsingTablet();
 
     if (!usingTablet)
@@ -961,9 +974,12 @@ void Widget::stopDrawing(QPointF mousePos, qreal pressure)
     updateTimer->stop();
 
     QPointF pagePos = getPagePosFromMousePos(mousePos, drawingOnPage);
+    QPointF previousPagePos = getPagePosFromMousePos(previousMousePos, drawingOnPage);
 
+    qreal previousPressure = currentCurve.pressures.last();
     currentCurve.points.append(pagePos);
     currentCurve.pressures.append(pressure);
+    drawOnBuffer(previousPagePos, pagePos, previousPressure, pressure);
 
 //    currentDocument->pages[drawingOnPage].curves.append(currentCurve);
     AddCurveCommand* addCommand = new AddCurveCommand(this, drawingOnPage, currentCurve, -1, false, true);

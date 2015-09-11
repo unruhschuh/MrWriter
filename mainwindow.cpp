@@ -667,6 +667,7 @@ void MainWindow::newFile()
     if (maybeSave())
     {
         mainWidget->newFile();
+        updateGUI();
     } else {
         // ignore
     }
