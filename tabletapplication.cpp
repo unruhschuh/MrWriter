@@ -1,5 +1,6 @@
 #include <QFileOpenEvent>
 #include <QMessageBox>
+#include <QDebug>
 #include "tabletapplication.h"
 #include "mainwindow.h"
 //#include "mainwindow.h"
@@ -56,4 +57,17 @@ bool TabletApplication::isUsingTablet()
     return usingTablet;
 }
 
+void TabletApplication::exit()
+{
+    qInfo() << "Exit";
 
+    qInfo() << mainWindows.length();
+
+    while (mainWindows.length() > 0)
+    {
+        if (mainWindows.last()->close() == false)
+        {
+            return;
+        }
+    }
+}

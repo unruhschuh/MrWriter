@@ -19,6 +19,9 @@ public:
 
     Selection clipboard;
 
+public slots:
+    void exit();
+
 protected:
     bool event(QEvent *event) Q_DECL_OVERRIDE;
 

@@ -45,6 +45,7 @@ along with MrWriter.  If not, see <http://www.gnu.org/licenses/>.
 #include "mainwindow.h"
 #include "pagesettingsdialog.h"
 #include "commands.h"
+#include "tabletapplication.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
@@ -167,6 +168,12 @@ void MainWindow::createActions()
     exportXOJAct = new QAction(tr("Export Xournal File"), this);
     exportXOJAct->setStatusTip(tr("Export Xournal File"));
     connect(exportXOJAct, SIGNAL(triggered()), this, SLOT(exportXOJ()));
+
+    exitAct = new QAction(tr("E&xit"), this);
+    exitAct->setShortcuts(QKeySequence::Quit);
+    exitAct->setStatusTip(tr("Exit MrWriter"));
+    TabletApplication *qTabApp = static_cast<TabletApplication*>(qApp);
+    connect(exitAct, SIGNAL(triggered()), this, SLOT(exit()));
 
     undoAct = mainWidget->undoStack.createUndoAction(this);
 //    undoAct = new QAction(QIcon(":/images/undoIcon.png"), tr("&Undo"), this);
@@ -496,7 +503,8 @@ void MainWindow::createMenus()
     fileMenu->addAction(exportPDFAct);
     fileMenu->addAction(importXOJAct);
     fileMenu->addAction(exportXOJAct);
-//    fileMenu->addAction(quitAct);
+    fileMenu->addSeparator();
+    fileMenu->addAction(exitAct);
 
     editMenu = menuBar()->addMenu(tr("&Edit"));
     editMenu->addAction(undoAct);
@@ -1258,4 +1266,9 @@ void MainWindow::loadMyGeometry()
 {
     QSettings settings;
     restoreGeometry(settings.value("MainWindow/geometry").toByteArray());
+}
+
+void MainWindow::exit()
+{
+    static_cast<TabletApplication*>(qApp)->exit();
 }

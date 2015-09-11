@@ -39,6 +39,8 @@ private slots:
     void importXOJ();
     bool exportXOJ();
 
+    void exit();
+
     void zoomIn();
     void zoomOut();
     void zoomFitWidth();
@@ -107,6 +109,7 @@ private:
     QAction *openFileAct;
     QAction *saveFileAct;
     QAction *exportPDFAct;
+    QAction *exitAct;
 
     QAction *importXOJAct;
     QAction *exportXOJAct;
