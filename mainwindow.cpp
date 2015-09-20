@@ -36,6 +36,8 @@ along with MrWriter.  If not, see <http://www.gnu.org/licenses/>.
 #include <QPageSize>
 #include <QSettings>
 #include <QDateTime>
+#include <QWebEngineView>
+#include <QBoxLayout>
 
 #include <iostream>
 
@@ -481,6 +483,10 @@ void MainWindow::createActions()
     rotateAct->setShortcut(QKeySequence(Qt::Modifier::CTRL +  Qt::Key_R));
     connect(rotateAct, SIGNAL(triggered()), this, SLOT(rotate()));
 
+    helpAct = new QAction(tr("&Help"), this);
+    helpAct->setShortcut(QKeySequence(Qt::Key_F1));
+    connect(helpAct, SIGNAL(triggered()), this, SLOT(help()));
+
     aboutAct = new QAction(tr("&About"), this);
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
 
@@ -564,6 +570,7 @@ void MainWindow::createMenus()
     viewMenu->addAction(loadMyStateAct);
 
     helpMenu = menuBar()->addMenu(tr("&Help"));
+    helpMenu->addAction(helpAct);
     helpMenu->addAction(aboutAct);
     helpMenu->addAction(aboutQtAct);
 }
@@ -956,6 +963,22 @@ void MainWindow::white()
 {
     mainWidget->setCurrentColor(Document::white);
     updateGUI();
+}
+
+void MainWindow::help()
+{
+    QDialog *helpDialog = new QDialog();
+    QWebEngineView *helpView = new QWebEngineView(helpDialog);
+    QPushButton *closeButton = new QPushButton(helpDialog);
+    closeButton->setText(tr("Close"));
+    connect(closeButton, SIGNAL(clicked()), helpDialog, SLOT(close()));
+    QBoxLayout *helpLayout = new QBoxLayout(QBoxLayout::TopToBottom);
+    helpLayout->addWidget(helpView);
+    helpLayout->addWidget(closeButton);
+    helpDialog->setLayout(helpLayout);
+    helpView->load(QUrl("qrc:/documentation/MrWriterDoc.html"));
+
+    helpDialog->show();
 }
 
 void MainWindow::about()

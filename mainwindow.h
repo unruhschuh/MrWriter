@@ -76,6 +76,7 @@ private slots:
 
     void rotate();
 
+    void help();
     void about();
 
     void saveMyState();
@@ -178,6 +179,7 @@ private:
     QAction *yellowAct;
     QAction *whiteAct;
 
+    QAction *helpAct;
     QAction *aboutAct;
     QAction *aboutQtAct;
 
