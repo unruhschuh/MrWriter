@@ -1101,18 +1101,29 @@ void Widget::erase(QPointF mousePos, bool invertEraser)
         const Curve curve = curves->at(i);
         if (rectE.intersects(curve.points.boundingRect()) || !curve.points.boundingRect().isValid() ) // this is done for speed
         {
-            for (int j = 0; j < curve.points.length()-1; ++j)
+            bool foundCurveToDelete = false;
+            for (int j = 0; j < curve.points.length(); ++j)
             {
-                QLineF line = QLineF(curve.points.at(j), curve.points.at(j+1));
-                if (line.intersect(lineA, &iPoint) == QLineF::BoundedIntersection ||
-                    line.intersect(lineB, &iPoint) == QLineF::BoundedIntersection ||
-                    line.intersect(lineC, &iPoint) == QLineF::BoundedIntersection ||
-                    line.intersect(lineD, &iPoint) == QLineF::BoundedIntersection ||
-                    rectE.contains(curve.points.at(j)) ||
-                    rectE.contains(curve.points.at(j+1)))
+                if (rectE.contains(curve.points.at(j)))
                 {
                     curvesToDelete.append(i);
+                    foundCurveToDelete = true;
                     break;
+                }
+            }
+            if (foundCurveToDelete == false)
+            {
+                for (int j = 0; j < curve.points.length()-1; ++j)
+                {
+                    QLineF line = QLineF(curve.points.at(j), curve.points.at(j+1));
+                    if (line.intersect(lineA, &iPoint) == QLineF::BoundedIntersection ||
+                        line.intersect(lineB, &iPoint) == QLineF::BoundedIntersection ||
+                        line.intersect(lineC, &iPoint) == QLineF::BoundedIntersection ||
+                        line.intersect(lineD, &iPoint) == QLineF::BoundedIntersection)
+                    {
+                        curvesToDelete.append(i);
+                        break;
+                    }
                 }
             }
         }
@@ -1273,10 +1284,9 @@ void Widget::zoomTo(qreal newZoom)
 
 void Widget::zoomFitWidth()
 {
-//    QSize widgetSize = this->parentWidget()->size();
-    QSize widgetSize = scrollArea->size();
+    QSize widgetSize = this->parentWidget()->size();
+//    QSize widgetSize = scrollArea->size();
     int pageNum = getCurrentPage();
-    qDebug() << widgetSize;
     zoom = widgetSize.width() / currentDocument->pages[pageNum].getWidth();
 
     updateAllPageBuffers();
