@@ -429,19 +429,19 @@ void MainWindow::createActions()
     connect(redAct, SIGNAL(triggered()), this, SLOT(red()));
     this->addAction(redAct); // add to make shortcut work if menubar is hidden
 
-    blueAct = new QAction(QIcon(":/images/blueIcon.png"), tr("blue"), this);
-    blueAct->setShortcut(QKeySequence(Qt::Key_E));
-    blueAct->setStatusTip(tr("blue"));
-    blueAct->setCheckable(true);
-    connect(blueAct, SIGNAL(triggered()), this, SLOT(blue()));
-    this->addAction(blueAct); // add to make shortcut work if menubar is hidden
-
     greenAct = new QAction(QIcon(":/images/greenIcon.png"), tr("green"), this);
-    greenAct->setShortcut(QKeySequence(Qt::Key_R));
+    greenAct->setShortcut(QKeySequence(Qt::Key_E));
     greenAct->setStatusTip(tr("green"));
     greenAct->setCheckable(true);
     connect(greenAct, SIGNAL(triggered()), this, SLOT(green()));
     this->addAction(greenAct); // add to make shortcut work if menubar is hidden
+
+    blueAct = new QAction(QIcon(":/images/blueIcon.png"), tr("blue"), this);
+    blueAct->setShortcut(QKeySequence(Qt::Key_R));
+    blueAct->setStatusTip(tr("blue"));
+    blueAct->setCheckable(true);
+    connect(blueAct, SIGNAL(triggered()), this, SLOT(blue()));
+    this->addAction(blueAct); // add to make shortcut work if menubar is hidden
 
     grayAct = new QAction(QIcon(":/images/grayIcon.png"), tr("gray"), this);
     grayAct->setStatusTip(tr("gray"));
@@ -662,8 +662,8 @@ void MainWindow::createToolBars()
 
     toolsToolBar->addAction(blackAct);
     toolsToolBar->addAction(redAct);
-    toolsToolBar->addAction(blueAct);
     toolsToolBar->addAction(greenAct);
+    toolsToolBar->addAction(blueAct);
     toolsToolBar->addAction(grayAct);
     toolsToolBar->addAction(lightblueAct);
     toolsToolBar->addAction(lightgreenAct);
