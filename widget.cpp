@@ -1,8 +1,6 @@
 #include "widget.h"
-#include "stroke.h"
-#include "page.h"
 #include "tictoc.h"
-#include "document.h"
+#include "mrdoc.h"
 #include "commands.h"
 #include "tabletapplication.h"
 

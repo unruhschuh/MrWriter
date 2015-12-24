@@ -20,20 +20,7 @@
 
 namespace MrDoc {
 
-    const QColor Document::black = QColor(0,0,0);
-    const QColor Document::blue  = QColor(51,51,204);
-    const QColor Document::red   = QColor(255,0,0);
-    const QColor Document::green = QColor(0,128,0);
-    const QColor Document::gray  = QColor(128,128,128);
-    const QColor Document::lightblue = QColor(0,192,255);
-    const QColor Document::lightgreen = QColor(0,255,0);
-    const QColor Document::magenta= QColor(255,0,255);
-    const QColor Document::orange = QColor(255,128,0);
-    const QColor Document::yellow = QColor(255,255,0);
-    const QColor Document::white  = QColor(255,255,255);
 
-    const QVector<QString> Document::standardColorNames = QVector<QString>() << "black" << "blue" << "red" << "green" << "gray" << "lightblue" << "lightgreen" << "magenta" << "orange" << "yellow" << "white";
-    const QVector<QColor> Document::standardColors = QVector<QColor>() << Document::black << Document::blue << Document::red << Document::green << Document::gray << Document::lightblue << Document::lightgreen << Document::magenta << Document::orange << Document::yellow << Document::white;
 
     Document::Document()
     {

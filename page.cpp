@@ -1,4 +1,5 @@
 #include "page.h"
+#include "mrdoc.h"
 #include <QDebug>
 
 namespace MrDoc {

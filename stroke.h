@@ -6,6 +6,8 @@
 #include <QVector>
 #include <QVector2D>
 
+#include "mrdoc.h"
+
 namespace MrDoc {
 
     struct Stroke
@@ -28,4 +30,4 @@ namespace MrDoc {
 
 }
 
-#endif // CURVE_H
+#endif // STROKE_H

@@ -42,7 +42,7 @@ along with MrWriter.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 
 #include "widget.h"
-#include "document.h"
+#include "mrdoc.h"
 #include "version.h"
 #include "mainwindow.h"
 #include "pagesettingsdialog.h"
@@ -901,67 +901,67 @@ void MainWindow::modified()
 
 void MainWindow::black()
 {
-    mainWidget->setCurrentColor(MrDoc::Document::black);
+    mainWidget->setCurrentColor(MrDoc::black);
     updateGUI();
 }
 
 void MainWindow::blue()
 {
-    mainWidget->setCurrentColor(MrDoc::Document::blue);
+    mainWidget->setCurrentColor(MrDoc::blue);
     updateGUI();
 }
 
 void MainWindow::red()
 {
-    mainWidget->setCurrentColor(MrDoc::Document::red);
+    mainWidget->setCurrentColor(MrDoc::red);
     updateGUI();
 }
 
 void MainWindow::green()
 {
-    mainWidget->setCurrentColor(MrDoc::Document::green);
+    mainWidget->setCurrentColor(MrDoc::green);
     updateGUI();
 }
 
 void MainWindow::gray()
 {
-    mainWidget->setCurrentColor(MrDoc::Document::gray);
+    mainWidget->setCurrentColor(MrDoc::gray);
     updateGUI();
 }
 
 void MainWindow::lightblue()
 {
-    mainWidget->setCurrentColor(MrDoc::Document::lightblue);
+    mainWidget->setCurrentColor(MrDoc::lightblue);
     updateGUI();
 }
 
 void MainWindow::lightgreen()
 {
-    mainWidget->setCurrentColor(MrDoc::Document::lightgreen);
+    mainWidget->setCurrentColor(MrDoc::lightgreen);
     updateGUI();
 }
 
 void MainWindow::magenta()
 {
-    mainWidget->setCurrentColor(MrDoc::Document::magenta);
+    mainWidget->setCurrentColor(MrDoc::magenta);
     updateGUI();
 }
 
 void MainWindow::orange()
 {
-    mainWidget->setCurrentColor(MrDoc::Document::orange);
+    mainWidget->setCurrentColor(MrDoc::orange);
     updateGUI();
 }
 
 void MainWindow::yellow()
 {
-    mainWidget->setCurrentColor(MrDoc::Document::yellow);
+    mainWidget->setCurrentColor(MrDoc::yellow);
     updateGUI();
 }
 
 void MainWindow::white()
 {
-    mainWidget->setCurrentColor(MrDoc::Document::white);
+    mainWidget->setCurrentColor(MrDoc::white);
     updateGUI();
 }
 
@@ -1119,17 +1119,17 @@ void MainWindow::updateGUI()
     qInfo() << "updateGUI";
     QColor currentColor = mainWidget->getCurrentColor();
 
-    blackAct->setChecked(currentColor == MrDoc::Document::black);
-    blueAct->setChecked(currentColor == MrDoc::Document::blue);
-    redAct->setChecked(currentColor == MrDoc::Document::red);
-    greenAct->setChecked(currentColor == MrDoc::Document::green);
-    grayAct->setChecked(currentColor == MrDoc::Document::gray);
-    lightblueAct->setChecked(currentColor == MrDoc::Document::lightblue);
-    lightgreenAct->setChecked(currentColor == MrDoc::Document::lightgreen);
-    magentaAct->setChecked(currentColor == MrDoc::Document::magenta);
-    orangeAct->setChecked(currentColor == MrDoc::Document::orange);
-    yellowAct->setChecked(currentColor == MrDoc::Document::yellow);
-    whiteAct->setChecked(currentColor == MrDoc::Document::white);
+    blackAct->setChecked(currentColor == MrDoc::black);
+    blueAct->setChecked(currentColor == MrDoc::blue);
+    redAct->setChecked(currentColor == MrDoc::red);
+    greenAct->setChecked(currentColor == MrDoc::green);
+    grayAct->setChecked(currentColor == MrDoc::gray);
+    lightblueAct->setChecked(currentColor == MrDoc::lightblue);
+    lightgreenAct->setChecked(currentColor == MrDoc::lightgreen);
+    magentaAct->setChecked(currentColor == MrDoc::magenta);
+    orangeAct->setChecked(currentColor == MrDoc::orange);
+    yellowAct->setChecked(currentColor == MrDoc::yellow);
+    whiteAct->setChecked(currentColor == MrDoc::white);
 
     Widget::tool currentTool = mainWidget->getCurrentTool();
 

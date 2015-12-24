@@ -32,22 +32,7 @@ namespace MrDoc {
         bool getDocumentChanged();
         void setDocumentChanged(bool changed);
 
-        QVector<Page> pages;
-
-        const static QColor black;
-        const static QColor blue;
-        const static QColor red;
-        const static QColor green;
-        const static QColor gray;
-        const static QColor lightblue;
-        const static QColor lightgreen;
-        const static QColor magenta;
-        const static QColor orange;
-        const static QColor yellow;
-        const static QColor white;
-
-        const static QVector<QString> standardColorNames; // = QVector<QString>() << "black" << "blue" << "red" << "green" << "gray" << "lightblue" << "lightgreen" << "magenta" << "orange" << "yellow" << "white";
-        const static QVector<QColor> standardColors; // = QVector<QColor>() << black << blue << red << green << gray << lightblue << lightgreen << magenta << orange << yellow << white;
+        QVector<MrDoc::Page> pages;
 
         QString toRGBA(QString argb);
         QString toARGB(QString rgba);

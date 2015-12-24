@@ -1,18 +1,19 @@
 #ifndef SELECTION_H
 #define SELECTION_H
 
+//#include "mrdoc.h"
 #include "page.h"
-#include "stroke.h"
 
 namespace MrDoc {
-    class Selection : public MrDoc::Page
+
+    class Selection : public Page
     {
     public:
         Selection();
 
         void paint(QPainter &painter, qreal zoom);
 
-        void addStroke(MrDoc::Stroke newStroke);
+        void addStroke(Stroke newStroke);
 
         void transform(QTransform transform, int newPageNum);
 

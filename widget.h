@@ -20,9 +20,8 @@
 #include <QTimer>
 
 #include "tabletapplication.h"
-#include "stroke.h"
+#include "mrdoc.h"
 #include "document.h"
-#include "selection.h"
 
 class Widget : public QWidget
 //class Widget : public QOpenGLWidget

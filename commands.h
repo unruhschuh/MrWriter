@@ -2,10 +2,8 @@
 #define COMMANDS_H
 
 #include <QUndoCommand>
-#include "document.h"
 #include "widget.h"
-#include "page.h"
-#include "stroke.h"
+#include "mrdoc.h"
 
 class AddStrokeCommand : public QUndoCommand
 {
