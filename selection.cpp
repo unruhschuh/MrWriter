@@ -54,6 +54,15 @@ void Selection::paint(QPainter &painter, qreal zoom)
     QTransform scaleTrans;
     scaleTrans = scaleTrans.scale(zoom,zoom);
     painter.drawPolygon(scaleTrans.map(selectionPolygon), Qt::OddEvenFill);
+
+    // draw edges for grabbing to resize
+    pen.setWidthF(0.5);
+    painter.setPen(pen);
+    QRect brect = scaleTrans.map(selectionPolygon).boundingRect().toRect();
+    painter.drawLine(brect.topLeft() + QPointF(ad/2, 0), brect.bottomLeft() + QPointF(ad/2, 0));
+    painter.drawLine(brect.topRight() - QPointF(ad/2, 0), brect.bottomRight() - QPointF(ad/2, 0));
+    painter.drawLine(brect.topLeft() + QPointF(0, ad/2), brect.topRight() + QPointF(0, ad/2));
+    painter.drawLine(brect.bottomLeft() - QPointF(0, ad/2), brect.bottomRight() - QPointF(0, ad/2));
     painter.setRenderHint(QPainter::Antialiasing, false);
 
 }
@@ -76,7 +85,7 @@ void Selection::finalize()
     {
         boundingRect = boundingRect.united(curves.at(i).points.boundingRect());
     }
-    qreal ad = 10;
+
     boundingRect = boundingRect.adjusted(-ad,-ad,ad,ad);
     selectionPolygon = QPolygonF(boundingRect);
 

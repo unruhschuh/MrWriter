@@ -18,10 +18,12 @@ bool TabletApplication::event(QEvent *event)
     if (event->type() == QEvent::TabletEnterProximity)
     {
         usingTablet = true;
+        qInfo() << "Enter Proximity";
     }
     if (event->type() == QEvent::TabletLeaveProximity)
     {
         usingTablet = false;
+        qInfo() << "Leave Proximity";
     }
 
     if (event->type() == QEvent::FileOpen)

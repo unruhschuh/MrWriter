@@ -25,6 +25,8 @@ public:
     QPointF buffPos = QPointF(0,0);
     qreal lastZoom = 0.0;
 
+    qreal ad = 10;
+
     int pageNum;
 
 private:

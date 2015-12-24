@@ -260,6 +260,8 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
 {
 //    qInfo() << qApp->queryKeyboardModifiers();
 
+    qInfo() << pointerType;
+
     // Under Linux the keyboard modifiers are not reported to tabletevent. this should work
     // everywhere.
     keyboardModifiers = qApp->queryKeyboardModifiers();
