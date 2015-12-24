@@ -1150,18 +1150,18 @@ void MainWindow::updateGUI()
 
     QVector<qreal> currentPattern = mainWidget->getCurrentPattern();
 
-    solidPatternAct->setChecked(currentPattern == Curve::solidLinePattern);
-    dashPatternAct->setChecked(currentPattern == Curve::dashLinePattern);
-    dashDotPatternAct->setChecked(currentPattern == Curve::dashDotLinePattern);
-    dotPatternAct->setChecked(currentPattern == Curve::dotLinePattern);
+    solidPatternAct->setChecked(currentPattern == Stroke::solidLinePattern);
+    dashPatternAct->setChecked(currentPattern == Stroke::dashLinePattern);
+    dashDotPatternAct->setChecked(currentPattern == Stroke::dashDotLinePattern);
+    dotPatternAct->setChecked(currentPattern == Stroke::dotLinePattern);
 
-    if (currentPattern == Curve::solidLinePattern)
+    if (currentPattern == Stroke::solidLinePattern)
         patternToolButton->setIcon(QIcon(":/images/solidPatternIcon.png"));
-    if (currentPattern == Curve::dashLinePattern)
+    if (currentPattern == Stroke::dashLinePattern)
         patternToolButton->setIcon(QIcon(":/images/dashPatternIcon.png"));
-    if (currentPattern == Curve::dashDotLinePattern)
+    if (currentPattern == Stroke::dashDotLinePattern)
         patternToolButton->setIcon(QIcon(":/images/dashDotPatternIcon.png"));
-    if (currentPattern == Curve::dotLinePattern)
+    if (currentPattern == Stroke::dotLinePattern)
         patternToolButton->setIcon(QIcon(":/images/dotPatternIcon.png"));
 
     fullscreenAct->setChecked(isFullScreen());

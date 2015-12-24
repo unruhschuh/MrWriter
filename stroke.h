@@ -1,12 +1,12 @@
-#ifndef CURVE_H
-#define CURVE_H
+#ifndef STROKE_H
+#define STROKE_H
 
 #include <QObject>
 #include <QPainter>
 #include <QVector>
 #include <QVector2D>
 
-class Curve
+struct Stroke
 {
 public:
 //    enum class dashPattern { SolidLine, DashLine, DashDotLine, DotLine };
@@ -16,7 +16,7 @@ public:
     const static QVector<qreal> dashDotLinePattern;
     const static QVector<qreal> dotLinePattern;
 
-    Curve();
+    Stroke();
     QPolygonF points;
     QVector<qreal> pressures;
     QVector<qreal> pattern;

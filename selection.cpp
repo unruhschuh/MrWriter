@@ -70,9 +70,9 @@ void Selection::paint(QPainter &painter, qreal zoom)
 void Selection::transform(QTransform transform, int newPageNum)
 {
     selectionPolygon = transform.map(selectionPolygon);
-    for (int i = 0; i < curves.size(); ++i)
+    for (int i = 0; i < strokes.size(); ++i)
     {
-        curves[i].points = transform.map(curves[i].points);
+        strokes[i].points = transform.map(strokes[i].points);
     }
     buffPos = transform.map(buffPos);
     pageNum = newPageNum;
@@ -81,9 +81,9 @@ void Selection::transform(QTransform transform, int newPageNum)
 void Selection::finalize()
 {
     QRectF boundingRect;
-    for (int i = 0; i < curves.size(); ++i)
+    for (int i = 0; i < strokes.size(); ++i)
     {
-        boundingRect = boundingRect.united(curves.at(i).points.boundingRect());
+        boundingRect = boundingRect.united(strokes.at(i).points.boundingRect());
     }
 
     boundingRect = boundingRect.adjusted(-ad,-ad,ad,ad);
@@ -96,15 +96,15 @@ void Selection::finalize()
 //    std::cout << getWidth() << ", " << getHeight() << std::endl;
 }
 
-void Selection::addCurve(Curve newCurve)
+void Selection::addStroke(Stroke newStroke)
 {
-    curves.append(newCurve);
+    strokes.append(newStroke);
 
 //    QRectF newBoundingRect;
 
-//    for (int i = 0; i < curves.size(); ++i)
+//    for (int i = 0; i < strokes.size(); ++i)
 //    {
-//        newBoundingRect = newBoundingRect.united(curves.at(i).points.boundingRect());
+//        newBoundingRect = newBoundingRect.united(strokes.at(i).points.boundingRect());
 //    }
 //    boundingRect = newBoundingRect;
 }

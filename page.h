@@ -1,7 +1,7 @@
 #ifndef PAGE_H
 #define PAGE_H
 
-#include "curve.h"
+#include "stroke.h"
 
 class Page
 {
@@ -21,8 +21,8 @@ public:
 //    virtual void paint(QPainter &painter, qreal zoom);
     virtual void paint(QPainter &painter, qreal zoom, QRectF region = QRect(0,0,0,0), bool pdf=false);
 
-//    QVector<Curve> curves;
-    QList<Curve> curves;
+//    QVector<Stroke> strokes;
+    QList<Stroke> strokes;
     QColor backgroundColor;
 
 private:

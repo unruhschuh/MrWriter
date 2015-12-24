@@ -20,7 +20,7 @@
 #include <QTimer>
 
 #include "tabletapplication.h"
-#include "curve.h"
+#include "stroke.h"
 #include "document.h"
 #include "selection.h"
 
@@ -108,14 +108,14 @@ private:
 
     void scrollDocumentToPageNum(int pageNum);
 
-    QVector<qreal> currentPattern = Curve::solidLinePattern;
+    QVector<qreal> currentPattern = Stroke::solidLinePattern;
 
     QCursor penCursor;
     QCursor circleCursor;
     QCursor rulerCursor;
     QCursor eraserCursor;
 
-    Curve currentCurve;
+    Stroke currentStroke;
     QRect currentUpdateRect;
 
     state currentState;

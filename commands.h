@@ -5,35 +5,35 @@
 #include "document.h"
 #include "widget.h"
 #include "page.h"
-#include "curve.h"
+#include "stroke.h"
 
-class AddCurveCommand : public QUndoCommand
+class AddStrokeCommand : public QUndoCommand
 {
 public:
-    AddCurveCommand(Widget *newWidget, int newPageNum, const Curve &newCurve, int newCurveNum = -1, bool newUpdate = true, bool newUpdateSuccessive = true, QUndoCommand *parent = 0);
+    AddStrokeCommand(Widget *newWidget, int newPageNum, const Stroke &newStroke, int newStrokeNum = -1, bool newUpdate = true, bool newUpdateSuccessive = true, QUndoCommand *parent = 0);
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
 
 private:
     Widget *widget;
-    Curve curve;
-    int curveNum;
+    Stroke stroke;
+    int strokeNum;
     int pageNum;
     bool update;
     bool updateSuccessive;
 };
 
-class RemoveCurveCommand : public QUndoCommand
+class RemoveStrokeCommand : public QUndoCommand
 {
 public:
-    RemoveCurveCommand(Widget *newWidget, int newPageNum, int newCurveNum, bool newUpdate = true, QUndoCommand *parent = 0);
+    RemoveStrokeCommand(Widget *newWidget, int newPageNum, int newStrokeNum, bool newUpdate = true, QUndoCommand *parent = 0);
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
 
 private:
     Widget *widget;
-    Curve curve;
-    int curveNum;
+    Stroke stroke;
+    int strokeNum;
     int pageNum;
     bool update;
 };
@@ -41,13 +41,13 @@ private:
 class CreateSelectionCommand : public QUndoCommand
 {
 public:
-    CreateSelectionCommand(Widget *newWidget, int newPageNum, QVector<int> newCurvesInSelection, QUndoCommand *parent = 0);
+    CreateSelectionCommand(Widget *newWidget, int newPageNum, QVector<int> newStrokesInSelection, QUndoCommand *parent = 0);
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
 
 private:
     Widget* widget;
-    QVector<int> curvesInSelection;
+    QVector<int> strokesInSelection;
     Selection selection;
     int pageNum;
 };

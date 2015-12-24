@@ -2,39 +2,39 @@
 #include "mainwindow.h"
 
 /******************************************************************************
-** AddCurveCommand
+** AddStrokeCommand
 */
 
-AddCurveCommand::AddCurveCommand(Widget *newWidget, int newPageNum, const Curve &newCurve, int newCurveNum, bool newUpdate, bool newUpdateSuccessive, QUndoCommand *parent) : QUndoCommand(parent)
+AddStrokeCommand::AddStrokeCommand(Widget *newWidget, int newPageNum, const Stroke &newStroke, int newStrokeNum, bool newUpdate, bool newUpdateSuccessive, QUndoCommand *parent) : QUndoCommand(parent)
 {
-    setText(MainWindow::tr("Add Curve"));
+    setText(MainWindow::tr("Add Stroke"));
     pageNum = newPageNum;
     widget = newWidget;
-    curve = newCurve;
-    curveNum = newCurveNum;
+    stroke = newStroke;
+    strokeNum = newStrokeNum;
     update = newUpdate;
     updateSuccessive = newUpdateSuccessive;
 
     // delete duplicate points
-    for (int i = curve.points.length()-1; i > 0; --i)
+    for (int i = stroke.points.length()-1; i > 0; --i)
     {
-        if (curve.points.at(i) == curve.points.at(i-1))
+        if (stroke.points.at(i) == stroke.points.at(i-1))
         {
-            curve.points.removeAt(i);
-            curve.pressures.removeAt(i);
+            stroke.points.removeAt(i);
+            stroke.pressures.removeAt(i);
         }
     }
 }
 
-void AddCurveCommand::undo()
+void AddStrokeCommand::undo()
 {
-    if (curve.points.length() > 0)
+    if (stroke.points.length() > 0)
     {
-        if (curveNum == -1)
+        if (strokeNum == -1)
         {
-            widget->currentDocument->pages[pageNum].curves.removeLast();
+            widget->currentDocument->pages[pageNum].strokes.removeLast();
         } else {
-            widget->currentDocument->pages[pageNum].curves.removeAt(curveNum);
+            widget->currentDocument->pages[pageNum].strokes.removeAt(strokeNum);
         }
         if (update)
         {
@@ -44,15 +44,15 @@ void AddCurveCommand::undo()
     }
 }
 
-void AddCurveCommand::redo()
+void AddStrokeCommand::redo()
 {
-    if (curve.points.length() > 0)
+    if (stroke.points.length() > 0)
     {
-        if (curveNum == -1)
+        if (strokeNum == -1)
         {
-            widget->currentDocument->pages[pageNum].curves.append(curve);
+            widget->currentDocument->pages[pageNum].strokes.append(stroke);
         } else {
-            widget->currentDocument->pages[pageNum].curves.insert(curveNum, curve);
+            widget->currentDocument->pages[pageNum].strokes.insert(strokeNum, stroke);
         }
         if (update)
         {
@@ -65,24 +65,24 @@ void AddCurveCommand::redo()
 }
 
 /******************************************************************************
-** RemoveCurveCommand
+** RemoveStrokeCommand
 */
 
-RemoveCurveCommand::RemoveCurveCommand(Widget *newWidget, int newPageNum, int newCurveNum, bool newUpdate, QUndoCommand *parent) : QUndoCommand(parent)
+RemoveStrokeCommand::RemoveStrokeCommand(Widget *newWidget, int newPageNum, int newStrokeNum, bool newUpdate, QUndoCommand *parent) : QUndoCommand(parent)
 {
-    setText(MainWindow::tr("Remove Curve"));
+    setText(MainWindow::tr("Remove Stroke"));
     pageNum = newPageNum;
     widget = newWidget;
-    curveNum = newCurveNum;
-    curve = widget->currentDocument->pages[pageNum].curves[curveNum];
+    strokeNum = newStrokeNum;
+    stroke = widget->currentDocument->pages[pageNum].strokes[strokeNum];
     update = newUpdate;
 }
 
-void RemoveCurveCommand::undo()
+void RemoveStrokeCommand::undo()
 {
-    widget->currentDocument->pages[pageNum].curves.insert(curveNum, curve);
+    widget->currentDocument->pages[pageNum].strokes.insert(strokeNum, stroke);
     qreal zoom = widget->zoom;
-    QRect updateRect = curve.points.boundingRect().toRect();
+    QRect updateRect = stroke.points.boundingRect().toRect();
     updateRect = QRect(zoom * updateRect.topLeft(), zoom * updateRect.bottomRight());
     int delta = zoom * 10;
     updateRect.adjust(-delta,-delta, delta, delta);
@@ -93,12 +93,12 @@ void RemoveCurveCommand::undo()
     }
 }
 
-void RemoveCurveCommand::redo()
+void RemoveStrokeCommand::redo()
 {
-    widget->currentDocument->pages[pageNum].curves.removeAt(curveNum);
+    widget->currentDocument->pages[pageNum].strokes.removeAt(strokeNum);
 
     qreal zoom = widget->zoom;
-    QRect updateRect = curve.points.boundingRect().toRect();
+    QRect updateRect = stroke.points.boundingRect().toRect();
     updateRect = QRect(zoom * updateRect.topLeft(), zoom * updateRect.bottomRight());
     int delta = zoom * 10;
     updateRect.adjust(-delta,-delta, delta, delta);
@@ -113,20 +113,20 @@ void RemoveCurveCommand::redo()
 ** CreateSelectionCommand
 */
 
-CreateSelectionCommand::CreateSelectionCommand(Widget *newWidget, int newPageNum, QVector<int> newCurvesInSelection, QUndoCommand *parent) : QUndoCommand(parent)
+CreateSelectionCommand::CreateSelectionCommand(Widget *newWidget, int newPageNum, QVector<int> newStrokesInSelection, QUndoCommand *parent) : QUndoCommand(parent)
 {
     setText(MainWindow::tr("Create Selection"));
     widget = newWidget;
     pageNum = newPageNum;
-    curvesInSelection = newCurvesInSelection;
+    strokesInSelection = newStrokesInSelection;
     selection = widget->currentSelection;
 }
 
 void CreateSelectionCommand::undo()
 {
-    for (int i = 0; i < curvesInSelection.size(); ++i)
+    for (int i = 0; i < strokesInSelection.size(); ++i)
     {
-        widget->currentDocument->pages[pageNum].curves.insert(curvesInSelection[i], selection.curves[i]);
+        widget->currentDocument->pages[pageNum].strokes.insert(strokesInSelection[i], selection.strokes[i]);
     }
     widget->setCurrentState(Widget::state::IDLE);
     widget->updateBuffer(pageNum);
@@ -135,9 +135,9 @@ void CreateSelectionCommand::undo()
 
 void CreateSelectionCommand::redo()
 {
-    for (int i = curvesInSelection.size()-1; i >= 0; --i)
+    for (int i = strokesInSelection.size()-1; i >= 0; --i)
     {
-        widget->currentDocument->pages[pageNum].curves.removeAt(curvesInSelection[i]);
+        widget->currentDocument->pages[pageNum].strokes.removeAt(strokesInSelection[i]);
     }
     widget->currentSelection = selection;
     widget->setCurrentState(Widget::state::SELECTED);
@@ -162,9 +162,9 @@ ReleaseSelectionCommand::ReleaseSelectionCommand(Widget *newWidget, int newPageN
 void ReleaseSelectionCommand::undo()
 {
     widget->currentSelection = selection;
-    for (int i = 0; i < widget->currentSelection.curves.size(); ++i)
+    for (int i = 0; i < widget->currentSelection.strokes.size(); ++i)
     {
-        widget->currentDocument->pages[pageNum].curves.removeLast();
+        widget->currentDocument->pages[pageNum].strokes.removeLast();
     }
     widget->setCurrentState(Widget::state::SELECTED);
     widget->updateBuffer(pageNum);
@@ -174,9 +174,9 @@ void ReleaseSelectionCommand::undo()
 void ReleaseSelectionCommand::redo()
 {
     int pageNum = widget->currentSelection.pageNum;
-    for (int i = 0; i < widget->currentSelection.curves.size(); ++i)
+    for (int i = 0; i < widget->currentSelection.strokes.size(); ++i)
     {
-        widget->currentDocument->pages[pageNum].curves.append(widget->currentSelection.curves.at(i));
+        widget->currentDocument->pages[pageNum].strokes.append(widget->currentSelection.strokes.at(i));
     }
     widget->setCurrentState(Widget::state::IDLE);
     widget->updateBuffer(pageNum);
@@ -252,9 +252,9 @@ void ChangeColorOfSelectionCommand::undo()
 
 void ChangeColorOfSelectionCommand::redo()
 {
-    for (int i = 0; i < widget->currentSelection.curves.size(); ++i)
+    for (int i = 0; i < widget->currentSelection.strokes.size(); ++i)
     {
-        widget->currentSelection.curves[i].color = color;
+        widget->currentSelection.strokes[i].color = color;
     }
     widget->updateBuffer(selection.pageNum);
     widget->update();

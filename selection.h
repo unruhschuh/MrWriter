@@ -2,7 +2,7 @@
 #define SELECTION_H
 
 #include "page.h"
-#include "curve.h"
+#include "stroke.h"
 
 class Selection : public Page
 {
@@ -11,7 +11,7 @@ public:
 
     void paint(QPainter &painter, qreal zoom);
 
-    void addCurve(Curve newCurve);
+    void addStroke(Stroke newStroke);
 
     void transform(QTransform transform, int newPageNum);
 

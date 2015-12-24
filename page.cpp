@@ -40,49 +40,49 @@ void Page::setWidth(qreal newWidth)
 
 void Page::paint(QPainter &painter, qreal zoom, QRectF region, bool pdf)
 {
-    for (int i = 0; i < curves.length(); ++i)
+    for (int i = 0; i < strokes.length(); ++i)
     {
-        Curve curve = curves.at(i);
-        if (region.isNull() || curve.points.boundingRect().intersects(region))
+        Stroke stroke = strokes.at(i);
+        if (region.isNull() || stroke.points.boundingRect().intersects(region))
         {
             QPen pen;
-            pen.setColor(curve.color);
-            if (curve.pattern != Curve::solidLinePattern)
+            pen.setColor(stroke.color);
+            if (stroke.pattern != Stroke::solidLinePattern)
             {
-                pen.setDashPattern(curve.pattern);
+                pen.setDashPattern(stroke.pattern);
             }
             pen.setCapStyle(Qt::RoundCap);
             painter.setPen(pen);
             qreal dashOffset = 0.0;
-            if (curve.pattern != Curve::solidLinePattern && pdf == true)
+            if (stroke.pattern != Stroke::solidLinePattern && pdf == true)
             {
                 QTransform scaleTrans;
                 scaleTrans = scaleTrans.scale(zoom, zoom);
-                pen.setWidthF(curve.penWidth);
+                pen.setWidthF(stroke.penWidth);
                 painter.setPen(pen);
-                painter.drawPolyline(scaleTrans.map(curve.points));
+                painter.drawPolyline(scaleTrans.map(stroke.points));
             } else {
-                for (int j = 1; j < curve.points.length(); ++j)
+                for (int j = 1; j < stroke.points.length(); ++j)
                 {
-                    qreal tmpPenWidth = zoom * curve.penWidth * (curve.pressures.at(j-1) + curve.pressures.at(j)) / 2.0;
-                    if (curve.pattern != Curve::solidLinePattern)
+                    qreal tmpPenWidth = zoom * stroke.penWidth * (stroke.pressures.at(j-1) + stroke.pressures.at(j)) / 2.0;
+                    if (stroke.pattern != Stroke::solidLinePattern)
                     {
                         pen.setDashOffset(dashOffset);
                     }
                     pen.setWidthF(tmpPenWidth);
                     painter.setPen(pen);
-                    painter.drawLine(zoom * curve.points.at(j-1), zoom * curve.points.at(j));
+                    painter.drawLine(zoom * stroke.points.at(j-1), zoom * stroke.points.at(j));
                     if (tmpPenWidth != 0)
-                        dashOffset += 1.0/tmpPenWidth * (QLineF(zoom * curve.points.at(j-1), zoom * curve.points.at(j))).length();
+                        dashOffset += 1.0/tmpPenWidth * (QLineF(zoom * stroke.points.at(j-1), zoom * stroke.points.at(j))).length();
                 }
             }
         }
-        if (curve.points.length() == 1)
+        if (stroke.points.length() == 1)
         {
-            QRectF pointRect(zoom * curve.points[0], QSizeF(0,0));
-            qreal pad = curve.penWidth * zoom / 2;
+            QRectF pointRect(zoom * stroke.points[0], QSizeF(0,0));
+            qreal pad = stroke.penWidth * zoom / 2;
             painter.setPen(Qt::NoPen);
-            painter.setBrush(QBrush(curve.color));
+            painter.setBrush(QBrush(stroke.color));
             painter.drawEllipse(pointRect.adjusted(-pad,-pad,pad,pad));
         }
     }
