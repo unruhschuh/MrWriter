@@ -4,33 +4,34 @@
 #include "page.h"
 #include "stroke.h"
 
-class Selection : public Page
-{
-public:
-    Selection();
+namespace MrDoc {
+    class Selection : public MrDoc::Page
+    {
+    public:
+        Selection();
 
-    void paint(QPainter &painter, qreal zoom);
+        void paint(QPainter &painter, qreal zoom);
 
-    void addStroke(Stroke newStroke);
+        void addStroke(MrDoc::Stroke newStroke);
 
-    void transform(QTransform transform, int newPageNum);
+        void transform(QTransform transform, int newPageNum);
 
-    void finalize();
+        void finalize();
 
-    void updateBuffer(qreal zoom);
+        void updateBuffer(qreal zoom);
 
-    QPolygonF selectionPolygon;
+        QPolygonF selectionPolygon;
 
-    QImage buffer;
-    QPointF buffPos = QPointF(0,0);
-    qreal lastZoom = 0.0;
+        QImage buffer;
+        QPointF buffPos = QPointF(0,0);
+        qreal lastZoom = 0.0;
 
-    qreal ad = 10;
+        qreal ad = 10;
 
-    int pageNum;
+        int pageNum;
 
-private:
+    private:
 
-};
-
+    };
+}
 #endif // SELECTION_H

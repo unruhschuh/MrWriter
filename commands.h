@@ -10,13 +10,13 @@
 class AddStrokeCommand : public QUndoCommand
 {
 public:
-    AddStrokeCommand(Widget *newWidget, int newPageNum, const Stroke &newStroke, int newStrokeNum = -1, bool newUpdate = true, bool newUpdateSuccessive = true, QUndoCommand *parent = 0);
+    AddStrokeCommand(Widget *newWidget, int newPageNum, const MrDoc::Stroke &newStroke, int newStrokeNum = -1, bool newUpdate = true, bool newUpdateSuccessive = true, QUndoCommand *parent = 0);
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
 
 private:
     Widget *widget;
-    Stroke stroke;
+    MrDoc::Stroke stroke;
     int strokeNum;
     int pageNum;
     bool update;
@@ -32,7 +32,7 @@ public:
 
 private:
     Widget *widget;
-    Stroke stroke;
+    MrDoc::Stroke stroke;
     int strokeNum;
     int pageNum;
     bool update;
@@ -48,7 +48,7 @@ public:
 private:
     Widget* widget;
     QVector<int> strokesInSelection;
-    Selection selection;
+    MrDoc::Selection selection;
     int pageNum;
 };
 
@@ -61,7 +61,7 @@ public:
 
 private:
     Widget* widget;
-    Selection selection;
+    MrDoc::Selection selection;
     int pageNum;
 };
 
@@ -76,7 +76,7 @@ public:
 
 private:
     Widget* widget;
-    Selection selection;
+    MrDoc::Selection selection;
     QTransform transform;
     int pageNum;
 };
@@ -90,7 +90,7 @@ public:
 
 private:
     Widget* widget;
-    Selection selection;
+    MrDoc::Selection selection;
     QColor color;
 };
 
@@ -103,7 +103,7 @@ public:
 
 private:
     Widget* widget;
-    Page page;
+    MrDoc::Page page;
     int pageNum;
 };
 
@@ -116,21 +116,21 @@ public:
 
 private:
     Widget* widget;
-    Page page;
+    MrDoc::Page page;
     int pageNum;
 };
 
 class PasteCommand : public QUndoCommand
 {
 public:
-    PasteCommand(Widget* newWidget, Selection newSelection, QUndoCommand *parent = 0);
+    PasteCommand(Widget* newWidget, MrDoc::Selection newSelection, QUndoCommand *parent = 0);
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
 
 private:
     Widget* widget;
-    Selection pasteSelection;
-    Selection previousSelection;
+    MrDoc::Selection pasteSelection;
+    MrDoc::Selection previousSelection;
     Widget::state previousState;
 };
 
@@ -143,7 +143,7 @@ public:
 
 private:
     Widget* widget;
-    Selection previousSelection;
+    MrDoc::Selection previousSelection;
     Widget::state previousState;
 };
 

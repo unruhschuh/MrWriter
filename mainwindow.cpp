@@ -711,7 +711,7 @@ void MainWindow::openFile()
         return;
     }
 
-    Document* openDocument = new Document();
+    MrDoc::Document* openDocument = new MrDoc::Document();
 
     if(openDocument->loadMOJ(fileName))
     {
@@ -799,7 +799,7 @@ void MainWindow::importXOJ()
         return;
     }
 
-    Document* openDocument = new Document();
+    MrDoc::Document* openDocument = new MrDoc::Document();
 
     if(openDocument->loadXOJ(fileName))
     {
@@ -901,67 +901,67 @@ void MainWindow::modified()
 
 void MainWindow::black()
 {
-    mainWidget->setCurrentColor(Document::black);
+    mainWidget->setCurrentColor(MrDoc::Document::black);
     updateGUI();
 }
 
 void MainWindow::blue()
 {
-    mainWidget->setCurrentColor(Document::blue);
+    mainWidget->setCurrentColor(MrDoc::Document::blue);
     updateGUI();
 }
 
 void MainWindow::red()
 {
-    mainWidget->setCurrentColor(Document::red);
+    mainWidget->setCurrentColor(MrDoc::Document::red);
     updateGUI();
 }
 
 void MainWindow::green()
 {
-    mainWidget->setCurrentColor(Document::green);
+    mainWidget->setCurrentColor(MrDoc::Document::green);
     updateGUI();
 }
 
 void MainWindow::gray()
 {
-    mainWidget->setCurrentColor(Document::gray);
+    mainWidget->setCurrentColor(MrDoc::Document::gray);
     updateGUI();
 }
 
 void MainWindow::lightblue()
 {
-    mainWidget->setCurrentColor(Document::lightblue);
+    mainWidget->setCurrentColor(MrDoc::Document::lightblue);
     updateGUI();
 }
 
 void MainWindow::lightgreen()
 {
-    mainWidget->setCurrentColor(Document::lightgreen);
+    mainWidget->setCurrentColor(MrDoc::Document::lightgreen);
     updateGUI();
 }
 
 void MainWindow::magenta()
 {
-    mainWidget->setCurrentColor(Document::magenta);
+    mainWidget->setCurrentColor(MrDoc::Document::magenta);
     updateGUI();
 }
 
 void MainWindow::orange()
 {
-    mainWidget->setCurrentColor(Document::orange);
+    mainWidget->setCurrentColor(MrDoc::Document::orange);
     updateGUI();
 }
 
 void MainWindow::yellow()
 {
-    mainWidget->setCurrentColor(Document::yellow);
+    mainWidget->setCurrentColor(MrDoc::Document::yellow);
     updateGUI();
 }
 
 void MainWindow::white()
 {
-    mainWidget->setCurrentColor(Document::white);
+    mainWidget->setCurrentColor(MrDoc::Document::white);
     updateGUI();
 }
 
@@ -1119,17 +1119,17 @@ void MainWindow::updateGUI()
     qInfo() << "updateGUI";
     QColor currentColor = mainWidget->getCurrentColor();
 
-    blackAct->setChecked(currentColor == Document::black);
-    blueAct->setChecked(currentColor == Document::blue);
-    redAct->setChecked(currentColor == Document::red);
-    greenAct->setChecked(currentColor == Document::green);
-    grayAct->setChecked(currentColor == Document::gray);
-    lightblueAct->setChecked(currentColor == Document::lightblue);
-    lightgreenAct->setChecked(currentColor == Document::lightgreen);
-    magentaAct->setChecked(currentColor == Document::magenta);
-    orangeAct->setChecked(currentColor == Document::orange);
-    yellowAct->setChecked(currentColor == Document::yellow);
-    whiteAct->setChecked(currentColor == Document::white);
+    blackAct->setChecked(currentColor == MrDoc::Document::black);
+    blueAct->setChecked(currentColor == MrDoc::Document::blue);
+    redAct->setChecked(currentColor == MrDoc::Document::red);
+    greenAct->setChecked(currentColor == MrDoc::Document::green);
+    grayAct->setChecked(currentColor == MrDoc::Document::gray);
+    lightblueAct->setChecked(currentColor == MrDoc::Document::lightblue);
+    lightgreenAct->setChecked(currentColor == MrDoc::Document::lightgreen);
+    magentaAct->setChecked(currentColor == MrDoc::Document::magenta);
+    orangeAct->setChecked(currentColor == MrDoc::Document::orange);
+    yellowAct->setChecked(currentColor == MrDoc::Document::yellow);
+    whiteAct->setChecked(currentColor == MrDoc::Document::white);
 
     Widget::tool currentTool = mainWidget->getCurrentTool();
 
@@ -1150,18 +1150,18 @@ void MainWindow::updateGUI()
 
     QVector<qreal> currentPattern = mainWidget->getCurrentPattern();
 
-    solidPatternAct->setChecked(currentPattern == Stroke::solidLinePattern);
-    dashPatternAct->setChecked(currentPattern == Stroke::dashLinePattern);
-    dashDotPatternAct->setChecked(currentPattern == Stroke::dashDotLinePattern);
-    dotPatternAct->setChecked(currentPattern == Stroke::dotLinePattern);
+    solidPatternAct->setChecked(currentPattern == MrDoc::Stroke::solidLinePattern);
+    dashPatternAct->setChecked(currentPattern == MrDoc::Stroke::dashLinePattern);
+    dashDotPatternAct->setChecked(currentPattern == MrDoc::Stroke::dashDotLinePattern);
+    dotPatternAct->setChecked(currentPattern == MrDoc::Stroke::dotLinePattern);
 
-    if (currentPattern == Stroke::solidLinePattern)
+    if (currentPattern == MrDoc::Stroke::solidLinePattern)
         patternToolButton->setIcon(QIcon(":/images/solidPatternIcon.png"));
-    if (currentPattern == Stroke::dashLinePattern)
+    if (currentPattern == MrDoc::Stroke::dashLinePattern)
         patternToolButton->setIcon(QIcon(":/images/dashPatternIcon.png"));
-    if (currentPattern == Stroke::dashDotLinePattern)
+    if (currentPattern == MrDoc::Stroke::dashDotLinePattern)
         patternToolButton->setIcon(QIcon(":/images/dashDotPatternIcon.png"));
-    if (currentPattern == Stroke::dotLinePattern)
+    if (currentPattern == MrDoc::Stroke::dotLinePattern)
         patternToolButton->setIcon(QIcon(":/images/dotPatternIcon.png"));
 
     fullscreenAct->setChecked(isFullScreen());

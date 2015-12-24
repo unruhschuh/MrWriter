@@ -5,58 +5,63 @@
 
 #include <QVector>
 
-class Document
-{
-public:
-    Document();
-    Document(const Document& doc);
-    Document& operator=(const Document& doc) {};
-    void exportPDF(QString fileName);
+namespace MrDoc {
 
-    bool loadXOJ(QString fileName);
-    bool saveXOJ(QString fileName);
+    class Document
+    {
+    public:
+        Document();
+        Document(const Document& doc);
+        Document& operator=(const Document& doc) {};
+        void exportPDF(QString fileName);
 
-    bool loadMOJ(QString fileName);
-    bool saveMOJ(QString fileName);
+        bool loadXOJ(QString fileName);
+        bool saveXOJ(QString fileName);
 
-    void paintPage(int pageNum, QPainter &painter, qreal zoom);
+        bool loadMOJ(QString fileName);
+        bool saveMOJ(QString fileName);
 
-    bool setDocName(QString newDocName);
-    QString getDocName();
+        void paintPage(int pageNum, QPainter &painter, qreal zoom);
 
-    bool setPath(QString newDocName);
-    QString getPath();
+        bool setDocName(QString newDocName);
+        QString getDocName();
 
-    bool getDocumentChanged();
-    void setDocumentChanged(bool changed);
+        bool setPath(QString newDocName);
+        QString getPath();
 
-    QVector<Page> pages;
+        bool getDocumentChanged();
+        void setDocumentChanged(bool changed);
 
-    const static QColor black;
-    const static QColor blue;
-    const static QColor red;
-    const static QColor green;
-    const static QColor gray;
-    const static QColor lightblue;
-    const static QColor lightgreen;
-    const static QColor magenta;
-    const static QColor orange;
-    const static QColor yellow;
-    const static QColor white;
+        QVector<Page> pages;
 
-    const static QVector<QString> standardColorNames; // = QVector<QString>() << "black" << "blue" << "red" << "green" << "gray" << "lightblue" << "lightgreen" << "magenta" << "orange" << "yellow" << "white";
-    const static QVector<QColor> standardColors; // = QVector<QColor>() << black << blue << red << green << gray << lightblue << lightgreen << magenta << orange << yellow << white;
+        const static QColor black;
+        const static QColor blue;
+        const static QColor red;
+        const static QColor green;
+        const static QColor gray;
+        const static QColor lightblue;
+        const static QColor lightgreen;
+        const static QColor magenta;
+        const static QColor orange;
+        const static QColor yellow;
+        const static QColor white;
 
-    QString toRGBA(QString argb);
-    QString toARGB(QString rgba);
+        const static QVector<QString> standardColorNames; // = QVector<QString>() << "black" << "blue" << "red" << "green" << "gray" << "lightblue" << "lightgreen" << "magenta" << "orange" << "yellow" << "white";
+        const static QVector<QColor> standardColors; // = QVector<QColor>() << black << blue << red << green << gray << lightblue << lightgreen << magenta << orange << yellow << white;
 
-    QColor stringToColor(QString colorString);
+        QString toRGBA(QString argb);
+        QString toARGB(QString rgba);
 
-private:
-    bool documentChanged;
+        QColor stringToColor(QString colorString);
 
-    QString docName;
-    QString path;
-};
+    private:
+        bool documentChanged;
+
+        QString docName;
+        QString path;
+    };
+
+
+}
 
 #endif // DOCUMENT_H

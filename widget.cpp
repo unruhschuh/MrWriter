@@ -60,7 +60,7 @@ Widget::Widget(QWidget *parent) : QWidget(parent)
     realEraser = false;
     setCursor(penCursorBitmap);
 
-    currentDocument = new Document();
+    currentDocument = new MrDoc::Document();
 
     currentPenWidth = 1.41;
     currentColor = QColor(0,0,0);
@@ -105,7 +105,7 @@ void Widget::updateAllPageBuffers()
 
 void Widget::updateBuffer(int buffNum)
 {
-    Page page = currentDocument->pages.at(buffNum);
+    MrDoc::Page page = currentDocument->pages.at(buffNum);
     int pixelWidth = zoom * page.getWidth();
     int pixelHeight = zoom * page.getHeight();
 //    QImage image(pixelWidth, pixelHeight, QImage::Format_ARGB32_Premultiplied);
@@ -160,7 +160,7 @@ void Widget::drawOnBuffer(QPointF from, QPointF to, qreal pressureFrom, qreal pr
     pen.setWidthF(tmpPenWidth);
     pen.setColor(currentColor);
     pen.setCapStyle(Qt::RoundCap);
-    if (currentStroke.pattern != Stroke::solidLinePattern)
+    if (currentStroke.pattern != MrDoc::Stroke::solidLinePattern)
     {
         pen.setDashPattern(currentStroke.pattern);
         pen.setDashOffset(currentDashOffset);
@@ -653,7 +653,7 @@ void Widget::startSelecting(QPointF mousePos)
     int pageNum = getPageFromMousePos(mousePos);
     QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
 
-    Selection newSelection;
+    MrDoc::Selection newSelection;
 
     newSelection.pageNum = pageNum;
     newSelection.setWidth(currentDocument->pages[pageNum].getWidth());
@@ -688,7 +688,7 @@ void Widget::stopSelecting(QPointF mousePos)
 
     for (int i = 0; i < currentDocument->pages[pageNum].strokes.size(); ++i)
     {
-        Stroke stroke = currentDocument->pages[pageNum].strokes.at(i);
+        MrDoc::Stroke stroke = currentDocument->pages[pageNum].strokes.at(i);
         bool containsStroke = true;
         for (int j = 0; j < stroke.points.size(); ++j)
         {
@@ -744,7 +744,7 @@ void Widget::startRuling(QPointF mousePos)
     int pageNum = getPageFromMousePos(mousePos);
     QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
 
-    Stroke newStroke;
+    MrDoc::Stroke newStroke;
     newStroke.pattern = currentPattern;
     newStroke.points.append(pagePos);
     newStroke.pressures.append(1);
@@ -827,7 +827,7 @@ void Widget::startCircling(QPointF mousePos)
     int pageNum = getPageFromMousePos(mousePos);
     QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
 
-    Stroke newStroke;
+    MrDoc::Stroke newStroke;
 //    newStroke.points.append(pagePos);
 //    newStroke.pressures.append(1);
     newStroke.pattern = currentPattern;
@@ -858,7 +858,7 @@ void Widget::continueCircling(QPointF mousePos)
 //        currentStroke.pressures.removeAt(1);
 //    }
 
-    Stroke oldStroke = currentStroke;
+    MrDoc::Stroke oldStroke = currentStroke;
 
     currentStroke.points.clear();
     currentStroke.pressures.clear();
@@ -931,7 +931,7 @@ void Widget::startDrawing(QPointF mousePos, qreal pressure)
 
     currentDashOffset = 0.0;
 
-    Stroke newStroke;
+    MrDoc::Stroke newStroke;
     newStroke.pattern = currentPattern;
     newStroke.points.append(pagePos);
     newStroke.pressures.append(pressure);
@@ -999,7 +999,7 @@ void Widget::erase(QPointF mousePos, bool invertEraser)
     int pageNum = getPageFromMousePos(mousePos);
     QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
 
-    QList<Stroke> *strokes = &(currentDocument->pages[pageNum].strokes);
+    QList<MrDoc::Stroke> *strokes = &(currentDocument->pages[pageNum].strokes);
 
     qreal eraserWidth = 10;
 
@@ -1027,7 +1027,7 @@ void Widget::erase(QPointF mousePos, bool invertEraser)
     {
         for (int i = strokes->size()-1; i >= 0; --i)
         {
-            Stroke stroke = strokes->at(i);
+            MrDoc::Stroke stroke = strokes->at(i);
             if (rectE.intersects(stroke.points.boundingRect()) || !stroke.points.boundingRect().isValid() ) // this is done for speed
             {
                 for (int j = 0; j < stroke.points.length()-1; ++j)
@@ -1062,7 +1062,7 @@ void Widget::erase(QPointF mousePos, bool invertEraser)
                     {
 //                        if (iPoint != stroke.points.first() && iPoint != stroke.points.last())
                         {
-                            Stroke splitStroke = stroke;
+                            MrDoc::Stroke splitStroke = stroke;
                             splitStroke.points = splitStroke.points.mid(0,j+1);
                             splitStroke.points.append(iPoint);
                             splitStroke.pressures = splitStroke.pressures.mid(0,j+1);
@@ -1100,7 +1100,7 @@ void Widget::erase(QPointF mousePos, bool invertEraser)
 
     for (int i = 0; i < strokes->size(); ++i)
     {
-        const Stroke stroke = strokes->at(i);
+        const MrDoc::Stroke stroke = strokes->at(i);
         if (rectE.intersects(stroke.points.boundingRect()) || !stroke.points.boundingRect().isValid() ) // this is done for speed
         {
             bool foundStrokeToDelete = false;
@@ -1225,7 +1225,7 @@ void Widget::newFile()
     letGoSelection();
 
     delete currentDocument;
-    currentDocument = new Document();
+    currentDocument = new MrDoc::Document();
     pageBuffer.clear();
     undoStack.clear();
     updateAllPageBuffers();
@@ -1447,7 +1447,7 @@ void Widget::setCurrentTool(tool toolID)
     }
 }
 
-void Widget::setDocument(Document* newDocument)
+void Widget::setDocument(MrDoc::Document* newDocument)
 {
     delete currentDocument;
     currentDocument = newDocument;
@@ -1464,7 +1464,7 @@ void Widget::copy()
 
 void Widget::paste()
 {
-    Selection tmpSelection = clipboard;
+    MrDoc::Selection tmpSelection = clipboard;
     tmpSelection.pageNum = getCurrentPage();
 
     QPoint globalMousePos = parentWidget()->mapToGlobal(QPoint(0,0)) + QPoint(parentWidget()->size().width()/2, parentWidget()->size().height()/2);
@@ -1604,20 +1604,20 @@ QVector<qreal> Widget::getCurrentPattern()
 
 void Widget::solidPattern()
 {
-    setCurrentPattern(Stroke::solidLinePattern);
+    setCurrentPattern(MrDoc::Stroke::solidLinePattern);
 }
 
 void Widget::dashPattern()
 {
-    setCurrentPattern(Stroke::dashLinePattern);
+    setCurrentPattern(MrDoc::Stroke::dashLinePattern);
 }
 
 void Widget::dashDotPattern()
 {
-    setCurrentPattern(Stroke::dashDotLinePattern);
+    setCurrentPattern(MrDoc::Stroke::dashDotLinePattern);
 }
 
 void Widget::dotPattern()
 {
-    setCurrentPattern(Stroke::dotLinePattern);
+    setCurrentPattern(MrDoc::Stroke::dotLinePattern);
 }

@@ -64,7 +64,7 @@ public:
     void setCurrentColor(QColor newColor);
     QColor getCurrentColor();
 
-    void setDocument(Document* newDocument);
+    void setDocument(MrDoc::Document* newDocument);
     void letGoSelection();
 
     void newFile();
@@ -78,7 +78,7 @@ public:
 
     void rotateSelection(qreal angle);
 
-    Document* currentDocument;
+    MrDoc::Document* currentDocument;
     QVector<QPixmap> pageBuffer;
 
     QColor currentColor;
@@ -87,8 +87,8 @@ public:
     void setCurrentPattern(QVector<qreal> newPattern);
     QVector<qreal> getCurrentPattern();
 
-    Selection currentSelection;
-    Selection &clipboard = static_cast<TabletApplication*>(qApp)->clipboard;
+    MrDoc::Selection currentSelection;
+    MrDoc::Selection &clipboard = static_cast<TabletApplication*>(qApp)->clipboard;
 
     int selectingOnPage;
 
@@ -108,14 +108,14 @@ private:
 
     void scrollDocumentToPageNum(int pageNum);
 
-    QVector<qreal> currentPattern = Stroke::solidLinePattern;
+    QVector<qreal> currentPattern = MrDoc::Stroke::solidLinePattern;
 
     QCursor penCursor;
     QCursor circleCursor;
     QCursor rulerCursor;
     QCursor eraserCursor;
 
-    Stroke currentStroke;
+    MrDoc::Stroke currentStroke;
     QRect currentUpdateRect;
 
     state currentState;

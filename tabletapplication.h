@@ -17,7 +17,7 @@ public:
 
     QVector<QMainWindow*> mainWindows;
 
-    Selection clipboard;
+    MrDoc::Selection clipboard;
 
 public slots:
     void exit();

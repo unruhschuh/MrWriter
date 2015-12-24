@@ -5,7 +5,7 @@
 ** AddStrokeCommand
 */
 
-AddStrokeCommand::AddStrokeCommand(Widget *newWidget, int newPageNum, const Stroke &newStroke, int newStrokeNum, bool newUpdate, bool newUpdateSuccessive, QUndoCommand *parent) : QUndoCommand(parent)
+AddStrokeCommand::AddStrokeCommand(Widget *newWidget, int newPageNum, const MrDoc::Stroke &newStroke, int newStrokeNum, bool newUpdate, bool newUpdateSuccessive, QUndoCommand *parent) : QUndoCommand(parent)
 {
     setText(MainWindow::tr("Add Stroke"));
     pageNum = newPageNum;
@@ -281,7 +281,7 @@ void AddPageCommand::undo()
 
 void AddPageCommand::redo()
 {
-    page = Page();
+    page = MrDoc::Page();
     int pageNumForSettings;
 
     if (pageNum == 0)
@@ -330,7 +330,7 @@ void RemovePageCommand::redo()
 ** RemovePageCommand
 */
 
-PasteCommand::PasteCommand(Widget *newWidget, Selection newSelection, QUndoCommand *parent) : QUndoCommand(parent)
+PasteCommand::PasteCommand(Widget *newWidget, MrDoc::Selection newSelection, QUndoCommand *parent) : QUndoCommand(parent)
 {
     setText(MainWindow::tr("Paste"));
     widget = newWidget;
@@ -375,7 +375,7 @@ void CutCommand::undo()
 void CutCommand::redo()
 {
     widget->clipboard = previousSelection;
-    widget->currentSelection = Selection();
+    widget->currentSelection = MrDoc::Selection();
     widget->setCurrentState(Widget::state::IDLE);
     widget->update();
 }
