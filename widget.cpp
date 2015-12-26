@@ -1218,6 +1218,23 @@ QPointF Widget::getPagePosFromMousePos(QPointF mousePos, int pageNum)
     return pagePos;
 }
 
+QPointF Widget::getAbsolutePagePosFromMousePos(QPointF mousePos)
+{
+    int pageNum = getPageFromMousePos(mousePos);
+    QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
+
+    qreal y = 0.0;
+    for (int i = 0; i < pageNum; ++i)
+    {
+        y += (pageBuffer[i].height() + PAGE_GAP);
+    }
+    y *= zoom;
+
+    pagePos.setY(y + pagePos.y());
+
+    return pagePos;
+}
+
 void Widget::newFile()
 {
     letGoSelection();
@@ -1237,72 +1254,76 @@ void Widget::newFile()
 
 void Widget::zoomIn()
 {
-//    QSize widgetSize = this->size();
-//    QPointF widgetMidPoint = QPointF(widgetSize.width(), widgetSize.height());
-//    currentCOSPos = currentCOSPos + (1 - ZOOM_STEP) * (0.5 * widgetMidPoint - currentCOSPos);
+    qreal newZoom = zoom * ZOOM_STEP;
 
-    int previousH = scrollArea->horizontalScrollBar()->value();
-    int previousV = scrollArea->verticalScrollBar()->value();
-
-    zoom *= ZOOM_STEP;
-    if (zoom > MAX_ZOOM)
-    {
-        zoom = MAX_ZOOM;
-    }
-    updateAllPageBuffers();
-    setGeometry(getWidgetGeometry());
-    update();
-
-    scrollArea->horizontalScrollBar()->setValue(ZOOM_STEP * previousH + (ZOOM_STEP - 1) * scrollArea->size().width()/2);
-    scrollArea->verticalScrollBar()->setValue(ZOOM_STEP * previousV + (ZOOM_STEP - 1) * scrollArea->size().height()/2);
+    zoomTo(newZoom);
 }
 
 void Widget::zoomOut()
 {
-//    QSize widgetSize = this->size();
-//    QPointF widgetMidPoint = QPointF(widgetSize.width(), widgetSize.height());
-//    currentCOSPos = currentCOSPos + (1 - 1/ZOOM_STEP) * (0.5 * widgetMidPoint - currentCOSPos);
-    int previousH = scrollArea->horizontalScrollBar()->value();
-    int previousV = scrollArea->verticalScrollBar()->value();
+    qreal newZoom = zoom / ZOOM_STEP;
 
-    zoom /= ZOOM_STEP;
-    if (zoom < MIN_ZOOM)
-        zoom = MIN_ZOOM;
+    zoomTo(newZoom);
+}
+
+
+void Widget::zoomTo(qreal newZoom)
+{
+    int prevHMax = scrollArea->horizontalScrollBar()->maximum();
+    int prevVMax = scrollArea->verticalScrollBar()->maximum();
+
+    int prevH = scrollArea->horizontalScrollBar()->value();
+    int prevV = scrollArea->verticalScrollBar()->value();
+
+    if (newZoom >= MIN_ZOOM && newZoom <= MAX_ZOOM)
+    {
+        zoom = newZoom;
+    }
+
     updateAllPageBuffers();
     setGeometry(getWidgetGeometry());
     update();
 
-    scrollArea->horizontalScrollBar()->setValue(1/ZOOM_STEP * previousH - (ZOOM_STEP - 1) * scrollArea->size().width()/2);
-    scrollArea->verticalScrollBar()->setValue(1/ZOOM_STEP * previousV - (ZOOM_STEP - 1) * scrollArea->size().height()/2);
-}
+    int newHMax = scrollArea->horizontalScrollBar()->maximum();
+    int newVMax = scrollArea->verticalScrollBar()->maximum();
 
-void Widget::zoomTo(qreal newZoom)
-{
-    if (newZoom >= MIN_ZOOM && newZoom <= MAX_ZOOM)
-        zoom = newZoom;
+    int newH, newV;
+
+    if (prevHMax != 0)
+    {
+        newH = double(prevH) / prevHMax * newHMax;
+    } else {
+        newH = newHMax / 2;
+    }
+    if (prevVMax != 0)
+    {
+        newV = double(prevV) / prevVMax * newVMax;
+    } else {
+        newV = newVMax / 2;
+    }
+
+    scrollArea->horizontalScrollBar()->setValue(newH);
+    scrollArea->verticalScrollBar()->setValue(newV);
 }
 
 void Widget::zoomFitWidth()
 {
-    QSize widgetSize = this->parentWidget()->size();
-//    QSize widgetSize = scrollArea->size();
     int pageNum = getCurrentPage();
-    zoom = widgetSize.width() / currentDocument->pages[pageNum].getWidth();
 
-    updateAllPageBuffers();
-    setGeometry(getWidgetGeometry());
-    update();
+    QSize widgetSize = this->parentWidget()->size();
+    qreal newZoom = widgetSize.width() / currentDocument->pages[pageNum].getWidth();
+
+    zoomTo(newZoom);
 }
 
 void Widget::zoomFitHeight()
 {
-    QSize widgetSize = this->parentWidget()->size();
     int pageNum = getCurrentPage();
-    zoom = widgetSize.height() / currentDocument->pages[pageNum].getHeight();
 
-    updateAllPageBuffers();
-    setGeometry(getWidgetGeometry());
-    update();
+    QSize widgetSize = this->parentWidget()->size();
+    qreal newZoom = widgetSize.height() / currentDocument->pages[pageNum].getHeight();
+
+    zoomTo(newZoom);
 }
 
 void Widget::pageFirst()

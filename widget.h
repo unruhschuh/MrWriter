@@ -54,6 +54,7 @@ public:
     void drawOnBuffer(QPointF from, QPointF to, qreal pressureFrom, qreal pressureTo);
     int getPageFromMousePos(QPointF mousePos);
     QPointF getPagePosFromMousePos(QPointF mousePos, int pageNum);
+    QPointF getAbsolutePagePosFromMousePos(QPointF mousePos);
     QRect getWidgetGeometry();
     int getCurrentPage();
 
