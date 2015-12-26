@@ -1,5 +1,3 @@
-// this is from http://stackoverflow.com/a/24949005/1580081
-// needs "LIBS += -lz" in .pro to link against zlib
 
 #include "qcompressor.h"
 

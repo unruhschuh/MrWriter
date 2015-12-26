@@ -10,6 +10,11 @@
 #define GZIP_WINDOWS_BIT 15 + 16
 #define GZIP_CHUNK_SIZE 32 * 1024
 
+ /**
+  * I got this from from http://stackoverflow.com/a/24949005/1580081
+  *
+  * For this to work, you need to add a line LIBS += -lz to your .pro file for linking against zlib.
+  */
 class QCompressor
 {
 public:

@@ -1266,23 +1266,36 @@ void Widget::zoomOut()
     zoomTo(newZoom);
 }
 
-
+/**
+ * @brief Widget::zoomTo
+ * @param newZoom
+ * @todo Should probably zoom to the center of the current view.
+ */
 void Widget::zoomTo(qreal newZoom)
 {
+    if (newZoom > MAX_ZOOM)
+    {
+        newZoom = MAX_ZOOM;
+    }
+    if (newZoom < MIN_ZOOM)
+    {
+        newZoom = MIN_ZOOM;
+    }
+    if (newZoom == zoom)
+    {
+        return;
+    }
+
+    zoom = newZoom;
+
     int prevHMax = scrollArea->horizontalScrollBar()->maximum();
     int prevVMax = scrollArea->verticalScrollBar()->maximum();
 
     int prevH = scrollArea->horizontalScrollBar()->value();
     int prevV = scrollArea->verticalScrollBar()->value();
 
-    if (newZoom >= MIN_ZOOM && newZoom <= MAX_ZOOM)
-    {
-        zoom = newZoom;
-    }
-
     updateAllPageBuffers();
     setGeometry(getWidgetGeometry());
-    update();
 
     int newHMax = scrollArea->horizontalScrollBar()->maximum();
     int newVMax = scrollArea->verticalScrollBar()->maximum();
@@ -1304,6 +1317,8 @@ void Widget::zoomTo(qreal newZoom)
 
     scrollArea->horizontalScrollBar()->setValue(newH);
     scrollArea->verticalScrollBar()->setValue(newV);
+
+    update();
 }
 
 void Widget::zoomFitWidth()
