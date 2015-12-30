@@ -42,6 +42,11 @@ namespace MrDoc {
                                                 << MrDoc::orange
                                                 << MrDoc::yellow
                                                 << MrDoc::white;
+
+    const QVector<qreal> solidLinePattern = {1, 0};
+    const QVector<qreal> dashLinePattern = {6, 3};
+    const QVector<qreal> dashDotLinePattern = {6, 3, 0.5, 3};
+    const QVector<qreal> dotLinePattern = {0.5, 3};
 }
 
 #endif // MRDOC_H

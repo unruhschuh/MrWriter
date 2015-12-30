@@ -31,7 +31,7 @@ bool TabletApplication::event(QEvent *event)
         QString fileName = static_cast<QFileOpenEvent*>(event)->file();
         MainWindow* newWindow = new MainWindow();
         QStringList fileNameSplitted = fileName.split(".");
-        bool success;
+        bool success = false;
         if (fileNameSplitted.last().compare(QString("xoj"), Qt::CaseInsensitive) == 0)
         {
             success = newWindow->loadXOJ(fileName);

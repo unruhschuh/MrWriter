@@ -11,9 +11,7 @@ namespace MrDoc {
     public:
         Selection();
 
-        void paint(QPainter &painter, qreal zoom);
-
-        void addStroke(Stroke newStroke);
+        virtual void paint(QPainter &painter, qreal zoom, QRectF region = QRect(0,0,0,0)) override;
 
         void transform(QTransform transform, int newPageNum);
 

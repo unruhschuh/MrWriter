@@ -41,52 +41,14 @@ namespace MrDoc {
         }
     }
 
-    void Page::paint(QPainter &painter, qreal zoom, QRectF region, bool pdf)
+    void Page::paint(QPainter &painter, qreal zoom, QRectF region)
     {
-        for (int i = 0; i < strokes.length(); ++i)
+        for (int i = 0; i < m_strokes.length(); ++i)
         {
-            Stroke stroke = strokes.at(i);
-            if (region.isNull() || stroke.points.boundingRect().intersects(region))
+            Stroke &stroke = m_strokes[i];
+            if (region.isNull() || stroke.boundingRect().intersects(region))
             {
-                QPen pen;
-                pen.setColor(stroke.color);
-                if (stroke.pattern != Stroke::solidLinePattern)
-                {
-                    pen.setDashPattern(stroke.pattern);
-                }
-                pen.setCapStyle(Qt::RoundCap);
-                painter.setPen(pen);
-                qreal dashOffset = 0.0;
-                if (stroke.pattern != Stroke::solidLinePattern && pdf == true)
-                {
-                    QTransform scaleTrans;
-                    scaleTrans = scaleTrans.scale(zoom, zoom);
-                    pen.setWidthF(stroke.penWidth);
-                    painter.setPen(pen);
-                    painter.drawPolyline(scaleTrans.map(stroke.points));
-                } else {
-                    for (int j = 1; j < stroke.points.length(); ++j)
-                    {
-                        qreal tmpPenWidth = zoom * stroke.penWidth * (stroke.pressures.at(j-1) + stroke.pressures.at(j)) / 2.0;
-                        if (stroke.pattern != Stroke::solidLinePattern)
-                        {
-                            pen.setDashOffset(dashOffset);
-                        }
-                        pen.setWidthF(tmpPenWidth);
-                        painter.setPen(pen);
-                        painter.drawLine(zoom * stroke.points.at(j-1), zoom * stroke.points.at(j));
-                        if (tmpPenWidth != 0)
-                            dashOffset += 1.0/tmpPenWidth * (QLineF(zoom * stroke.points.at(j-1), zoom * stroke.points.at(j))).length();
-                    }
-                }
-            }
-            if (stroke.points.length() == 1)
-            {
-                QRectF pointRect(zoom * stroke.points[0], QSizeF(0,0));
-                qreal pad = stroke.penWidth * zoom / 2;
-                painter.setPen(Qt::NoPen);
-                painter.setBrush(QBrush(stroke.color));
-                painter.drawEllipse(pointRect.adjusted(-pad,-pad,pad,pad));
+                stroke.paint(painter, zoom);
             }
         }
     }
@@ -99,5 +61,92 @@ namespace MrDoc {
     QColor Page::getBackgroundColor()
     {
         return backgroundColor;
+    }
+
+    const QRectF & Page::getDirtyRect()
+    {
+        return dirtyRect;
+    }
+
+    void Page::clearDirtyRect()
+    {
+        dirtyRect = QRectF();
+    }
+
+    QVector<QPair<Stroke, int>> Page::getStrokes(QPolygonF &selectionPolygon)
+    {
+        QVector<QPair<Stroke, int>> removedStrokesAndPositions;
+
+        for (int i = m_strokes.size()-1; i >= 0; --i)
+        {
+            const MrDoc::Stroke &stroke = m_strokes.at(i);
+            bool containsStroke = true;
+            for (int j = 0; j < stroke.points.size(); ++j)
+            {
+                if (!selectionPolygon.containsPoint(stroke.points.at(j), Qt::OddEvenFill)) {
+                    containsStroke = false;
+                }
+            }
+            if (containsStroke)
+            {
+                // add selected strokes and positions to return vector
+                removedStrokesAndPositions.append(QPair<Stroke, int>(stroke, i));
+            }
+        }
+
+        return removedStrokesAndPositions;
+    }
+
+    QVector<QPair<Stroke, int>> Page::removeStrokes(QPolygonF &selectionPolygon)
+    {
+        auto removedStrokesAndPositions = getStrokes(selectionPolygon);
+
+        for (auto sAndP : removedStrokesAndPositions)
+        {
+            m_strokes.removeAt(sAndP.second);
+        }
+
+        return removedStrokesAndPositions;
+    }
+
+    void Page::removeStrokeAt(int i)
+    {
+        dirtyRect = dirtyRect.united(m_strokes[i].boundingRect());
+        m_strokes.removeAt(i);
+    }
+
+    void Page::insertStrokes(QVector<QPair<Stroke, int>> &strokesAndPositions)
+    {
+        for (int i = strokesAndPositions.size()-1; i >= 0; --i)
+        {
+            insertStroke(strokesAndPositions[i].second,
+                         strokesAndPositions[i].first);
+        }
+    }
+
+    void Page::insertStroke(int position, Stroke &stroke)
+    {
+        dirtyRect = dirtyRect.united(stroke.boundingRect());
+        m_strokes.insert(position, stroke);
+    }
+
+    void Page::appendStroke(Stroke &stroke)
+    {
+        dirtyRect = dirtyRect.united(stroke.boundingRect());
+        m_strokes.append(stroke);
+    }
+
+    void Page::appendStrokes(QVector<Stroke> &strokes)
+    {
+        for (Stroke &stroke : strokes)
+        {
+            m_strokes.append(stroke);
+        }
+    }
+
+    void Page::prependStroke(Stroke &stroke)
+    {
+        dirtyRect = dirtyRect.united(stroke.boundingRect());
+        m_strokes.append(stroke);
     }
 }

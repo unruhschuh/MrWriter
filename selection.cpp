@@ -11,6 +11,7 @@ namespace MrDoc {
         setHeight(10.0);
         setBackgroundColor(QColor(255,255,255, 0)); // transparent
         lastZoom = 0.0;
+        buffPos = QPointF(0,0);
     }
 
     void Selection::updateBuffer(qreal zoom)
@@ -22,24 +23,16 @@ namespace MrDoc {
         imgPainter.begin(&buffer);
         imgPainter.setRenderHint(QPainter::Antialiasing, true);
 
-        QTransform trans;
-        qreal dx = selectionPolygon.boundingRect().topLeft().x();
-        qreal dy = selectionPolygon.boundingRect().topLeft().y();
-        trans = trans.translate(-dx, -dy);
-        transform(trans, pageNum);
+        imgPainter.translate(-zoom * selectionPolygon.boundingRect().topLeft());
         Page::paint(imgPainter, zoom);
-        trans = trans.translate(2*dx, 2*dy);
-        transform(trans, pageNum);
-        imgPainter.end();
-        buffPos = QPointF(0,0);
     }
 
-    void Selection::paint(QPainter &painter, qreal zoom)
+    void Selection::paint(QPainter &painter, qreal zoom, QRectF region __attribute__ ((unused)))
     {
         if (lastZoom != zoom)
         {
             lastZoom = zoom;
-            updateBuffer(zoom);
+//            updateBuffer(zoom);
         }
 
     //    Page::paint(painter, zoom);
@@ -58,6 +51,7 @@ namespace MrDoc {
         painter.drawPolygon(scaleTrans.map(selectionPolygon), Qt::OddEvenFill);
 
         // draw edges for grabbing to resize
+        /*
         pen.setWidthF(0.5);
         painter.setPen(pen);
         QRect brect = scaleTrans.map(selectionPolygon).boundingRect().toRect();
@@ -66,15 +60,15 @@ namespace MrDoc {
         painter.drawLine(brect.topLeft() + QPointF(0, ad/2), brect.topRight() + QPointF(0, ad/2));
         painter.drawLine(brect.bottomLeft() - QPointF(0, ad/2), brect.bottomRight() - QPointF(0, ad/2));
         painter.setRenderHint(QPainter::Antialiasing, false);
-
+        */
     }
 
     void Selection::transform(QTransform transform, int newPageNum)
     {
         selectionPolygon = transform.map(selectionPolygon);
-        for (int i = 0; i < strokes.size(); ++i)
+        for (int i = 0; i < m_strokes.size(); ++i)
         {
-            strokes[i].points = transform.map(strokes[i].points);
+            m_strokes[i].points = transform.map(m_strokes[i].points);
         }
         buffPos = transform.map(buffPos);
         pageNum = newPageNum;
@@ -83,9 +77,9 @@ namespace MrDoc {
     void Selection::finalize()
     {
         QRectF boundingRect;
-        for (int i = 0; i < strokes.size(); ++i)
+        for (int i = 0; i < m_strokes.size(); ++i)
         {
-            boundingRect = boundingRect.united(strokes.at(i).points.boundingRect());
+            boundingRect = boundingRect.united(m_strokes[i].boundingRect());
         }
 
         boundingRect = boundingRect.adjusted(-ad,-ad,ad,ad);
@@ -93,21 +87,5 @@ namespace MrDoc {
 
         setWidth(boundingRect.width());
         setHeight(boundingRect.height());
-
-
-    //    std::cout << getWidth() << ", " << getHeight() << std::endl;
-    }
-
-    void Selection::addStroke(Stroke newStroke)
-    {
-        strokes.append(newStroke);
-
-    //    QRectF newBoundingRect;
-
-    //    for (int i = 0; i < strokes.size(); ++i)
-    //    {
-    //        newBoundingRect = newBoundingRect.united(strokes.at(i).points.boundingRect());
-    //    }
-    //    boundingRect = newBoundingRect;
     }
 }

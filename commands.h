@@ -4,6 +4,7 @@
 #include <QUndoCommand>
 #include "widget.h"
 #include "mrdoc.h"
+#include "page.h"
 
 class AddStrokeCommand : public QUndoCommand
 {
@@ -39,15 +40,16 @@ private:
 class CreateSelectionCommand : public QUndoCommand
 {
 public:
-    CreateSelectionCommand(Widget *newWidget, int newPageNum, QVector<int> newStrokesInSelection, QUndoCommand *parent = 0);
+    CreateSelectionCommand(Widget *widget, int pageNum, QPolygonF selectionPolygon, QUndoCommand *parent = 0);
     void undo() Q_DECL_OVERRIDE;
     void redo() Q_DECL_OVERRIDE;
 
 private:
-    Widget* widget;
-    QVector<int> strokesInSelection;
-    MrDoc::Selection selection;
-    int pageNum;
+    Widget* m_widget;
+    QPolygonF m_selectionPolygon;
+    QVector<QPair<MrDoc::Stroke, int>> m_strokesAndPositions;
+    MrDoc::Selection m_selection;
+    int m_pageNum;
 };
 
 class ReleaseSelectionCommand : public QUndoCommand

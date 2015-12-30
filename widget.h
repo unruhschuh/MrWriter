@@ -51,7 +51,7 @@ public:
     void updateAllPageBuffers();
     void updateBuffer(int i);
     void updateBufferRegion(int buffNum, QRectF clipRect);
-    void drawOnBuffer(QPointF from, QPointF to, qreal pressureFrom, qreal pressureTo);
+    void drawOnBuffer(bool last = false);
     int getPageFromMousePos(QPointF mousePos);
     QPointF getPagePosFromMousePos(QPointF mousePos, int pageNum);
     QPointF getAbsolutePagePosFromMousePos(QPointF mousePos);
@@ -108,7 +108,7 @@ private:
 
     void scrollDocumentToPageNum(int pageNum);
 
-    QVector<qreal> currentPattern = MrDoc::Stroke::solidLinePattern;
+    QVector<qreal> currentPattern = MrDoc::solidLinePattern;
 
     QCursor penCursor;
     QCursor circleCursor;

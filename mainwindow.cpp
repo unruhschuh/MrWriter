@@ -174,7 +174,7 @@ void MainWindow::createActions()
     exitAct = new QAction(tr("E&xit"), this);
     exitAct->setShortcuts(QKeySequence::Quit);
     exitAct->setStatusTip(tr("Exit MrWriter"));
-    TabletApplication *qTabApp = static_cast<TabletApplication*>(qApp);
+//    TabletApplication *qTabApp = static_cast<TabletApplication*>(qApp); // I have no idea what this was for (TOM)
     connect(exitAct, SIGNAL(triggered()), this, SLOT(exit()));
 
     undoAct = mainWidget->undoStack.createUndoAction(this);
@@ -1150,18 +1150,18 @@ void MainWindow::updateGUI()
 
     QVector<qreal> currentPattern = mainWidget->getCurrentPattern();
 
-    solidPatternAct->setChecked(currentPattern == MrDoc::Stroke::solidLinePattern);
-    dashPatternAct->setChecked(currentPattern == MrDoc::Stroke::dashLinePattern);
-    dashDotPatternAct->setChecked(currentPattern == MrDoc::Stroke::dashDotLinePattern);
-    dotPatternAct->setChecked(currentPattern == MrDoc::Stroke::dotLinePattern);
+    solidPatternAct->setChecked(currentPattern == MrDoc::solidLinePattern);
+    dashPatternAct->setChecked(currentPattern == MrDoc::dashLinePattern);
+    dashDotPatternAct->setChecked(currentPattern == MrDoc::dashDotLinePattern);
+    dotPatternAct->setChecked(currentPattern == MrDoc::dotLinePattern);
 
-    if (currentPattern == MrDoc::Stroke::solidLinePattern)
+    if (currentPattern == MrDoc::solidLinePattern)
         patternToolButton->setIcon(QIcon(":/images/solidPatternIcon.png"));
-    if (currentPattern == MrDoc::Stroke::dashLinePattern)
+    if (currentPattern == MrDoc::dashLinePattern)
         patternToolButton->setIcon(QIcon(":/images/dashPatternIcon.png"));
-    if (currentPattern == MrDoc::Stroke::dashDotLinePattern)
+    if (currentPattern == MrDoc::dashDotLinePattern)
         patternToolButton->setIcon(QIcon(":/images/dashDotPatternIcon.png"));
-    if (currentPattern == MrDoc::Stroke::dotLinePattern)
+    if (currentPattern == MrDoc::dotLinePattern)
         patternToolButton->setIcon(QIcon(":/images/dotPatternIcon.png"));
 
     fullscreenAct->setChecked(isFullScreen());

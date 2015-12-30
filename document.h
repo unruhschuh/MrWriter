@@ -12,7 +12,7 @@ namespace MrDoc {
     public:
         Document();
         Document(const Document& doc);
-        Document& operator=(const Document& doc) {};
+//        Document& operator=(const Document& doc) {};
         void exportPDF(QString fileName);
 
         bool loadXOJ(QString fileName);

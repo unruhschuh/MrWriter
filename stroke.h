@@ -14,11 +14,9 @@ namespace MrDoc {
     {
     public:
     //    enum class dashPattern { SolidLine, DashLine, DashDotLine, DotLine };
+        void paint(QPainter &painter, qreal zoom, bool last = false);
 
-        const static QVector<qreal> solidLinePattern;
-        const static QVector<qreal> dashLinePattern;
-        const static QVector<qreal> dashDotLinePattern;
-        const static QVector<qreal> dotLinePattern;
+        QRectF boundingRect();
 
         Stroke();
         QPolygonF points;

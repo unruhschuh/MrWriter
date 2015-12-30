@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
     {
         QString fileName = args.at(0);
         QStringList fileNameSplitted = fileName.split(".");
-        bool success;
+        bool success = false;
         if (fileNameSplitted.last().compare(QString("xoj"), Qt::CaseInsensitive) == 0)
         {
             success = w->loadXOJ(fileName);
