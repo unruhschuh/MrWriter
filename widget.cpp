@@ -78,36 +78,32 @@ Widget::Widget(QWidget *parent) : QWidget(parent)
 
 void Widget::updateAllPageBuffers()
 {
-    pageBuffer.clear();
     QVector<QFuture<void> > future;
+    pageImageBuffer.clear();
     for (int buffNum = 0; buffNum < currentDocument->pages.size(); ++buffNum)
     {
-        pageBuffer.append(QPixmap());
+        pageImageBuffer.append(QImage());
     }
 
-//    for (int buffNum = 0; buffNum < currentDocument->pages.size(); ++buffNum)
-//    {
-//        updateBuffer(buffNum);
-//    }
-
-    // shouldn't work, since you're only allowed to draw on pixmaps in the gui thread. but it somehow works.
     for (int buffNum = 0; buffNum < currentDocument->pages.size(); ++buffNum)
     {
-        future.append(QtConcurrent::run(this, &Widget::updateBuffer, buffNum));
+        future.append(QtConcurrent::run(this, &Widget::updateImageBuffer, buffNum));
     }
+    pageBuffer.clear();
     for (int buffNum = 0; buffNum < currentDocument->pages.size(); ++buffNum)
     {
         future[buffNum].waitForFinished();
+        pageBuffer.append(QPixmap::fromImage(pageImageBuffer.at(buffNum)));
     }
+    pageImageBuffer.clear();
 }
 
-void Widget::updateBuffer(int buffNum)
+void Widget::updateImageBuffer(int buffNum)
 {
-    MrDoc::Page page = currentDocument->pages.at(buffNum);
-    int pixelWidth = zoom * page.getWidth();
+    MrDoc::Page const &page = currentDocument->pages.at(buffNum);
+    int pixelWidth  = zoom * page.getWidth();
     int pixelHeight = zoom * page.getHeight();
-//    QImage image(pixelWidth, pixelHeight, QImage::Format_ARGB32_Premultiplied);
-    QPixmap image(pixelWidth, pixelHeight);
+    QImage image(pixelWidth, pixelHeight, QImage::Format_ARGB32_Premultiplied);
 
     image.fill(page.backgroundColor);
 
@@ -115,19 +111,33 @@ void Widget::updateBuffer(int buffNum)
     painter.begin(&image);
     painter.setRenderHint(QPainter::Antialiasing, true);
 
-//    currentDocument->paintPage(buffNum, painter, zoom);
     currentDocument->pages[buffNum].paint(painter, zoom);
 
     painter.end();
 
-    pageBuffer.replace(buffNum, image);
+    pageImageBufferMutex.lock();
+    pageImageBuffer.replace(buffNum, image);
+    pageImageBufferMutex.unlock();
+}
 
-//    if (pageBuffer.length() <= buffNum)
-//    {
-//        pageBuffer.append(image);
-//    } else {
-//        pageBuffer.replace(buffNum, image);
-//    }
+void Widget::updateBuffer(int buffNum)
+{
+    MrDoc::Page const &page = currentDocument->pages.at(buffNum);
+    int pixelWidth  = zoom * page.getWidth();
+    int pixelHeight = zoom * page.getHeight();
+    QPixmap pixmap(pixelWidth, pixelHeight);
+
+    pixmap.fill(page.backgroundColor);
+
+    QPainter painter;
+    painter.begin(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+
+    currentDocument->pages[buffNum].paint(painter, zoom);
+
+    painter.end();
+
+    pageBuffer.replace(buffNum, pixmap);
 }
 
 void Widget::updateBufferRegion(int buffNum, QRectF clipRect)
@@ -236,7 +246,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
 {
 //    qInfo() << qApp->queryKeyboardModifiers();
 
-    qInfo() << pointerType;
+//    qInfo() << pointerType;
 
     // Under Linux the keyboard modifiers are not reported to tabletevent. this should work
     // everywhere.
@@ -512,7 +522,7 @@ void Widget::tabletEvent(QTabletEvent *event)
     QEvent::Type eventType;
     if (event->type() == QTabletEvent::TabletPress)
     {
-        qInfo() << "tabletPressEvent";
+//        qInfo() << "tabletPressEvent";
         eventType = QEvent::MouseButtonPress;
         penDown = true;
     }
@@ -538,7 +548,7 @@ void Widget::tabletEvent(QTabletEvent *event)
 void Widget::mousePressEvent(QMouseEvent *event)
 {
 //    return; // ignore mouse event
-    qInfo() << "mousePressEvent";
+//    qInfo() << "mousePressEvent";
     bool usingTablet = static_cast<TabletApplication*>(qApp)->isUsingTablet();
 
     if (!usingTablet)
@@ -576,7 +586,7 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
 void Widget::mouseReleaseEvent(QMouseEvent *event)
 {
 //    return; // ignore mouse event
-    qInfo() << "mouseReleaseEvent";
+//    qInfo() << "mouseReleaseEvent";
     bool usingTablet = static_cast<TabletApplication*>(qApp)->isUsingTablet();
 
     if (!usingTablet)

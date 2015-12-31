@@ -49,6 +49,7 @@ public:
     void mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::MouseButtons buttons, Qt::KeyboardModifiers keyboardModifiers, QTabletEvent::PointerType pointerType, QEvent::Type eventType, qreal pressure, bool tabletEvent);
 
     void updateAllPageBuffers();
+    void updateImageBuffer(int buffNum);
     void updateBuffer(int i);
     void updateBufferRegion(int buffNum, QRectF clipRect);
     void drawOnBuffer(bool last = false);
@@ -80,6 +81,8 @@ public:
 
     MrDoc::Document* currentDocument;
     QVector<QPixmap> pageBuffer;
+    QVector<QImage> pageImageBuffer;
+    QMutex pageImageBufferMutex;
 
     QColor currentColor;
     qreal currentPenWidth;

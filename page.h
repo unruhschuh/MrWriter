@@ -10,8 +10,8 @@ namespace MrDoc {
     public:
         Page();
 
-        qreal getWidth();
-        qreal getHeight();
+        qreal getWidth() const;
+        qreal getHeight() const;
 
         void setWidth(qreal newWidth);
         void setHeight(qreal newHeight);

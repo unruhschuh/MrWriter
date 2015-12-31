@@ -15,12 +15,12 @@ namespace MrDoc {
     }
 
 
-    qreal Page::getHeight()
+    qreal Page::getHeight() const
     {
         return height;
     }
 
-    qreal Page::getWidth()
+    qreal Page::getWidth() const
     {
         return width;
     }

@@ -249,10 +249,12 @@ void MainWindow::createActions()
 
     pageUpAct = new QAction(QIcon(":/images/pageUpIcon.png"), tr("Page &Up"), this);
     pageUpAct->setStatusTip(tr("Page Up"));
+    pageUpAct->setShortcut(QKeySequence(Qt::Key_Up));
     connect(pageUpAct, SIGNAL(triggered()), mainWidget, SLOT(pageUp()));
 
     pageDownAct = new QAction(QIcon(":/images/pageDownIcon.png"), tr("Page &Down"), this);
     pageDownAct->setStatusTip(tr("Page Down"));
+    pageDownAct->setShortcut(QKeySequence(Qt::Key_Down));
     connect(pageDownAct, SIGNAL(triggered()), mainWidget, SLOT(pageDown()));
 
     pageAddBeforeAct = new QAction(tr("New Page &Before"), this);
