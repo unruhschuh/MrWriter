@@ -1,6 +1,6 @@
 /*
 #####################################################################
-Copyright (C) 2015 Thomas Leitz
+Copyright (C) 2015 Thomas Leitz (thomas.leitz@web.de)
 #####################################################################
 
 LICENSE:
@@ -8,8 +8,8 @@ LICENSE:
 This file is part of MrWriter.
 
 MrWriter is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 2 of the License.
+it under the terms of the GNU General Public License 2.0 as published
+by the Free Software Foundation.
 
 MrWriter is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of

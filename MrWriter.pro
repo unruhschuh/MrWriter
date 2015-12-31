@@ -68,7 +68,8 @@ RC_ICONS = MyIcon.ico
 DISTFILES += \
     images/openIcon.png \
     images/newIcon.png \
-    Info.plist
+    Info.plist \
+    COPYING
 
 CONFIG += c++11
 
