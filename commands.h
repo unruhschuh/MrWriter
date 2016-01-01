@@ -29,6 +29,12 @@ along with MrWriter.  If not, see <http://www.gnu.org/licenses/>.
 #include "mrdoc.h"
 #include "page.h"
 
+class dirtyCommand
+{
+signals:
+    void updateDirty();
+};
+
 class AddStrokeCommand : public QUndoCommand
 {
 public:

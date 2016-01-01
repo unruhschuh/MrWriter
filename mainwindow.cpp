@@ -768,7 +768,17 @@ bool MainWindow::saveFile()
 
 void MainWindow::exportPDF()
 {
-    QString fileName = QFileDialog::getSaveFileName(this, tr("Export PDF"), QDir::homePath(), tr("Adobe PDF files (*.PDF)"));
+    QString fileName;
+    if (mainWidget->currentDocument->getDocName().isEmpty())
+    {
+        fileName = QDir::homePath();
+    } else {
+        fileName = mainWidget->currentDocument->getPath();
+        fileName.append('/');
+        fileName.append(mainWidget->currentDocument->getDocName());
+        fileName.append(".pdf");
+    }
+    fileName = QFileDialog::getSaveFileName(this, tr("Export PDF"), fileName, tr("Adobe PDF files (*.PDF)"));
 
     if (fileName.isNull())
     {

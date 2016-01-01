@@ -74,7 +74,7 @@ public:
     void updateAllPageBuffers();
     void updateImageBuffer(int buffNum);
     void updateBuffer(int i);
-    void updateBufferRegion(int buffNum, QRectF clipRect);
+    void updateBufferRegion(int buffNum, QRectF const &clipRect);
     void drawOnBuffer(bool last = false);
     int getPageFromMousePos(QPointF mousePos);
     QPointF getPagePosFromMousePos(QPointF mousePos, int pageNum);
@@ -129,6 +129,7 @@ private:
     QTime timer;
 
     QTimer *updateTimer;
+    QTimer *updateDirtyTimer;
 
     qreal count;
 
@@ -188,6 +189,8 @@ private:
     void erase(QPointF mousePos, bool invertEraser = false);
 
 private slots:
+    void updateAllDirtyBuffers();
+
     void undo();
     void redo();
     void copy();

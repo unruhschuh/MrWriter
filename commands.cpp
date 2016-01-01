@@ -55,14 +55,16 @@ void AddStrokeCommand::undo()
     {
         if (strokeNum == -1)
         {
-            widget->currentDocument->pages[pageNum].m_strokes.removeLast();
+//            widget->currentDocument->pages[pageNum].m_strokes.removeLast();
+            widget->currentDocument->pages[pageNum].removeStrokeAt(widget->currentDocument->pages[pageNum].m_strokes.size()-1);
         } else {
-            widget->currentDocument->pages[pageNum].m_strokes.removeAt(strokeNum);
+//            widget->currentDocument->pages[pageNum].m_strokes.removeAt(strokeNum);
+            widget->currentDocument->pages[pageNum].removeStrokeAt(strokeNum);
         }
         if (update)
         {
-            widget->updateBuffer(pageNum);
-            widget->update();
+//            widget->updateBuffer(pageNum);
+//            widget->update();
         }
     }
 }
@@ -73,14 +75,16 @@ void AddStrokeCommand::redo()
     {
         if (strokeNum == -1)
         {
-            widget->currentDocument->pages[pageNum].m_strokes.append(stroke);
+//            widget->currentDocument->pages[pageNum].m_strokes.append(stroke);
+            widget->currentDocument->pages[pageNum].appendStroke(stroke);
         } else {
-            widget->currentDocument->pages[pageNum].m_strokes.insert(strokeNum, stroke);
+//            widget->currentDocument->pages[pageNum].m_strokes.insert(strokeNum, stroke);
+            widget->currentDocument->pages[pageNum].insertStroke(strokeNum, stroke);
         }
         if (update)
         {
-            widget->updateBuffer(pageNum);
-            widget->update();
+//            widget->updateBuffer(pageNum);
+//            widget->update();
         } else if (updateSuccessive) {
             update = true; // update is turned off for the first redo
         }
@@ -103,7 +107,9 @@ RemoveStrokeCommand::RemoveStrokeCommand(Widget *newWidget, int newPageNum, int 
 
 void RemoveStrokeCommand::undo()
 {
-    widget->currentDocument->pages[pageNum].m_strokes.insert(strokeNum, stroke);
+//    widget->currentDocument->pages[pageNum].m_strokes.insert(strokeNum, stroke);
+    widget->currentDocument->pages[pageNum].insertStroke(strokeNum, stroke);
+
     qreal zoom = widget->zoom;
     QRect updateRect = stroke.points.boundingRect().toRect();
     updateRect = QRect(zoom * updateRect.topLeft(), zoom * updateRect.bottomRight());
@@ -111,14 +117,15 @@ void RemoveStrokeCommand::undo()
     updateRect.adjust(-delta,-delta, delta, delta);
     if (update)
     {
-        widget->updateBufferRegion(pageNum, updateRect);
-        widget->update();
+//        widget->updateBufferRegion(pageNum, updateRect);
+//        widget->update();
     }
 }
 
 void RemoveStrokeCommand::redo()
 {
-    widget->currentDocument->pages[pageNum].m_strokes.removeAt(strokeNum);
+//    widget->currentDocument->pages[pageNum].m_strokes.removeAt(strokeNum);
+    widget->currentDocument->pages[pageNum].removeStrokeAt(strokeNum);
 
     qreal zoom = widget->zoom;
     QRect updateRect = stroke.points.boundingRect().toRect();
@@ -127,8 +134,8 @@ void RemoveStrokeCommand::redo()
     updateRect.adjust(-delta,-delta, delta, delta);
     if (update)
     {
-        widget->updateBufferRegion(pageNum, updateRect);
-        widget->update();
+//        widget->updateBufferRegion(pageNum, updateRect);
+//        widget->update();
     }
 }
 
@@ -151,7 +158,7 @@ CreateSelectionCommand::CreateSelectionCommand(Widget *widget, int pageNum, QPol
         m_selection.prependStroke(sAndP.first);
     }
     m_selection.finalize();
-    m_selection.updateBuffer(widget->zoom);
+    m_selection.updateBuffer(m_widget->zoom);
 }
 
 void CreateSelectionCommand::undo()
@@ -159,8 +166,6 @@ void CreateSelectionCommand::undo()
     m_widget->currentDocument->pages[m_pageNum].insertStrokes(m_strokesAndPositions);
 
     m_widget->setCurrentState(Widget::state::IDLE);
-    m_widget->updateBuffer(m_pageNum);
-    m_widget->update();
 }
 
 void CreateSelectionCommand::redo()
@@ -168,8 +173,6 @@ void CreateSelectionCommand::redo()
     m_widget->currentDocument->pages[m_pageNum].removeStrokes(m_selection.selectionPolygon);
     m_widget->currentSelection = m_selection;
     m_widget->setCurrentState(Widget::state::SELECTED);
-    m_widget->updateBuffer(m_pageNum);
-    m_widget->update();
 }
 
 
@@ -194,8 +197,8 @@ void ReleaseSelectionCommand::undo()
         widget->currentDocument->pages[pageNum].m_strokes.removeLast();
     }
     widget->setCurrentState(Widget::state::SELECTED);
-    widget->updateBuffer(pageNum);
-    widget->update();
+//    widget->updateBuffer(pageNum);
+//    widget->update();
 }
 
 void ReleaseSelectionCommand::redo()
@@ -207,8 +210,8 @@ void ReleaseSelectionCommand::redo()
 //    }
     widget->currentDocument->pages[pageNum].appendStrokes(widget->currentSelection.m_strokes);
     widget->setCurrentState(Widget::state::IDLE);
-    widget->updateBuffer(pageNum);
-    widget->update();
+//    widget->updateBuffer(pageNum);
+//    widget->update();
 }
 
 
@@ -229,8 +232,9 @@ TransformSelectionCommand::TransformSelectionCommand(Widget *newWidget, int newP
 void TransformSelectionCommand::undo()
 {
     widget->currentSelection = selection;
-    widget->updateBuffer(pageNum);
-    widget->update();
+//    widget->updateBuffer(pageNum);
+//    widget->update();
+//    widget->updateAllDirtyBuffers();
 }
 
 void TransformSelectionCommand::redo()
@@ -244,7 +248,7 @@ void TransformSelectionCommand::redo()
     updateRect = scaleTrans.mapRect(updateRect);
     updateRect.adjust(-1, -1, 1, 1);
 //    widget->update(updateRect);
-    widget->update();
+//    widget->updateAllDirtyBuffers();
 }
 
 bool TransformSelectionCommand::mergeWith(const QUndoCommand *other)
@@ -274,8 +278,8 @@ ChangeColorOfSelectionCommand::ChangeColorOfSelectionCommand(Widget* newWidget, 
 void ChangeColorOfSelectionCommand::undo()
 {
     widget->currentSelection = selection;
-    widget->updateBuffer(selection.pageNum);
-    widget->update();
+//    widget->updateBuffer(selection.pageNum);
+//    widget->update();
 }
 
 void ChangeColorOfSelectionCommand::redo()
@@ -284,8 +288,8 @@ void ChangeColorOfSelectionCommand::redo()
     {
         widget->currentSelection.m_strokes[i].color = color;
     }
-    widget->updateBuffer(selection.pageNum);
-    widget->update();
+//    widget->updateBuffer(selection.pageNum);
+//    widget->update();
 }
 
 

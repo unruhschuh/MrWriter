@@ -97,6 +97,10 @@ Widget::Widget(QWidget *parent) : QWidget(parent)
 
     updateTimer = new QTimer(this);
     connect(updateTimer, SIGNAL(timeout()), this, SLOT(updateWhileDrawing()));
+
+    updateDirtyTimer = new QTimer(this);
+    connect(updateDirtyTimer, SIGNAL(timeout()), this, SLOT(updateAllDirtyBuffers()));
+    updateDirtyTimer->setInterval(100);
 }
 
 void Widget::updateAllPageBuffers()
@@ -168,7 +172,7 @@ void Widget::updateBuffer(int buffNum)
     pageBuffer.replace(buffNum, pixmap);
 }
 
-void Widget::updateBufferRegion(int buffNum, QRectF clipRect)
+void Widget::updateBufferRegion(int buffNum, QRectF const &clipRect)
 {
     QPainter painter;
     painter.begin(&pageBuffer[buffNum]);
@@ -177,6 +181,7 @@ void Widget::updateBufferRegion(int buffNum, QRectF clipRect)
     painter.setClipping(true);
 
     painter.fillRect(clipRect, currentDocument->pages.at(buffNum).backgroundColor);
+//    painter.fillRect(clipRect, Qt::red);
 
     QRectF paintRect = QRectF(clipRect.topLeft() / zoom, clipRect.bottomRight() / zoom);
     currentDocument->pages[buffNum].paint(painter, zoom, paintRect);
@@ -184,9 +189,24 @@ void Widget::updateBufferRegion(int buffNum, QRectF clipRect)
     painter.end();
 }
 
+void Widget::updateAllDirtyBuffers()
+{
+    for (int buffNum = 0; buffNum < currentDocument->pages.size(); ++ buffNum)
+    {
+        QRectF const &dirtyRect = currentDocument->pages.at(buffNum).getDirtyRect();
+        if (!dirtyRect.isNull())
+        {
+            QRectF dirtyBufferRect = QRectF(dirtyRect.topLeft() * zoom,
+                                            dirtyRect.bottomRight() * zoom);
+            updateBufferRegion(buffNum, dirtyBufferRect);
+            currentDocument->pages[buffNum].clearDirtyRect();
+        }
+    }
+    update();
+}
+
 void Widget::drawOnBuffer(bool last)
 {
-
     QPainter painter;
     painter.begin(&pageBuffer[drawingOnPage]);
     painter.setRenderHint(QPainter::Antialiasing, true);
@@ -390,7 +410,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
         }
         if (eventType == QEvent::MouseButtonRelease)
         {
-            currentState = state::SELECTED;
+            setCurrentState(state::SELECTED);
             setPreviousTool();
         }
     }
@@ -940,6 +960,7 @@ void Widget::stopDrawing(QPointF mousePos, qreal pressure)
 void Widget::erase(QPointF mousePos, bool invertEraser)
 {
     int pageNum = getPageFromMousePos(mousePos);
+    qInfo() << "pageNum: " << pageNum << "\n";
     QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
 
     QVector<MrDoc::Stroke> *strokes = &(currentDocument->pages[pageNum].m_strokes);
@@ -1037,6 +1058,7 @@ void Widget::erase(QPointF mousePos, bool invertEraser)
 
     eraserWidth = eraserWidth * 0.99;
     lineA = QLineF(pagePos + QPointF(-eraserWidth,-eraserWidth) / 2.0, pagePos + QPointF(-eraserWidth,  eraserWidth) / 2.0);
+
     lineB = QLineF(pagePos + QPointF(-eraserWidth, eraserWidth) / 2.0, pagePos + QPointF( eraserWidth,  eraserWidth) / 2.0);
     lineC = QLineF(pagePos + QPointF( eraserWidth, eraserWidth) / 2.0, pagePos + QPointF( eraserWidth, -eraserWidth) / 2.0);
     lineD = QLineF(pagePos + QPointF( eraserWidth,-eraserWidth) / 2.0, pagePos + QPointF(-eraserWidth, -eraserWidth) / 2.0); // lineA B C D form a square
@@ -1090,6 +1112,7 @@ void Widget::erase(QPointF mousePos, bool invertEraser)
             undoStack.push(removeCommand);
         }
     }
+    updateAllDirtyBuffers();
 }
 
 void Widget::startMovingSelection(QPointF mousePos)
@@ -1099,7 +1122,7 @@ void Widget::startMovingSelection(QPointF mousePos)
 
     int pageNum = getPageFromMousePos(mousePos);
     previousPagePos = getPagePosFromMousePos(mousePos, pageNum);
-    currentState = state::MOVING_SELECTION;
+    setCurrentState(state::MOVING_SELECTION);
 }
 
 void Widget::continueMovingSelection(QPointF mousePos)
@@ -1123,11 +1146,11 @@ void Widget::continueMovingSelection(QPointF mousePos)
 
 int Widget::getPageFromMousePos(QPointF mousePos)
 {
-    qreal y = mousePos.y() - currentCOSPos.y();
+    qreal y = mousePos.y(); // - currentCOSPos.y();
     int pageNum = 0;
-    while (y > zoom * (currentDocument->pages[pageNum].getHeight() ) + PAGE_GAP)
+    while (y > (floor(currentDocument->pages[pageNum].getHeight() * zoom)) + PAGE_GAP)
     {
-        y -= (currentDocument->pages[pageNum].getHeight() * zoom) + PAGE_GAP;
+        y -= (floor(currentDocument->pages[pageNum].getHeight() * zoom)) + PAGE_GAP;
         pageNum += 1;
         if (pageNum >= currentDocument->pages.size())
         {
@@ -1435,7 +1458,9 @@ void Widget::setDocument(MrDoc::Document* newDocument)
     currentDocument = newDocument;
     undoStack.clear();
     pageBuffer.clear();
+    zoom = 0.0; // otherwise zoomTo() doesn't do anything if zoom == newZoom
     zoomFitWidth();
+    pageFirst();
 }
 
 void Widget::copy()
@@ -1505,6 +1530,14 @@ void Widget::redo()
 void Widget::setCurrentState(state newState)
 {
     currentState = newState;
+    if (currentState == state::IDLE ||
+        currentState == state::SELECTED)
+    {
+        updateAllDirtyBuffers();
+        updateDirtyTimer->stop();
+    } else {
+        updateDirtyTimer->start();
+    }
 }
 
 Widget::state Widget::getCurrentState()

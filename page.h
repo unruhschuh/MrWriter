@@ -42,7 +42,7 @@ namespace MrDoc {
         void setBackgroundColor(QColor newBackgroundColor);
         QColor getBackgroundColor(void);
 
-        const QRectF &getDirtyRect();
+        const QRectF &getDirtyRect() const;
         void clearDirtyRect();
 
         QVector<QPair<Stroke, int>> getStrokes(QPolygonF &selectionPolygon);

@@ -66,9 +66,8 @@ namespace MrDoc {
 
     void Page::paint(QPainter &painter, qreal zoom, QRectF region)
     {
-        for (int i = 0; i < m_strokes.length(); ++i)
+        for (Stroke &stroke : m_strokes)
         {
-            Stroke &stroke = m_strokes[i];
             if (region.isNull() || stroke.boundingRect().intersects(region))
             {
                 stroke.paint(painter, zoom);
@@ -86,7 +85,7 @@ namespace MrDoc {
         return backgroundColor;
     }
 
-    const QRectF & Page::getDirtyRect()
+    const QRectF & Page::getDirtyRect() const
     {
         return dirtyRect;
     }
@@ -126,7 +125,8 @@ namespace MrDoc {
 
         for (auto sAndP : removedStrokesAndPositions)
         {
-            m_strokes.removeAt(sAndP.second);
+//            m_strokes.removeAt(sAndP.second);
+            removeStrokeAt(sAndP.second);
         }
 
         return removedStrokesAndPositions;
