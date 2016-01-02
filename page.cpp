@@ -1,175 +1,134 @@
-/*
-#####################################################################
-Copyright (C) 2015 Thomas Leitz (thomas.leitz@web.de)
-#####################################################################
-
-LICENSE:
-
-This file is part of MrWriter.
-
-MrWriter is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License 2.0 as published
-by the Free Software Foundation.
-
-MrWriter is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with MrWriter.  If not, see <http://www.gnu.org/licenses/>.
-#####################################################################
-*/
-
 #include "page.h"
 #include "mrdoc.h"
 #include <QDebug>
 
-namespace MrDoc {
+namespace MrDoc
+{
 
-    Page::Page()
+Page::Page()
+{
+  // set up standard page (Letter, white background)
+  setWidth(595.0);
+  setHeight(842.0);
+  //    setWidth(600.0);
+  //    setHeight(800.0);
+  setBackgroundColor(QColor(255, 255, 255));
+}
+
+qreal Page::getHeight() const { return height; }
+
+qreal Page::getWidth() const { return width; }
+
+void Page::setHeight(qreal newHeight)
+{
+  if (newHeight > 0)
+  {
+    height = newHeight;
+  }
+}
+
+void Page::setWidth(qreal newWidth)
+{
+  if (newWidth > 0)
+  {
+    width = newWidth;
+  }
+}
+
+void Page::paint(QPainter &painter, qreal zoom, QRectF region)
+{
+  for (Stroke &stroke : m_strokes)
+  {
+    if (region.isNull() || stroke.boundingRect().intersects(region))
     {
-        // set up standard page (Letter, white background)
-        setWidth(595.0);
-        setHeight(842.0);
-    //    setWidth(600.0);
-    //    setHeight(800.0);
-        setBackgroundColor(QColor(255,255,255));
+      stroke.paint(painter, zoom);
     }
+  }
+}
 
+void Page::setBackgroundColor(QColor newBackgroundColor) { backgroundColor = newBackgroundColor; }
 
-    qreal Page::getHeight() const
+QColor Page::getBackgroundColor() { return backgroundColor; }
+
+const QRectF &Page::getDirtyRect() const { return dirtyRect; }
+
+void Page::clearDirtyRect() { dirtyRect = QRectF(); }
+
+QVector<QPair<Stroke, int>> Page::getStrokes(QPolygonF &selectionPolygon)
+{
+  QVector<QPair<Stroke, int>> removedStrokesAndPositions;
+
+  for (int i = m_strokes.size() - 1; i >= 0; --i)
+  {
+    const MrDoc::Stroke &stroke = m_strokes.at(i);
+    bool containsStroke = true;
+    for (int j = 0; j < stroke.points.size(); ++j)
     {
-        return height;
+      if (!selectionPolygon.containsPoint(stroke.points.at(j), Qt::OddEvenFill))
+      {
+        containsStroke = false;
+      }
     }
-
-    qreal Page::getWidth() const
+    if (containsStroke)
     {
-        return width;
+      // add selected strokes and positions to return vector
+      removedStrokesAndPositions.append(QPair<Stroke, int>(stroke, i));
     }
+  }
 
-    void Page::setHeight(qreal newHeight)
-    {
-        if (newHeight > 0)
-        {
-            height = newHeight;
-        }
-    }
+  return removedStrokesAndPositions;
+}
 
-    void Page::setWidth(qreal newWidth)
-    {
-        if (newWidth > 0)
-        {
-            width = newWidth;
-        }
-    }
+QVector<QPair<Stroke, int>> Page::removeStrokes(QPolygonF &selectionPolygon)
+{
+  auto removedStrokesAndPositions = getStrokes(selectionPolygon);
 
-    void Page::paint(QPainter &painter, qreal zoom, QRectF region)
-    {
-        for (Stroke &stroke : m_strokes)
-        {
-            if (region.isNull() || stroke.boundingRect().intersects(region))
-            {
-                stroke.paint(painter, zoom);
-            }
-        }
-    }
+  for (auto sAndP : removedStrokesAndPositions)
+  {
+    //            m_strokes.removeAt(sAndP.second);
+    removeStrokeAt(sAndP.second);
+  }
 
-    void Page::setBackgroundColor(QColor newBackgroundColor)
-    {
-        backgroundColor = newBackgroundColor;
-    }
+  return removedStrokesAndPositions;
+}
 
-    QColor Page::getBackgroundColor()
-    {
-        return backgroundColor;
-    }
+void Page::removeStrokeAt(int i)
+{
+  dirtyRect = dirtyRect.united(m_strokes[i].boundingRect());
+  m_strokes.removeAt(i);
+}
 
-    const QRectF & Page::getDirtyRect() const
-    {
-        return dirtyRect;
-    }
+void Page::insertStrokes(QVector<QPair<Stroke, int>> &strokesAndPositions)
+{
+  for (int i = strokesAndPositions.size() - 1; i >= 0; --i)
+  {
+    insertStroke(strokesAndPositions[i].second, strokesAndPositions[i].first);
+  }
+}
 
-    void Page::clearDirtyRect()
-    {
-        dirtyRect = QRectF();
-    }
+void Page::insertStroke(int position, Stroke &stroke)
+{
+  dirtyRect = dirtyRect.united(stroke.boundingRect());
+  m_strokes.insert(position, stroke);
+}
 
-    QVector<QPair<Stroke, int>> Page::getStrokes(QPolygonF &selectionPolygon)
-    {
-        QVector<QPair<Stroke, int>> removedStrokesAndPositions;
+void Page::appendStroke(Stroke &stroke)
+{
+  dirtyRect = dirtyRect.united(stroke.boundingRect());
+  m_strokes.append(stroke);
+}
 
-        for (int i = m_strokes.size()-1; i >= 0; --i)
-        {
-            const MrDoc::Stroke &stroke = m_strokes.at(i);
-            bool containsStroke = true;
-            for (int j = 0; j < stroke.points.size(); ++j)
-            {
-                if (!selectionPolygon.containsPoint(stroke.points.at(j), Qt::OddEvenFill)) {
-                    containsStroke = false;
-                }
-            }
-            if (containsStroke)
-            {
-                // add selected strokes and positions to return vector
-                removedStrokesAndPositions.append(QPair<Stroke, int>(stroke, i));
-            }
-        }
+void Page::appendStrokes(QVector<Stroke> &strokes)
+{
+  for (Stroke &stroke : strokes)
+  {
+    m_strokes.append(stroke);
+  }
+}
 
-        return removedStrokesAndPositions;
-    }
-
-    QVector<QPair<Stroke, int>> Page::removeStrokes(QPolygonF &selectionPolygon)
-    {
-        auto removedStrokesAndPositions = getStrokes(selectionPolygon);
-
-        for (auto sAndP : removedStrokesAndPositions)
-        {
-//            m_strokes.removeAt(sAndP.second);
-            removeStrokeAt(sAndP.second);
-        }
-
-        return removedStrokesAndPositions;
-    }
-
-    void Page::removeStrokeAt(int i)
-    {
-        dirtyRect = dirtyRect.united(m_strokes[i].boundingRect());
-        m_strokes.removeAt(i);
-    }
-
-    void Page::insertStrokes(QVector<QPair<Stroke, int>> &strokesAndPositions)
-    {
-        for (int i = strokesAndPositions.size()-1; i >= 0; --i)
-        {
-            insertStroke(strokesAndPositions[i].second,
-                         strokesAndPositions[i].first);
-        }
-    }
-
-    void Page::insertStroke(int position, Stroke &stroke)
-    {
-        dirtyRect = dirtyRect.united(stroke.boundingRect());
-        m_strokes.insert(position, stroke);
-    }
-
-    void Page::appendStroke(Stroke &stroke)
-    {
-        dirtyRect = dirtyRect.united(stroke.boundingRect());
-        m_strokes.append(stroke);
-    }
-
-    void Page::appendStrokes(QVector<Stroke> &strokes)
-    {
-        for (Stroke &stroke : strokes)
-        {
-            m_strokes.append(stroke);
-        }
-    }
-
-    void Page::prependStroke(Stroke &stroke)
-    {
-        dirtyRect = dirtyRect.united(stroke.boundingRect());
-        m_strokes.append(stroke);
-    }
+void Page::prependStroke(Stroke &stroke)
+{
+  dirtyRect = dirtyRect.united(stroke.boundingRect());
+  m_strokes.append(stroke);
+}
 }

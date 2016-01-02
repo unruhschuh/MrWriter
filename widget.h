@@ -1,32 +1,5 @@
-/*
-#####################################################################
-Copyright (C) 2015 Thomas Leitz (thomas.leitz@web.de)
-#####################################################################
-
-LICENSE:
-
-This file is part of MrWriter.
-
-MrWriter is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License 2.0 as published
-by the Free Software Foundation.
-
-MrWriter is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with MrWriter.  If not, see <http://www.gnu.org/licenses/>.
-#####################################################################
-*/
-
 #ifndef WIDGET_H
 #define WIDGET_H
-
-//#define PEN    1
-//#define ERASER 2
-//#define SELECT 3
 
 #define MIN_ZOOM 0.1
 #define MAX_ZOOM 10.0
@@ -38,6 +11,7 @@ along with MrWriter.  If not, see <http://www.gnu.org/licenses/>.
 #include <QTabletEvent>
 #include <QUndoStack>
 #include <QScrollArea>
+#include <QMutex>
 
 #include <QTime>
 #include <QTimer>
@@ -47,200 +21,216 @@ along with MrWriter.  If not, see <http://www.gnu.org/licenses/>.
 #include "document.h"
 
 class Widget : public QWidget
-//class Widget : public QOpenGLWidget
+// class Widget : public QOpenGLWidget
 {
-    Q_OBJECT
+  Q_OBJECT
 public:
-    explicit Widget(QWidget *parent = 0);
+  explicit Widget(QWidget *parent = 0);
 
-    enum class tool  { NONE, PEN    , RULER , CIRCLE  , ERASER   , SELECT                                   , HAND };
-    enum class state { IDLE, DRAWING, RULING, CIRCLING           , SELECTING, SELECTED, MOVING_SELECTION        };
+  enum class tool
+  {
+    NONE,
+    PEN,
+    RULER,
+    CIRCLE,
+    ERASER,
+    SELECT,
+    HAND
+  };
+  enum class state
+  {
+    IDLE,
+    DRAWING,
+    RULING,
+    CIRCLING,
+    SELECTING,
+    SELECTED,
+    MOVING_SELECTION
+  };
 
-    static constexpr qreal veryFinePenWidth  = 0.42;
-    static constexpr qreal finePenWidth      = 0.85;
-    static constexpr qreal mediumPenWidth    = 1.41;
-    static constexpr qreal thickPenWidth     = 2.26;
-    static constexpr qreal veryThickPenWidth = 5.67;
+  static constexpr qreal veryFinePenWidth = 0.42;
+  static constexpr qreal finePenWidth = 0.85;
+  static constexpr qreal mediumPenWidth = 1.41;
+  static constexpr qreal thickPenWidth = 2.26;
+  static constexpr qreal veryThickPenWidth = 5.67;
 
-    void setCurrentTool(tool toolID);
-    tool getCurrentTool() { return currentTool; }
+  void setCurrentTool(tool toolID);
+  tool getCurrentTool() { return currentTool; }
 
-    void setCurrentPenWidth(qreal penWidth) { currentPenWidth = penWidth; }
-    qreal getCurrentPenWidth() { return currentPenWidth; }
+  void setCurrentPenWidth(qreal penWidth) { currentPenWidth = penWidth; }
+  qreal getCurrentPenWidth() { return currentPenWidth; }
 
+  void mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::MouseButtons buttons, Qt::KeyboardModifiers keyboardModifiers,
+                           QTabletEvent::PointerType pointerType, QEvent::Type eventType, qreal pressure, bool tabletEvent);
 
-    void mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::MouseButtons buttons, Qt::KeyboardModifiers keyboardModifiers, QTabletEvent::PointerType pointerType, QEvent::Type eventType, qreal pressure, bool tabletEvent);
+  void updateAllPageBuffers();
+  void updateImageBuffer(int buffNum);
+  void updateBuffer(int i);
+  void updateBufferRegion(int buffNum, QRectF const &clipRect);
+  void drawOnBuffer(bool last = false);
+  int getPageFromMousePos(QPointF mousePos);
+  QPointF getPagePosFromMousePos(QPointF mousePos, int pageNum);
+  QPointF getAbsolutePagePosFromMousePos(QPointF mousePos);
+  QRect getWidgetGeometry();
+  int getCurrentPage();
 
-    void updateAllPageBuffers();
-    void updateImageBuffer(int buffNum);
-    void updateBuffer(int i);
-    void updateBufferRegion(int buffNum, QRectF const &clipRect);
-    void drawOnBuffer(bool last = false);
-    int getPageFromMousePos(QPointF mousePos);
-    QPointF getPagePosFromMousePos(QPointF mousePos, int pageNum);
-    QPointF getAbsolutePagePosFromMousePos(QPointF mousePos);
-    QRect getWidgetGeometry();
-    int getCurrentPage();
+  void setCurrentState(state newState);
+  state getCurrentState();
 
-    void setCurrentState(state newState);
-    state getCurrentState();
+  void setCurrentColor(QColor newColor);
+  QColor getCurrentColor();
 
-    void setCurrentColor(QColor newColor);
-    QColor getCurrentColor();
+  void setDocument(MrDoc::Document *newDocument);
+  void letGoSelection();
 
-    void setDocument(MrDoc::Document* newDocument);
-    void letGoSelection();
+  void newFile();
+  //    void openFile();
 
-    void newFile();
-//    void openFile();
+  void zoomIn();
+  void zoomOut();
+  void zoomTo(qreal newZoom);
+  void zoomFitWidth();
+  void zoomFitHeight();
 
-    void zoomIn();
-    void zoomOut();
-    void zoomTo(qreal newZoom);
-    void zoomFitWidth();
-    void zoomFitHeight();
+  void rotateSelection(qreal angle);
 
-    void rotateSelection(qreal angle);
+  MrDoc::Document *currentDocument;
+  QVector<QPixmap> pageBuffer;
+  QVector<QImage> pageImageBuffer;
+  QMutex pageImageBufferMutex;
 
-    MrDoc::Document* currentDocument;
-    QVector<QPixmap> pageBuffer;
-    QVector<QImage> pageImageBuffer;
-    QMutex pageImageBufferMutex;
+  QColor currentColor;
+  qreal currentPenWidth;
 
-    QColor currentColor;
-    qreal currentPenWidth;
+  void setCurrentPattern(QVector<qreal> newPattern);
+  QVector<qreal> getCurrentPattern();
 
-    void setCurrentPattern(QVector<qreal> newPattern);
-    QVector<qreal> getCurrentPattern();
+  MrDoc::Selection currentSelection;
+  MrDoc::Selection &clipboard = static_cast<TabletApplication *>(qApp)->clipboard;
 
-    MrDoc::Selection currentSelection;
-    MrDoc::Selection &clipboard = static_cast<TabletApplication*>(qApp)->clipboard;
+  int selectingOnPage;
 
-    int selectingOnPage;
+  QScrollArea *scrollArea;
 
-    QScrollArea* scrollArea;
+  QUndoStack undoStack;
 
-    QUndoStack undoStack;
-
-    qreal zoom;
+  qreal zoom;
 
 private:
+  QTime timer;
 
-    QTime timer;
+  QTimer *updateTimer;
+  QTimer *updateDirtyTimer;
 
-    QTimer *updateTimer;
-    QTimer *updateDirtyTimer;
+  qreal count;
 
-    qreal count;
+  void scrollDocumentToPageNum(int pageNum);
 
-    void scrollDocumentToPageNum(int pageNum);
+  QVector<qreal> currentPattern = MrDoc::solidLinePattern;
 
-    QVector<qreal> currentPattern = MrDoc::solidLinePattern;
+  QCursor penCursor;
+  QCursor circleCursor;
+  QCursor rulerCursor;
+  QCursor eraserCursor;
 
-    QCursor penCursor;
-    QCursor circleCursor;
-    QCursor rulerCursor;
-    QCursor eraserCursor;
+  MrDoc::Stroke currentStroke;
+  QRect currentUpdateRect;
 
-    MrDoc::Stroke currentStroke;
-    QRect currentUpdateRect;
+  state currentState;
 
-    state currentState;
+  bool penDown = false;
+  int drawingOnPage;
 
-    bool penDown = false;
-    int drawingOnPage;
+  tool currentTool;
+  tool previousTool;
+  bool realEraser;
 
-    tool currentTool;
-    tool previousTool;
-    bool realEraser;
+  qreal currentDashOffset;
 
-    qreal currentDashOffset;
+  qreal minWidthMultiplier = 0.0;
+  qreal maxWidthMultiplier = 1.25;
 
-    qreal minWidthMultiplier = 0.0;
-    qreal maxWidthMultiplier = 1.25;
+  QPointF currentCOSPos;
+  QPointF firstMousePos;
+  QPointF previousMousePos;
+  QPointF previousPagePos;
 
-    QPointF currentCOSPos;
-    QPointF firstMousePos;
-    QPointF previousMousePos;
-    QPointF previousPagePos;
+  void startDrawing(QPointF mousePos, qreal pressure);
+  void continueDrawing(QPointF mousePos, qreal pressure);
+  void stopDrawing(QPointF mousePos, qreal pressure);
 
+  void startRuling(QPointF mousePos);
+  void continueRuling(QPointF mousePos);
+  void stopRuling(QPointF mousePos);
 
-    void startDrawing(QPointF mousePos, qreal pressure);
-    void continueDrawing(QPointF mousePos, qreal pressure);
-    void stopDrawing(QPointF mousePos, qreal pressure);
+  void startCircling(QPointF mousePos);
+  void continueCircling(QPointF mousePos);
+  void stopCircling(QPointF mousePos);
 
-    void startRuling(QPointF mousePos);
-    void continueRuling(QPointF mousePos);
-    void stopRuling(QPointF mousePos);
+  void startSelecting(QPointF mousePos);
+  void continueSelecting(QPointF mousePos);
+  void stopSelecting(QPointF mousePos);
 
-    void startCircling(QPointF mousePos);
-    void continueCircling(QPointF mousePos);
-    void stopCircling(QPointF mousePos);
+  void startMovingSelection(QPointF mousePos);
+  void continueMovingSelection(QPointF mousePos);
 
-    void startSelecting(QPointF mousePos);
-    void continueSelecting(QPointF mousePos);
-    void stopSelecting(QPointF mousePos);
+  void setPreviousTool();
 
-    void startMovingSelection(QPointF mousePos);
-    void continueMovingSelection(QPointF mousePos);
-
-    void setPreviousTool();
-
-    void erase(QPointF mousePos, bool invertEraser = false);
+  void erase(QPointF mousePos, bool invertEraser = false);
 
 private slots:
-    void updateAllDirtyBuffers();
+  void updateAllDirtyBuffers();
 
-    void undo();
-    void redo();
-    void copy();
-    void paste();
-    void cut();
+  void undo();
+  void redo();
+  void copy();
+  void paste();
+  void cut();
 
-    void pageFirst();
-    void pageLast();
-    void pageUp();
-    void pageDown();
+  void pageFirst();
+  void pageLast();
+  void pageUp();
+  void pageDown();
 
-    void pageAddBefore();
-    void pageAddAfter();
-    void pageAddBeginning();
-    void pageAddEnd();
+  void pageAddBefore();
+  void pageAddAfter();
+  void pageAddBeginning();
+  void pageAddEnd();
 
-    void pageRemove();
+  void pageRemove();
 
-    void veryFine();
-    void fine();
-    void medium();
-    void thick();
-    void veryThick();
+  void veryFine();
+  void fine();
+  void medium();
+  void thick();
+  void veryThick();
 
-    void solidPattern();
-    void dashPattern();
-    void dashDotPattern();
-    void dotPattern();
+  void solidPattern();
+  void dashPattern();
+  void dashDotPattern();
+  void dotPattern();
 
-    void updateWhileDrawing();
+  void updateWhileDrawing();
 
 signals:
-    void pen();
-    void ruler();
-    void circle();
-    void eraser();
-    void select();
-    void hand();
+  void pen();
+  void ruler();
+  void circle();
+  void eraser();
+  void select();
+  void hand();
 
-    void updateGUI();
+  void updateGUI();
 
-    void modified();
+  void modified();
 
 protected:
-    void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
-    void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-    void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-    void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+  void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
+  void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+  void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+  void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
 
-    void tabletEvent(QTabletEvent *event) Q_DECL_OVERRIDE;
+  void tabletEvent(QTabletEvent *event) Q_DECL_OVERRIDE;
 
 signals:
 

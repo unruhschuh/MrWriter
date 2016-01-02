@@ -1,26 +1,3 @@
-/*
-#####################################################################
-Copyright (C) 2015 Thomas Leitz (thomas.leitz@web.de)
-#####################################################################
-
-LICENSE:
-
-This file is part of MrWriter.
-
-MrWriter is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License 2.0 as published
-by the Free Software Foundation.
-
-MrWriter is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with MrWriter.  If not, see <http://www.gnu.org/licenses/>.
-#####################################################################
-*/
-
 #ifndef COMMANDS_H
 #define COMMANDS_H
 
@@ -32,164 +9,165 @@ along with MrWriter.  If not, see <http://www.gnu.org/licenses/>.
 class dirtyCommand
 {
 signals:
-    void updateDirty();
+  void updateDirty();
 };
 
 class AddStrokeCommand : public QUndoCommand
 {
 public:
-    AddStrokeCommand(Widget *newWidget, int newPageNum, const MrDoc::Stroke &newStroke, int newStrokeNum = -1, bool newUpdate = true, bool newUpdateSuccessive = true, QUndoCommand *parent = 0);
-    void undo() Q_DECL_OVERRIDE;
-    void redo() Q_DECL_OVERRIDE;
+  AddStrokeCommand(Widget *newWidget, int newPageNum, const MrDoc::Stroke &newStroke, int newStrokeNum = -1, bool newUpdate = true,
+                   bool newUpdateSuccessive = true, QUndoCommand *parent = 0);
+  void undo() Q_DECL_OVERRIDE;
+  void redo() Q_DECL_OVERRIDE;
 
 private:
-    Widget *widget;
-    MrDoc::Stroke stroke;
-    int strokeNum;
-    int pageNum;
-    bool update;
-    bool updateSuccessive;
+  Widget *widget;
+  MrDoc::Stroke stroke;
+  int strokeNum;
+  int pageNum;
+  bool update;
+  bool updateSuccessive;
 };
 
 class RemoveStrokeCommand : public QUndoCommand
 {
 public:
-    RemoveStrokeCommand(Widget *newWidget, int newPageNum, int newStrokeNum, bool newUpdate = true, QUndoCommand *parent = 0);
-    void undo() Q_DECL_OVERRIDE;
-    void redo() Q_DECL_OVERRIDE;
+  RemoveStrokeCommand(Widget *newWidget, int newPageNum, int newStrokeNum, bool newUpdate = true, QUndoCommand *parent = 0);
+  void undo() Q_DECL_OVERRIDE;
+  void redo() Q_DECL_OVERRIDE;
 
 private:
-    Widget *widget;
-    MrDoc::Stroke stroke;
-    int strokeNum;
-    int pageNum;
-    bool update;
+  Widget *widget;
+  MrDoc::Stroke stroke;
+  int strokeNum;
+  int pageNum;
+  bool update;
 };
 
 class CreateSelectionCommand : public QUndoCommand
 {
 public:
-    CreateSelectionCommand(Widget *widget, int pageNum, QPolygonF selectionPolygon, QUndoCommand *parent = 0);
-    void undo() Q_DECL_OVERRIDE;
-    void redo() Q_DECL_OVERRIDE;
+  CreateSelectionCommand(Widget *widget, int pageNum, QPolygonF selectionPolygon, QUndoCommand *parent = 0);
+  void undo() Q_DECL_OVERRIDE;
+  void redo() Q_DECL_OVERRIDE;
 
 private:
-    Widget* m_widget;
-    QPolygonF m_selectionPolygon;
-    QVector<QPair<MrDoc::Stroke, int>> m_strokesAndPositions;
-    MrDoc::Selection m_selection;
-    int m_pageNum;
+  Widget *m_widget;
+  QPolygonF m_selectionPolygon;
+  QVector<QPair<MrDoc::Stroke, int>> m_strokesAndPositions;
+  MrDoc::Selection m_selection;
+  int m_pageNum;
 };
 
 class ReleaseSelectionCommand : public QUndoCommand
 {
 public:
-    ReleaseSelectionCommand(Widget *newWidget, int newPageNum, QUndoCommand *parent = 0);
-    void undo() Q_DECL_OVERRIDE;
-    void redo() Q_DECL_OVERRIDE;
+  ReleaseSelectionCommand(Widget *newWidget, int newPageNum, QUndoCommand *parent = 0);
+  void undo() Q_DECL_OVERRIDE;
+  void redo() Q_DECL_OVERRIDE;
 
 private:
-    Widget* widget;
-    MrDoc::Selection selection;
-    int pageNum;
+  Widget *widget;
+  MrDoc::Selection selection;
+  int pageNum;
 };
 
 class TransformSelectionCommand : public QUndoCommand
 {
 public:
-    TransformSelectionCommand(Widget* newWidget, int newPageNum, QTransform newTransform, QUndoCommand *parent = 0);
-    void undo() Q_DECL_OVERRIDE;
-    void redo() Q_DECL_OVERRIDE;
-    int id() const Q_DECL_OVERRIDE { return 1; }
-    bool mergeWith(const QUndoCommand *other) Q_DECL_OVERRIDE;
+  TransformSelectionCommand(Widget *newWidget, int newPageNum, QTransform newTransform, QUndoCommand *parent = 0);
+  void undo() Q_DECL_OVERRIDE;
+  void redo() Q_DECL_OVERRIDE;
+  int id() const Q_DECL_OVERRIDE { return 1; }
+  bool mergeWith(const QUndoCommand *other) Q_DECL_OVERRIDE;
 
 private:
-    Widget* widget;
-    MrDoc::Selection selection;
-    QTransform transform;
-    int pageNum;
+  Widget *widget;
+  MrDoc::Selection selection;
+  QTransform transform;
+  int pageNum;
 };
 
 class ChangeColorOfSelectionCommand : public QUndoCommand
 {
 public:
-    ChangeColorOfSelectionCommand(Widget* newWidget, QColor newColor, QUndoCommand *parent = 0);
-    void undo() Q_DECL_OVERRIDE;
-    void redo() Q_DECL_OVERRIDE;
+  ChangeColorOfSelectionCommand(Widget *newWidget, QColor newColor, QUndoCommand *parent = 0);
+  void undo() Q_DECL_OVERRIDE;
+  void redo() Q_DECL_OVERRIDE;
 
 private:
-    Widget* widget;
-    MrDoc::Selection selection;
-    QColor color;
+  Widget *widget;
+  MrDoc::Selection selection;
+  QColor color;
 };
 
 class AddPageCommand : public QUndoCommand
 {
 public:
-    AddPageCommand(Widget* newWidget, int newPageNum, QUndoCommand *parent = 0);
-    void undo() Q_DECL_OVERRIDE;
-    void redo() Q_DECL_OVERRIDE;
+  AddPageCommand(Widget *newWidget, int newPageNum, QUndoCommand *parent = 0);
+  void undo() Q_DECL_OVERRIDE;
+  void redo() Q_DECL_OVERRIDE;
 
 private:
-    Widget* widget;
-    MrDoc::Page page;
-    int pageNum;
+  Widget *widget;
+  MrDoc::Page page;
+  int pageNum;
 };
 
 class RemovePageCommand : public QUndoCommand
 {
 public:
-    RemovePageCommand(Widget* newWidget, int newPageNum, QUndoCommand *parent = 0);
-    void undo() Q_DECL_OVERRIDE;
-    void redo() Q_DECL_OVERRIDE;
+  RemovePageCommand(Widget *newWidget, int newPageNum, QUndoCommand *parent = 0);
+  void undo() Q_DECL_OVERRIDE;
+  void redo() Q_DECL_OVERRIDE;
 
 private:
-    Widget* widget;
-    MrDoc::Page page;
-    int pageNum;
+  Widget *widget;
+  MrDoc::Page page;
+  int pageNum;
 };
 
 class PasteCommand : public QUndoCommand
 {
 public:
-    PasteCommand(Widget* newWidget, MrDoc::Selection newSelection, QUndoCommand *parent = 0);
-    void undo() Q_DECL_OVERRIDE;
-    void redo() Q_DECL_OVERRIDE;
+  PasteCommand(Widget *newWidget, MrDoc::Selection newSelection, QUndoCommand *parent = 0);
+  void undo() Q_DECL_OVERRIDE;
+  void redo() Q_DECL_OVERRIDE;
 
 private:
-    Widget* widget;
-    MrDoc::Selection pasteSelection;
-    MrDoc::Selection previousSelection;
-    Widget::state previousState;
+  Widget *widget;
+  MrDoc::Selection pasteSelection;
+  MrDoc::Selection previousSelection;
+  Widget::state previousState;
 };
 
 class CutCommand : public QUndoCommand
 {
 public:
-    CutCommand(Widget* newWidget, QUndoCommand *parent = 0);
-    void undo() Q_DECL_OVERRIDE;
-    void redo() Q_DECL_OVERRIDE;
+  CutCommand(Widget *newWidget, QUndoCommand *parent = 0);
+  void undo() Q_DECL_OVERRIDE;
+  void redo() Q_DECL_OVERRIDE;
 
 private:
-    Widget* widget;
-    MrDoc::Selection previousSelection;
-    Widget::state previousState;
+  Widget *widget;
+  MrDoc::Selection previousSelection;
+  Widget::state previousState;
 };
 
 class ChangePageSettingsCommand : public QUndoCommand
 {
 public:
-    ChangePageSettingsCommand(Widget* newWidget, int newPageNum, QSizeF newSize, QColor newBackgroundColor, QUndoCommand *parent = 0);
-    void undo() Q_DECL_OVERRIDE;
-    void redo() Q_DECL_OVERRIDE;
+  ChangePageSettingsCommand(Widget *newWidget, int newPageNum, QSizeF newSize, QColor newBackgroundColor, QUndoCommand *parent = 0);
+  void undo() Q_DECL_OVERRIDE;
+  void redo() Q_DECL_OVERRIDE;
 
 private:
-    Widget *widget;
-    int pageNum;
-    QSizeF prevSize;
-    QSizeF size;
-    QColor prevBackgroundColor;
-    QColor backgroundColor;
+  Widget *widget;
+  int pageNum;
+  QSizeF prevSize;
+  QSizeF size;
+  QColor prevBackgroundColor;
+  QColor backgroundColor;
 };
 
 #endif
