@@ -1,6 +1,9 @@
 #include "colorbutton.h"
 
-ColorButton::ColorButton(QWidget *parent) : QLabel(parent) { leftButtonDown = false; }
+ColorButton::ColorButton(QWidget *parent) : QLabel(parent)
+{
+  leftButtonDown = false;
+}
 
 void ColorButton::mousePressEvent(QMouseEvent *event)
 {

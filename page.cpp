@@ -15,9 +15,15 @@ Page::Page()
   setBackgroundColor(QColor(255, 255, 255));
 }
 
-qreal Page::getHeight() const { return height; }
+qreal Page::getHeight() const
+{
+  return height;
+}
 
-qreal Page::getWidth() const { return width; }
+qreal Page::getWidth() const
+{
+  return width;
+}
 
 void Page::setHeight(qreal newHeight)
 {
@@ -46,13 +52,25 @@ void Page::paint(QPainter &painter, qreal zoom, QRectF region)
   }
 }
 
-void Page::setBackgroundColor(QColor newBackgroundColor) { backgroundColor = newBackgroundColor; }
+void Page::setBackgroundColor(QColor newBackgroundColor)
+{
+  backgroundColor = newBackgroundColor;
+}
 
-QColor Page::getBackgroundColor() { return backgroundColor; }
+QColor Page::getBackgroundColor()
+{
+  return backgroundColor;
+}
 
-const QRectF &Page::getDirtyRect() const { return dirtyRect; }
+const QRectF &Page::getDirtyRect() const
+{
+  return dirtyRect;
+}
 
-void Page::clearDirtyRect() { dirtyRect = QRectF(); }
+void Page::clearDirtyRect()
+{
+  dirtyRect = QRectF();
+}
 
 QVector<QPair<Stroke, int>> Page::getStrokes(QPolygonF &selectionPolygon)
 {

@@ -77,7 +77,7 @@ Widget::Widget(QWidget *parent) : QWidget(parent)
 
   updateDirtyTimer = new QTimer(this);
   connect(updateDirtyTimer, SIGNAL(timeout()), this, SLOT(updateAllDirtyBuffers()));
-  updateDirtyTimer->setInterval(100);
+  updateDirtyTimer->setInterval(15);
 }
 
 void Widget::updateAllPageBuffers()
@@ -1289,9 +1289,15 @@ void Widget::zoomFitHeight()
   zoomTo(newZoom);
 }
 
-void Widget::pageFirst() { scrollDocumentToPageNum(0); }
+void Widget::pageFirst()
+{
+  scrollDocumentToPageNum(0);
+}
 
-void Widget::pageLast() { scrollDocumentToPageNum(currentDocument->pages.size() - 1); }
+void Widget::pageLast()
+{
+  scrollDocumentToPageNum(currentDocument->pages.size() - 1);
+}
 
 void Widget::pageUp()
 {
@@ -1511,7 +1517,10 @@ void Widget::setCurrentState(state newState)
   }
 }
 
-Widget::state Widget::getCurrentState() { return currentState; }
+Widget::state Widget::getCurrentState()
+{
+  return currentState;
+}
 
 void Widget::setCurrentColor(QColor newColor)
 {
@@ -1524,7 +1533,10 @@ void Widget::setCurrentColor(QColor newColor)
   }
 }
 
-QColor Widget::getCurrentColor() { return currentColor; }
+QColor Widget::getCurrentColor()
+{
+  return currentColor;
+}
 
 void Widget::veryFine()
 {
@@ -1577,12 +1589,27 @@ void Widget::setCurrentPattern(QVector<qreal> newPattern)
   emit updateGUI();
 }
 
-QVector<qreal> Widget::getCurrentPattern() { return currentPattern; }
+QVector<qreal> Widget::getCurrentPattern()
+{
+  return currentPattern;
+}
 
-void Widget::solidPattern() { setCurrentPattern(MrDoc::solidLinePattern); }
+void Widget::solidPattern()
+{
+  setCurrentPattern(MrDoc::solidLinePattern);
+}
 
-void Widget::dashPattern() { setCurrentPattern(MrDoc::dashLinePattern); }
+void Widget::dashPattern()
+{
+  setCurrentPattern(MrDoc::dashLinePattern);
+}
 
-void Widget::dashDotPattern() { setCurrentPattern(MrDoc::dashDotLinePattern); }
+void Widget::dashDotPattern()
+{
+  setCurrentPattern(MrDoc::dashDotLinePattern);
+}
 
-void Widget::dotPattern() { setCurrentPattern(MrDoc::dotLinePattern); }
+void Widget::dotPattern()
+{
+  setCurrentPattern(MrDoc::dotLinePattern);
+}

@@ -39,7 +39,10 @@ Document::Document(const Document &doc)
   }
 }
 
-void Document::paintPage(int pageNum, QPainter &painter, qreal zoom) { pages[pageNum].paint(painter, zoom); }
+void Document::paintPage(int pageNum, QPainter &painter, qreal zoom)
+{
+  pages[pageNum].paint(painter, zoom);
+}
 
 /* will become exportSVG
 void Document::exportPDF(QString fileName)
@@ -570,7 +573,10 @@ bool Document::setDocName(QString newDocName)
   return true;
 }
 
-QString Document::getDocName() { return docName; }
+QString Document::getDocName()
+{
+  return docName;
+}
 
 bool Document::setPath(QString newPath)
 {
@@ -578,11 +584,20 @@ bool Document::setPath(QString newPath)
   return true;
 }
 
-QString Document::getPath() { return path; }
+QString Document::getPath()
+{
+  return path;
+}
 
-bool Document::getDocumentChanged() { return documentChanged; }
+bool Document::getDocumentChanged()
+{
+  return documentChanged;
+}
 
-void Document::setDocumentChanged(bool changed) { documentChanged = changed; }
+void Document::setDocumentChanged(bool changed)
+{
+  documentChanged = changed;
+}
 
 QString Document::toARGB(QString rgba)
 {

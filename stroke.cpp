@@ -3,7 +3,9 @@
 namespace MrDoc
 {
 
-Stroke::Stroke() {}
+Stroke::Stroke()
+{
+}
 
 void Stroke::paint(QPainter &painter, qreal zoom, bool last)
 {

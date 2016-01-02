@@ -9,7 +9,10 @@
 std::stack<clock_t> tictoc_stack;
 
 // changed it to output to stderr
-void tic() { tictoc_stack.push(clock()); }
+void tic()
+{
+  tictoc_stack.push(clock());
+}
 
 void toc()
 {

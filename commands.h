@@ -78,7 +78,10 @@ public:
   TransformSelectionCommand(Widget *newWidget, int newPageNum, QTransform newTransform, QUndoCommand *parent = 0);
   void undo() Q_DECL_OVERRIDE;
   void redo() Q_DECL_OVERRIDE;
-  int id() const Q_DECL_OVERRIDE { return 1; }
+  int id() const Q_DECL_OVERRIDE
+  {
+    return 1;
+  }
   bool mergeWith(const QUndoCommand *other) Q_DECL_OVERRIDE;
 
 private:

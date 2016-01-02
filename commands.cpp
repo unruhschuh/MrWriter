@@ -5,6 +5,17 @@
 ** AddStrokeCommand
 */
 
+/**
+ * @brief AddStrokeCommand::AddStrokeCommand
+ * @param newWidget
+ * @param newPageNum
+ * @param newStroke
+ * @param newStrokeNum
+ * @param newUpdate
+ * @param newUpdateSuccessive
+ * @param parent
+ * @todo remove parameter newUpdate
+ */
 AddStrokeCommand::AddStrokeCommand(Widget *newWidget, int newPageNum, const MrDoc::Stroke &newStroke, int newStrokeNum, bool newUpdate,
                                    bool newUpdateSuccessive, QUndoCommand *parent)
     : QUndoCommand(parent)
@@ -34,18 +45,11 @@ void AddStrokeCommand::undo()
   {
     if (strokeNum == -1)
     {
-      //            widget->currentDocument->pages[pageNum].m_strokes.removeLast();
       widget->currentDocument->pages[pageNum].removeStrokeAt(widget->currentDocument->pages[pageNum].m_strokes.size() - 1);
     }
     else
     {
-      //            widget->currentDocument->pages[pageNum].m_strokes.removeAt(strokeNum);
       widget->currentDocument->pages[pageNum].removeStrokeAt(strokeNum);
-    }
-    if (update)
-    {
-      //            widget->updateBuffer(pageNum);
-      //            widget->update();
     }
   }
 }
@@ -56,22 +60,11 @@ void AddStrokeCommand::redo()
   {
     if (strokeNum == -1)
     {
-      //            widget->currentDocument->pages[pageNum].m_strokes.append(stroke);
       widget->currentDocument->pages[pageNum].appendStroke(stroke);
     }
     else
     {
-      //            widget->currentDocument->pages[pageNum].m_strokes.insert(strokeNum, stroke);
       widget->currentDocument->pages[pageNum].insertStroke(strokeNum, stroke);
-    }
-    if (update)
-    {
-      //            widget->updateBuffer(pageNum);
-      //            widget->update();
-    }
-    else if (updateSuccessive)
-    {
-      update = true; // update is turned off for the first redo
     }
   }
 }
@@ -80,6 +73,15 @@ void AddStrokeCommand::redo()
 ** RemoveStrokeCommand
 */
 
+/**
+ * @brief RemoveStrokeCommand::RemoveStrokeCommand
+ * @param newWidget
+ * @param newPageNum
+ * @param newStrokeNum
+ * @param newUpdate
+ * @param parent
+ * @todo remove parameter newUpdate
+ */
 RemoveStrokeCommand::RemoveStrokeCommand(Widget *newWidget, int newPageNum, int newStrokeNum, bool newUpdate, QUndoCommand *parent) : QUndoCommand(parent)
 {
   setText(MainWindow::tr("Remove Stroke"));
@@ -92,7 +94,6 @@ RemoveStrokeCommand::RemoveStrokeCommand(Widget *newWidget, int newPageNum, int 
 
 void RemoveStrokeCommand::undo()
 {
-  //    widget->currentDocument->pages[pageNum].m_strokes.insert(strokeNum, stroke);
   widget->currentDocument->pages[pageNum].insertStroke(strokeNum, stroke);
 
   qreal zoom = widget->zoom;
@@ -100,16 +101,10 @@ void RemoveStrokeCommand::undo()
   updateRect = QRect(zoom * updateRect.topLeft(), zoom * updateRect.bottomRight());
   int delta = zoom * 10;
   updateRect.adjust(-delta, -delta, delta, delta);
-  if (update)
-  {
-    //        widget->updateBufferRegion(pageNum, updateRect);
-    //        widget->update();
-  }
 }
 
 void RemoveStrokeCommand::redo()
 {
-  //    widget->currentDocument->pages[pageNum].m_strokes.removeAt(strokeNum);
   widget->currentDocument->pages[pageNum].removeStrokeAt(strokeNum);
 
   qreal zoom = widget->zoom;
@@ -117,19 +112,12 @@ void RemoveStrokeCommand::redo()
   updateRect = QRect(zoom * updateRect.topLeft(), zoom * updateRect.bottomRight());
   int delta = zoom * 10;
   updateRect.adjust(-delta, -delta, delta, delta);
-  if (update)
-  {
-    //        widget->updateBufferRegion(pageNum, updateRect);
-    //        widget->update();
-  }
 }
 
 /******************************************************************************
 ** CreateSelectionCommand
 */
 
-// CreateSelectionCommand::CreateSelectionCommand(Widget *newWidget, int newPageNum, QVector<int> newStrokesInSelection, QUndoCommand *parent) :
-// QUndoCommand(parent)
 CreateSelectionCommand::CreateSelectionCommand(Widget *widget, int pageNum, QPolygonF selectionPolygon, QUndoCommand *parent) : QUndoCommand(parent)
 {
   setText(MainWindow::tr("Create Selection"));
@@ -182,21 +170,13 @@ void ReleaseSelectionCommand::undo()
     widget->currentDocument->pages[pageNum].m_strokes.removeLast();
   }
   widget->setCurrentState(Widget::state::SELECTED);
-  //    widget->updateBuffer(pageNum);
-  //    widget->update();
 }
 
 void ReleaseSelectionCommand::redo()
 {
   int pageNum = widget->currentSelection.pageNum;
-  //    for (int i = 0; i < widget->currentSelection.m_strokes.size(); ++i)
-  //    {
-  //        widget->currentDocument->pages[pageNum].m_strokes.append(widget->currentSelection.m_strokes.at(i));
-  //    }
   widget->currentDocument->pages[pageNum].appendStrokes(widget->currentSelection.m_strokes);
   widget->setCurrentState(Widget::state::IDLE);
-  //    widget->updateBuffer(pageNum);
-  //    widget->update();
 }
 
 /******************************************************************************
@@ -216,23 +196,11 @@ TransformSelectionCommand::TransformSelectionCommand(Widget *newWidget, int newP
 void TransformSelectionCommand::undo()
 {
   widget->currentSelection = selection;
-  //    widget->updateBuffer(pageNum);
-  //    widget->update();
-  //    widget->updateAllDirtyBuffers();
 }
 
 void TransformSelectionCommand::redo()
 {
-  QRect updateRect = widget->currentSelection.selectionPolygon.boundingRect().toRect();
   widget->currentSelection.transform(transform, pageNum);
-  //    widget->updateBuffer(pageNum);
-  updateRect = updateRect.united(widget->currentSelection.selectionPolygon.boundingRect().toRect());
-  QTransform scaleTrans;
-  scaleTrans = scaleTrans.scale(widget->zoom, widget->zoom);
-  updateRect = scaleTrans.mapRect(updateRect);
-  updateRect.adjust(-1, -1, 1, 1);
-  //    widget->update(updateRect);
-  //    widget->updateAllDirtyBuffers();
 }
 
 bool TransformSelectionCommand::mergeWith(const QUndoCommand *other)
@@ -261,8 +229,6 @@ ChangeColorOfSelectionCommand::ChangeColorOfSelectionCommand(Widget *newWidget, 
 void ChangeColorOfSelectionCommand::undo()
 {
   widget->currentSelection = selection;
-  //    widget->updateBuffer(selection.pageNum);
-  //    widget->update();
 }
 
 void ChangeColorOfSelectionCommand::redo()
@@ -271,8 +237,6 @@ void ChangeColorOfSelectionCommand::redo()
   {
     widget->currentSelection.m_strokes[i].color = color;
   }
-  //    widget->updateBuffer(selection.pageNum);
-  //    widget->update();
 }
 
 /******************************************************************************
@@ -368,7 +332,7 @@ void PasteCommand::redo()
 }
 
 /******************************************************************************
-** CutPageCommand
+** CutCommand
 */
 
 CutCommand::CutCommand(Widget *newWidget, QUndoCommand *parent) : QUndoCommand(parent)
@@ -383,7 +347,6 @@ void CutCommand::undo()
 {
   widget->currentSelection = previousSelection;
   widget->setCurrentState(previousState);
-  widget->update();
 }
 
 void CutCommand::redo()
@@ -391,11 +354,10 @@ void CutCommand::redo()
   widget->clipboard = previousSelection;
   widget->currentSelection = MrDoc::Selection();
   widget->setCurrentState(Widget::state::IDLE);
-  widget->update();
 }
 
 /******************************************************************************
-** CutPageCommand
+** ChangePageSettingsCommand
 */
 
 ChangePageSettingsCommand::ChangePageSettingsCommand(Widget *newWidget, int newPageNum, QSizeF newSize, QColor newBackgroundColor, QUndoCommand *parent)
@@ -418,7 +380,6 @@ void ChangePageSettingsCommand::undo()
   widget->currentDocument->pages[pageNum].setBackgroundColor(prevBackgroundColor);
   widget->updateBuffer(pageNum);
   widget->setGeometry(widget->getWidgetGeometry());
-  widget->update();
 }
 
 void ChangePageSettingsCommand::redo()
@@ -430,5 +391,4 @@ void ChangePageSettingsCommand::redo()
   widget->currentDocument->pages[pageNum].setBackgroundColor(backgroundColor);
   widget->updateBuffer(pageNum);
   widget->setGeometry(widget->getWidgetGeometry());
-  widget->update();
 }

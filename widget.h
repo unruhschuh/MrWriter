@@ -55,10 +55,19 @@ public:
   static constexpr qreal veryThickPenWidth = 5.67;
 
   void setCurrentTool(tool toolID);
-  tool getCurrentTool() { return currentTool; }
+  tool getCurrentTool()
+  {
+    return currentTool;
+  }
 
-  void setCurrentPenWidth(qreal penWidth) { currentPenWidth = penWidth; }
-  qreal getCurrentPenWidth() { return currentPenWidth; }
+  void setCurrentPenWidth(qreal penWidth)
+  {
+    currentPenWidth = penWidth;
+  }
+  qreal getCurrentPenWidth()
+  {
+    return currentPenWidth;
+  }
 
   void mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::MouseButtons buttons, Qt::KeyboardModifiers keyboardModifiers,
                            QTabletEvent::PointerType pointerType, QEvent::Type eventType, qreal pressure, bool tabletEvent);

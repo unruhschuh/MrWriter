@@ -9,7 +9,9 @@ class ColorButton : public QLabel
   Q_OBJECT
 public:
   explicit ColorButton(QWidget *parent = 0);
-  ~ColorButton() {}
+  ~ColorButton()
+  {
+  }
 
   void setColor(QColor newColor);
 

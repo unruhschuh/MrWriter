@@ -58,7 +58,10 @@ bool TabletApplication::event(QEvent *event)
   return QApplication::event(event);
 }
 
-bool TabletApplication::isUsingTablet() { return usingTablet; }
+bool TabletApplication::isUsingTablet()
+{
+  return usingTablet;
+}
 
 void TabletApplication::exit()
 {

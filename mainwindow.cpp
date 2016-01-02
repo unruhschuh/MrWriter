@@ -848,13 +848,25 @@ bool MainWindow::exportXOJ()
   }
 }
 
-void MainWindow::zoomIn() { mainWidget->zoomIn(); }
+void MainWindow::zoomIn()
+{
+  mainWidget->zoomIn();
+}
 
-void MainWindow::zoomOut() { mainWidget->zoomOut(); }
+void MainWindow::zoomOut()
+{
+  mainWidget->zoomOut();
+}
 
-void MainWindow::zoomFitWidth() { mainWidget->zoomFitWidth(); }
+void MainWindow::zoomFitWidth()
+{
+  mainWidget->zoomFitWidth();
+}
 
-void MainWindow::zoomFitHeight() { mainWidget->zoomFitHeight(); }
+void MainWindow::zoomFitHeight()
+{
+  mainWidget->zoomFitHeight();
+}
 
 void MainWindow::pen()
 {
@@ -892,7 +904,10 @@ void MainWindow::hand()
   updateGUI();
 }
 
-void MainWindow::modified() { setWindowModified(mainWidget->currentDocument->getDocumentChanged()); }
+void MainWindow::modified()
+{
+  setWindowModified(mainWidget->currentDocument->getDocumentChanged());
+}
 
 void MainWindow::black()
 {
@@ -1232,7 +1247,10 @@ void MainWindow::cloneWindow()
   window->scrollArea->horizontalScrollBar()->setValue(scrollArea->horizontalScrollBar()->value());
 }
 
-void MainWindow::maximize() { showMaximized(); }
+void MainWindow::maximize()
+{
+  showMaximized();
+}
 
 bool MainWindow::loadXOJ(QString fileName)
 {
@@ -1293,4 +1311,7 @@ void MainWindow::loadMyGeometry()
   restoreGeometry(settings.value("MainWindow/geometry").toByteArray());
 }
 
-void MainWindow::exit() { static_cast<TabletApplication *>(qApp)->exit(); }
+void MainWindow::exit()
+{
+  static_cast<TabletApplication *>(qApp)->exit();
+}
