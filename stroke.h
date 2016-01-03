@@ -17,7 +17,7 @@ public:
   //    enum class dashPattern { SolidLine, DashLine, DashDotLine, DotLine };
   void paint(QPainter &painter, qreal zoom, bool last = false);
 
-  QRectF boundingRect();
+  QRectF boundingRect() const;
 
   Stroke();
   QPolygonF points;

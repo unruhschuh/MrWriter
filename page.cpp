@@ -72,9 +72,28 @@ void Page::clearDirtyRect()
   dirtyRect = QRectF();
 }
 
+bool Page::changeStrokeColor(int strokeNum, QColor color)
+{
+  if (strokeNum < 0 || strokeNum >= m_strokes.size() || m_strokes.isEmpty())
+  {
+    return false;
+  }
+  else
+  {
+    m_strokes[strokeNum].color = color;
+    dirtyRect = dirtyRect.united(m_strokes[strokeNum].boundingRect());
+    return true;
+  }
+}
+
+const QVector<Stroke> &Page::strokes()
+{
+  return m_strokes;
+}
+
 QVector<QPair<Stroke, int>> Page::getStrokes(QPolygonF &selectionPolygon)
 {
-  QVector<QPair<Stroke, int>> removedStrokesAndPositions;
+  QVector<QPair<Stroke, int>> strokesAndPositions;
 
   for (int i = m_strokes.size() - 1; i >= 0; --i)
   {
@@ -90,11 +109,11 @@ QVector<QPair<Stroke, int>> Page::getStrokes(QPolygonF &selectionPolygon)
     if (containsStroke)
     {
       // add selected strokes and positions to return vector
-      removedStrokesAndPositions.append(QPair<Stroke, int>(stroke, i));
+      strokesAndPositions.append(QPair<Stroke, int>(stroke, i));
     }
   }
 
-  return removedStrokesAndPositions;
+  return strokesAndPositions;
 }
 
 QVector<QPair<Stroke, int>> Page::removeStrokes(QPolygonF &selectionPolygon)
@@ -103,7 +122,6 @@ QVector<QPair<Stroke, int>> Page::removeStrokes(QPolygonF &selectionPolygon)
 
   for (auto sAndP : removedStrokesAndPositions)
   {
-    //            m_strokes.removeAt(sAndP.second);
     removeStrokeAt(sAndP.second);
   }
 
@@ -116,7 +134,12 @@ void Page::removeStrokeAt(int i)
   m_strokes.removeAt(i);
 }
 
-void Page::insertStrokes(QVector<QPair<Stroke, int>> &strokesAndPositions)
+void Page::removeLastStroke()
+{
+  removeStrokeAt(m_strokes.size() - 1);
+}
+
+void Page::insertStrokes(const QVector<QPair<Stroke, int>> &strokesAndPositions)
 {
   for (int i = strokesAndPositions.size() - 1; i >= 0; --i)
   {
@@ -124,27 +147,27 @@ void Page::insertStrokes(QVector<QPair<Stroke, int>> &strokesAndPositions)
   }
 }
 
-void Page::insertStroke(int position, Stroke &stroke)
+void Page::insertStroke(int position, const Stroke &stroke)
 {
   dirtyRect = dirtyRect.united(stroke.boundingRect());
   m_strokes.insert(position, stroke);
 }
 
-void Page::appendStroke(Stroke &stroke)
+void Page::appendStroke(const Stroke &stroke)
 {
   dirtyRect = dirtyRect.united(stroke.boundingRect());
   m_strokes.append(stroke);
 }
 
-void Page::appendStrokes(QVector<Stroke> &strokes)
+void Page::appendStrokes(const QVector<Stroke> &strokes)
 {
-  for (Stroke &stroke : strokes)
+  for (auto &stroke : strokes)
   {
     m_strokes.append(stroke);
   }
 }
 
-void Page::prependStroke(Stroke &stroke)
+void Page::prependStroke(const Stroke &stroke)
 {
   dirtyRect = dirtyRect.united(stroke.boundingRect());
   m_strokes.append(stroke);

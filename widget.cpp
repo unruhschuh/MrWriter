@@ -937,7 +937,7 @@ void Widget::erase(QPointF mousePos, bool invertEraser)
   qInfo() << "pageNum: " << pageNum << "\n";
   QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
 
-  QVector<MrDoc::Stroke> *strokes = &(currentDocument->pages[pageNum].m_strokes);
+  const QVector<MrDoc::Stroke> &strokes = currentDocument->pages[pageNum].strokes();
 
   qreal eraserWidth = 10;
 
@@ -964,9 +964,9 @@ void Widget::erase(QPointF mousePos, bool invertEraser)
 
   if (realEraser || (!realEraser && invertEraser))
   {
-    for (int i = strokes->size() - 1; i >= 0; --i)
+    for (int i = strokes.size() - 1; i >= 0; --i)
     {
-      MrDoc::Stroke stroke = strokes->at(i);
+      MrDoc::Stroke stroke = strokes.at(i);
       if (rectE.intersects(stroke.points.boundingRect()) || !stroke.points.boundingRect().isValid()) // this is done for speed
       {
         for (int j = 0; j < stroke.points.length() - 1; ++j)
@@ -1020,7 +1020,7 @@ void Widget::erase(QPointF mousePos, bool invertEraser)
               undoStack.push(addStrokeCommand);
               addStrokeCommand = new AddStrokeCommand(this, pageNum, splitStroke, i, false, false);
               undoStack.push(addStrokeCommand);
-              //                            strokes->insert(i, splitStroke);
+              //                            strokes.insert(i, splitStroke);
               i += 2;
               break;
             }
@@ -1040,9 +1040,9 @@ void Widget::erase(QPointF mousePos, bool invertEraser)
 
   rectE = QRectF(pagePos + QPointF(-eraserWidth, eraserWidth) / 2.0, pagePos + QPointF(eraserWidth, -eraserWidth) / 2.0);
 
-  for (int i = 0; i < strokes->size(); ++i)
+  for (int i = 0; i < strokes.size(); ++i)
   {
-    const MrDoc::Stroke stroke = strokes->at(i);
+    const MrDoc::Stroke stroke = strokes.at(i);
     if (rectE.intersects(stroke.points.boundingRect()) || !stroke.points.boundingRect().isValid()) // this is done for speed
     {
       bool foundStrokeToDelete = false;
@@ -1076,11 +1076,11 @@ void Widget::erase(QPointF mousePos, bool invertEraser)
     currentDocument->setDocumentChanged(true);
     emit modified();
 
-    QRect updateRect;
+//    QRect updateRect;
     std::sort(strokesToDelete.begin(), strokesToDelete.end(), std::greater<int>());
     for (int i = 0; i < strokesToDelete.size(); ++i)
     {
-      updateRect = updateRect.united(currentDocument->pages[pageNum].m_strokes.at(strokesToDelete.at(i)).points.boundingRect().toRect());
+//      updateRect = updateRect.united(currentDocument->pages[pageNum].m_strokes.at(strokesToDelete.at(i)).points.boundingRect().toRect());
       RemoveStrokeCommand *removeCommand = new RemoveStrokeCommand(this, pageNum, strokesToDelete[i]);
       undoStack.push(removeCommand);
     }
@@ -1457,10 +1457,12 @@ void Widget::paste()
   QTransform myTrans;
   myTrans = myTrans.translate(selectionPos.x(), selectionPos.y());
 
-  for (int i = 0; i < tmpSelection.m_strokes.size(); ++i)
-  {
-    tmpSelection.m_strokes[i].points = myTrans.map(tmpSelection.m_strokes[i].points);
-  }
+  tmpSelection.transform(myTrans, tmpSelection.pageNum);
+
+//  for (int i = 0; i < tmpSelection.strokes().size(); ++i)
+//  {
+//    tmpSelection.m_strokes[i].points = myTrans.map(tmpSelection.m_strokes[i].points);
+//  }
   tmpSelection.finalize();
   tmpSelection.updateBuffer(zoom);
 

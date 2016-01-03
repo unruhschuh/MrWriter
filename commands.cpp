@@ -1,5 +1,6 @@
 #include "commands.h"
 #include "mainwindow.h"
+#include <QDebug>
 
 /******************************************************************************
 ** AddStrokeCommand
@@ -45,7 +46,7 @@ void AddStrokeCommand::undo()
   {
     if (strokeNum == -1)
     {
-      widget->currentDocument->pages[pageNum].removeStrokeAt(widget->currentDocument->pages[pageNum].m_strokes.size() - 1);
+      widget->currentDocument->pages[pageNum].removeStrokeAt(widget->currentDocument->pages[pageNum].strokes().size() - 1);
     }
     else
     {
@@ -88,7 +89,7 @@ RemoveStrokeCommand::RemoveStrokeCommand(Widget *newWidget, int newPageNum, int 
   pageNum = newPageNum;
   widget = newWidget;
   strokeNum = newStrokeNum;
-  stroke = widget->currentDocument->pages[pageNum].m_strokes[strokeNum];
+  stroke = widget->currentDocument->pages[pageNum].strokes()[strokeNum];
   update = newUpdate;
 }
 
@@ -144,7 +145,10 @@ void CreateSelectionCommand::undo()
 
 void CreateSelectionCommand::redo()
 {
-  m_widget->currentDocument->pages[m_pageNum].removeStrokes(m_selection.selectionPolygon);
+  for (auto &sAndP : m_strokesAndPositions)
+  {
+    m_widget->currentDocument->pages[m_pageNum].removeStrokeAt(sAndP.second);
+  }
   m_widget->currentSelection = m_selection;
   m_widget->setCurrentState(Widget::state::SELECTED);
 }
@@ -165,9 +169,9 @@ ReleaseSelectionCommand::ReleaseSelectionCommand(Widget *newWidget, int newPageN
 void ReleaseSelectionCommand::undo()
 {
   widget->currentSelection = selection;
-  for (int i = 0; i < widget->currentSelection.m_strokes.size(); ++i)
+  for (int i = 0; i < widget->currentSelection.strokes().size(); ++i)
   {
-    widget->currentDocument->pages[pageNum].m_strokes.removeLast();
+    widget->currentDocument->pages[pageNum].removeLastStroke();
   }
   widget->setCurrentState(Widget::state::SELECTED);
 }
@@ -175,7 +179,7 @@ void ReleaseSelectionCommand::undo()
 void ReleaseSelectionCommand::redo()
 {
   int pageNum = widget->currentSelection.pageNum;
-  widget->currentDocument->pages[pageNum].appendStrokes(widget->currentSelection.m_strokes);
+  widget->currentDocument->pages[pageNum].appendStrokes(widget->currentSelection.strokes());
   widget->setCurrentState(Widget::state::IDLE);
 }
 
@@ -233,9 +237,9 @@ void ChangeColorOfSelectionCommand::undo()
 
 void ChangeColorOfSelectionCommand::redo()
 {
-  for (int i = 0; i < widget->currentSelection.m_strokes.size(); ++i)
+  for (int i = 0; i < widget->currentSelection.strokes().size(); ++i)
   {
-    widget->currentSelection.m_strokes[i].color = color;
+    widget->currentSelection.changeStrokeColor(i, color);
   }
 }
 
