@@ -11,7 +11,7 @@ QT       += xml
 QT       += printsupport
 QT       += concurrent
 QT       += svg
-QT       += webenginewidgets
+#QT       += webenginewidgets
 
 system(touch version.h)
 system(sh make_doc.sh)
