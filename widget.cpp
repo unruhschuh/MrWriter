@@ -1532,6 +1532,7 @@ void Widget::setCurrentColor(QColor newColor)
     ChangeColorOfSelectionCommand *changeColorCommand = new ChangeColorOfSelectionCommand(this, newColor);
     undoStack.push(changeColorCommand);
     currentSelection.updateBuffer(zoom);
+    update();
   }
 }
 
