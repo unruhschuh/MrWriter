@@ -691,11 +691,19 @@ void Widget::stopSelecting(QPointF mousePos)
 
   currentSelection.selectionPolygon.append(pagePos);
 
-  CreateSelectionCommand *createSelectionCommand = new CreateSelectionCommand(this, pageNum, currentSelection.selectionPolygon);
-  undoStack.push(createSelectionCommand);
+  if (!currentDocument->pages[pageNum].getStrokes(currentSelection.selectionPolygon).isEmpty())
+  {
+    CreateSelectionCommand *createSelectionCommand = new CreateSelectionCommand(this, pageNum, currentSelection.selectionPolygon);
+    undoStack.push(createSelectionCommand);
 
-  emit updateGUI();
-  update();
+    emit updateGUI();
+    update();
+  }
+  else
+  {
+    setCurrentState(state::IDLE);
+  }
+
 }
 
 void Widget::letGoSelection()
