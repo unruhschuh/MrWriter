@@ -101,7 +101,7 @@ MrWriter makes excessive use of keyboard shortcuts. The table <<ShortcutsTable>>
 | kbd:[F]
 
 | Toggle Statusbar
-| kbd:[C]
+| kbd:[S]
 
 | Pen Width
 | kbd:kbd:[Ctrl]/kbd:[Cmd+1] through kbd:[5]
