@@ -8,7 +8,7 @@
 = MrWriter
 
 MrWriter is a programm aimed at replacing pen and paper for note taking as well as blackboards in schools and universities.
-You can find the newest version at http://www.unruhschuh.com/mrwriter[MrWriter]
+You can find the newest version at http://github.com/unruhschuh/MrWriter[MrWriter]
 
 == Users Guide
 
