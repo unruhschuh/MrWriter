@@ -23,7 +23,9 @@ TEMPLATE = app
 
 HEADERS  += version.h \
     pagesettingsdialog.h \
-    colorbutton.h
+    colorbutton.h \
+    stroke.h \
+    mrdoc.h
 
 #VERSION_MAJOR = MY_MAJOR_VERSION
 #VERSION_MINOR = MY_MINOR_VERSION
@@ -31,7 +33,6 @@ HEADERS  += version.h \
 SOURCES += main.cpp\
         mainwindow.cpp \
     widget.cpp \
-    curve.cpp \
     document.cpp \
     page.cpp \
     qcompressor.cpp \
@@ -39,11 +40,11 @@ SOURCES += main.cpp\
     commands.cpp \
     tabletapplication.cpp \
     pagesettingsdialog.cpp \
-    colorbutton.cpp
+    colorbutton.cpp \
+    stroke.cpp
 
 HEADERS  += mainwindow.h \
     widget.h \
-    curve.h \
     document.h \
     page.h \
     qcompressor.h \
@@ -67,7 +68,8 @@ RC_ICONS = MyIcon.ico
 DISTFILES += \
     images/openIcon.png \
     images/newIcon.png \
-    Info.plist
+    Info.plist \
+    COPYING
 
 CONFIG += c++11
 

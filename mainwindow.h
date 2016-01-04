@@ -10,206 +10,203 @@
 
 class MainWindow : public QMainWindow
 {
-    Q_OBJECT
+  Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
-//    MainWindow();
-    ~MainWindow();
+  explicit MainWindow(QWidget *parent = 0);
+  //    MainWindow();
+  ~MainWindow();
 
-    void setTitle();
-    bool loadXOJ(QString fileName);
-    bool loadMOJ(QString fileName);
-    
+  void setTitle();
+  bool loadXOJ(QString fileName);
+  bool loadMOJ(QString fileName);
+
 protected:
-    void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
-    void showEvent(QShowEvent *event) Q_DECL_OVERRIDE;
+  void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
+  void showEvent(QShowEvent *event) Q_DECL_OVERRIDE;
 
 public slots:
-    void updateGUI();
+  void updateGUI();
 
 private slots:
-    void newWindow();
-    void cloneWindow();
-    void newFile();
-    void openFile();
-    bool saveFile();
-    void exportPDF();
+  void newWindow();
+  void cloneWindow();
+  void newFile();
+  void openFile();
+  bool saveFile();
+  void exportPDF();
 
-    void importXOJ();
-    bool exportXOJ();
+  void importXOJ();
+  bool exportXOJ();
 
-    void exit();
+  void exit();
 
-    void zoomIn();
-    void zoomOut();
-    void zoomFitWidth();
-    void zoomFitHeight();
+  void zoomIn();
+  void zoomOut();
+  void zoomFitWidth();
+  void zoomFitHeight();
 
-    void pen();
-    void ruler();
-    void circle();
-    void eraser();
-    void select();
-    void hand();
+  void pen();
+  void ruler();
+  void circle();
+  void eraser();
+  void select();
+  void hand();
 
-    void modified();
+  void modified();
 
-    void toolbar();
-    void statusbar();
-    void fullscreen();
-    void maximize();
+  void toolbar();
+  void statusbar();
+  void fullscreen();
+  void maximize();
 
-    void pageSettings();
+  void pageSettings();
 
-    void black();
-    void blue();
-    void red();
-    void green();
-    void gray();
-    void lightblue();
-    void lightgreen();
-    void magenta();
-    void orange();
-    void yellow();
-    void white();
+  void black();
+  void blue();
+  void red();
+  void green();
+  void gray();
+  void lightblue();
+  void lightgreen();
+  void magenta();
+  void orange();
+  void yellow();
+  void white();
 
-    void rotate();
+  void rotate();
 
-    void help();
-    void about();
+  void help();
+  void about();
 
-    void saveMyState();
-    void loadMyState();
+  void saveMyState();
+  void loadMyState();
 
-    void saveMyGeometry();
-    void loadMyGeometry();
+  void saveMyGeometry();
+  void loadMyGeometry();
 
-    void verticalScrolling();
+  void verticalScrolling();
 
-    bool maybeSave();
+  bool maybeSave();
 
 private:
-    // widgets
-    Widget *mainWidget;
-    QScrollArea* scrollArea;
+  // widgets
+  Widget *mainWidget;
+  QScrollArea *scrollArea;
 
-    void createActions();
-    void createToolBars();
-    void createMenus();
+  void createActions();
+  void createToolBars();
+  void createMenus();
 
-    QLabel pageStatus;
-    QLabel penWidthStatus;
-    QLabel colorStatus;
+  QLabel pageStatus;
+  QLabel penWidthStatus;
+  QLabel colorStatus;
 
-    // actions
-    QAction *newWindowAct;
-    QAction *cloneWindowAct;
-    QAction *closeWindowAct;
-    QAction *newFileAct;
-    QAction *openFileAct;
-    QAction *saveFileAct;
-    QAction *exportPDFAct;
-    QAction *exitAct;
+  // actions
+  QAction *newWindowAct;
+  QAction *cloneWindowAct;
+  QAction *closeWindowAct;
+  QAction *newFileAct;
+  QAction *openFileAct;
+  QAction *saveFileAct;
+  QAction *exportPDFAct;
+  QAction *exitAct;
 
-    QAction *importXOJAct;
-    QAction *exportXOJAct;
+  QAction *importXOJAct;
+  QAction *exportXOJAct;
 
-    QAction *undoAct;
-    QAction *redoAct;
+  QAction *undoAct;
+  QAction *redoAct;
 
-    QAction *copyAct;
-    QAction *pasteAct;
-    QAction *cutAct;
+  QAction *copyAct;
+  QAction *pasteAct;
+  QAction *cutAct;
 
-    QAction *zoomInAct;
-    QAction *zoomOutAct;
-    QAction *zoomFitWidthAct;
-    QAction *zoomFitHeightAct;
+  QAction *zoomInAct;
+  QAction *zoomOutAct;
+  QAction *zoomFitWidthAct;
+  QAction *zoomFitHeightAct;
 
-    QAction *pageFirstAct;
-    QAction *pageLastAct;
-    QAction *pageUpAct;
-    QAction *pageDownAct;
+  QAction *pageFirstAct;
+  QAction *pageLastAct;
+  QAction *pageUpAct;
+  QAction *pageDownAct;
 
-    QAction *pageAddEndAct;
-    QAction *pageAddBeginningAct;
-    QAction *pageAddBeforeAct;
-    QAction *pageAddAfterAct;
+  QAction *pageAddEndAct;
+  QAction *pageAddBeginningAct;
+  QAction *pageAddBeforeAct;
+  QAction *pageAddAfterAct;
 
-    QAction *pageRemoveAct;
+  QAction *pageRemoveAct;
 
-    QAction *pageSettingsAct;
+  QAction *pageSettingsAct;
 
-    QAction *penAct;
-    QAction *rulerAct;
-    QAction *circleAct;
-    QAction *eraserAct;
-    QAction *selectAct;
-    QAction *handAct;
+  QAction *penAct;
+  QAction *rulerAct;
+  QAction *circleAct;
+  QAction *eraserAct;
+  QAction *selectAct;
+  QAction *handAct;
 
-    QAction *solidPatternAct;
-    QAction *dashPatternAct;
-    QAction *dashDotPatternAct;
-    QAction *dotPatternAct;
+  QAction *solidPatternAct;
+  QAction *dashPatternAct;
+  QAction *dashDotPatternAct;
+  QAction *dotPatternAct;
 
-    QAction *rotateAct;
+  QAction *rotateAct;
 
-    QAction *veryFinePenWidthAct;
-    QAction *finePenWidthAct;
-    QAction *mediumPenWidthAct;
-    QAction *thickPenWidthAct;
-    QAction *veryThickPenWidthAct;
+  QAction *veryFinePenWidthAct;
+  QAction *finePenWidthAct;
+  QAction *mediumPenWidthAct;
+  QAction *thickPenWidthAct;
+  QAction *veryThickPenWidthAct;
 
-    QAction *toolbarAct;
-    QAction *statusbarAct;
-    QAction *fullscreenAct;
-    QAction *maximizeAct;
+  QAction *toolbarAct;
+  QAction *statusbarAct;
+  QAction *fullscreenAct;
+  QAction *maximizeAct;
 
-    // color actions
-    QAction *blackAct;
-    QAction *blueAct;
-    QAction *redAct;
-    QAction *greenAct;
-    QAction *grayAct;
-    QAction *lightblueAct;
-    QAction *lightgreenAct;
-    QAction *magentaAct;
-    QAction *orangeAct;
-    QAction *yellowAct;
-    QAction *whiteAct;
+  // color actions
+  QAction *blackAct;
+  QAction *blueAct;
+  QAction *redAct;
+  QAction *greenAct;
+  QAction *grayAct;
+  QAction *lightblueAct;
+  QAction *lightgreenAct;
+  QAction *magentaAct;
+  QAction *orangeAct;
+  QAction *yellowAct;
+  QAction *whiteAct;
 
-    QAction *helpAct;
-    QAction *aboutAct;
-    QAction *aboutQtAct;
+  QAction *helpAct;
+  QAction *aboutAct;
+  QAction *aboutQtAct;
 
-    QAction *saveMyStateAct;
-    QAction *loadMyStateAct;
+  QAction *saveMyStateAct;
+  QAction *loadMyStateAct;
 
-    QToolBar *fileToolBar;
-    QToolBar *editToolBar;
-    QToolBar *viewToolBar;
-    QToolBar *toolsToolBar;
+  QToolBar *fileToolBar;
+  QToolBar *editToolBar;
+  QToolBar *viewToolBar;
+  QToolBar *toolsToolBar;
 
-    QToolButton *patternToolButton;
+  QToolButton *patternToolButton;
 
-    QMenu *fileMenu;
-    QMenu *editMenu;
-    QMenu *pageMenu;
-    QMenu *toolsMenu;
-    QMenu *penWidthMenu;
-    QMenu *patternMenu;
-    QMenu *viewMenu;
-    QMenu *helpMenu;
+  QMenu *fileMenu;
+  QMenu *editMenu;
+  QMenu *pageMenu;
+  QMenu *toolsMenu;
+  QMenu *penWidthMenu;
+  QMenu *patternMenu;
+  QMenu *viewMenu;
+  QMenu *helpMenu;
 
-    // for android
-    QToolButton *mainMenuButton;
-    QMenu *mainMenu;
+  // for android
+  QToolButton *mainMenuButton;
+  QMenu *mainMenu;
 
-
-//    Document* currentDocument;
-
+  //    Document* currentDocument;
 };
-
 
 #endif // MAINWINDOW_H

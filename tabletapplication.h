@@ -11,26 +11,24 @@
 class TabletApplication : public QApplication
 {
 public:
-    TabletApplication(int &argc, char **argv);
+  TabletApplication(int &argc, char **argv);
 
-    bool isUsingTablet();
+  bool isUsingTablet();
 
-    QVector<QMainWindow*> mainWindows;
+  QVector<QMainWindow *> mainWindows;
 
-    Selection clipboard;
+  MrDoc::Selection clipboard;
 
 public slots:
-    void exit();
+  void exit();
 
 protected:
-    bool event(QEvent *event) Q_DECL_OVERRIDE;
+  bool event(QEvent *event) Q_DECL_OVERRIDE;
 
 private:
-//    bool event(QEvent *event) Q_DECL_OVERRIDE;
+  //    bool event(QEvent *event) Q_DECL_OVERRIDE;
 
-    bool usingTablet = false;
-
-
+  bool usingTablet = false;
 };
 
 #endif // TABLETAPPLICATION_H

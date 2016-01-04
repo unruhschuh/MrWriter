@@ -7,10 +7,6 @@
 
 = MrWriter
 
-\[ \cos \alpha \]
-
-Das ist ein \( \sin \left( \omega t + \varphi_0 \right) \) Test
-
 MrWriter is a programm aimed at replacing pen and paper for note taking as well as blackboards in schools and universities.
 You can find the newest version at http://www.unruhschuh.com/mrwriter[MrWriter]
 
@@ -19,7 +15,7 @@ You can find the newest version at http://www.unruhschuh.com/mrwriter[MrWriter]
 === Tools
 
 [[ToolsTable]]
-.Tools
+.Tools/Users/tom/QtProjects/MrWriter/documentation
 [cols="^.^1,<.^1,.^100", options="header"]
 |===
 | Icon
@@ -62,18 +58,51 @@ MrWriter makes excessive use of keyboard shortcuts. The table <<ShortcutsTable>>
 | Action
 | Shortcut
 
-| Select Pen Tool
+| Choose Pen
 | kbd:[1]
 
-| Select Ruler Tool
+| Choose Ruler
 | kbd:[2]
 
-| Select Circle Tool
+| Choose Circle
 | kbd:[3]
+
+| Choose Eraser
+| kbd:[4]
+
+| Choose Select
+| kbd:[5]
+
+| Choose Hand
+| kbd:[6]
 
 | Erase freely
 | hold kbd:[Shift] while using the Eraser Tool
 
 | Save File
 | kbd:[Ctrl] / kbd:[Cmd+s] on Windows and Linux
+
+| Black
+| kbd:[Q]
+
+| Red
+| kbd:[W]
+
+| Green
+| kbd:[E]
+
+| Blue
+| kbd:[R]
+
+| Toggle Toolbar
+| kbd:[T]
+
+| Toggle Fullscreen
+| kbd:[F]
+
+| Toggle Statusbar
+| kbd:[C]
+
+| Pen Width
+| kbd:kbd:[Ctrl]/kbd:[Cmd+1] through kbd:[5]
 |====================

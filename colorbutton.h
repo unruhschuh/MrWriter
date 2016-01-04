@@ -4,29 +4,28 @@
 #include <QLabel>
 #include <QMouseEvent>
 
-
 class ColorButton : public QLabel
 {
-    Q_OBJECT
+  Q_OBJECT
 public:
-    explicit ColorButton(QWidget* parent = 0);
-    ~ColorButton() {}
+  explicit ColorButton(QWidget *parent = 0);
+  ~ColorButton()
+  {
+  }
 
-    void setColor(QColor newColor);
+  void setColor(QColor newColor);
 
-    void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-    void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+  void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+  void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
 
 signals:
-    void clicked();
+  void clicked();
 
 private slots:
 
 private:
-    QColor color;
-    bool leftButtonDown;
-
+  QColor color;
+  bool leftButtonDown;
 };
 
 #endif // COLORBUTTON_H
-

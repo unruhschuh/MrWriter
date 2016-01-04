@@ -1,34 +1,36 @@
 #ifndef SELECTION_H
 #define SELECTION_H
 
+//#include "mrdoc.h"
 #include "page.h"
-#include "curve.h"
+
+namespace MrDoc
+{
 
 class Selection : public Page
 {
 public:
-    Selection();
+  Selection();
 
-    void paint(QPainter &painter, qreal zoom);
+  virtual void paint(QPainter &painter, qreal zoom, QRectF region = QRect(0, 0, 0, 0)) override;
 
-    void addCurve(Curve newCurve);
+  void transform(QTransform transform, int newPageNum);
 
-    void transform(QTransform transform, int newPageNum);
+  void finalize();
 
-    void finalize();
+  void updateBuffer(qreal zoom);
 
-    void updateBuffer(qreal zoom);
+  QPolygonF selectionPolygon;
 
-    QPolygonF selectionPolygon;
+  QImage buffer;
+  QPointF buffPos = QPointF(0, 0);
+  qreal lastZoom = 0.0;
 
-    QImage buffer;
-    QPointF buffPos = QPointF(0,0);
-    qreal lastZoom = 0.0;
+  qreal ad = 10;
 
-    int pageNum;
+  int pageNum;
 
 private:
-
 };
-
+}
 #endif // SELECTION_H
