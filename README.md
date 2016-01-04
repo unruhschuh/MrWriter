@@ -6,6 +6,6 @@ See the [project homepage](http://unruhschuh.github.io/MrWriter/) for more infor
 ## Compile
 * Download and install [Qt](http://www.qt.io/download/)
 * Start QtCreator
-* Open the project file MrWriter.prc
+* Open the project file MrWriter.pro
 * Configure with your Version of Qt
 * Build and run
