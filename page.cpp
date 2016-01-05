@@ -69,7 +69,7 @@ const QRectF &Page::getDirtyRect() const
 
 void Page::clearDirtyRect()
 {
-  dirtyRect = QRectF();
+  dirtyRect = QRectF(0.0, 0.0, 0.0, 0.0);
 }
 
 bool Page::changeStrokeColor(int strokeNum, QColor color)

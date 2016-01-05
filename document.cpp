@@ -213,6 +213,11 @@ bool Document::loadXOJ(QString fileName)
   //    QFileInfo fileInfo(file);
   file.close();
 
+  for (auto &page : pages)
+  {
+      page.clearDirtyRect();
+  }
+
   if (reader.hasError())
   {
     return false;
@@ -445,6 +450,11 @@ bool Document::loadMOJ(QString fileName)
 
   QFileInfo fileInfo(file);
   file.close();
+
+  for (auto &page : pages)
+  {
+      page.clearDirtyRect();
+  }
 
   if (reader.hasError())
   {

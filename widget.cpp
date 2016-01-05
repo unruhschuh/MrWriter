@@ -934,7 +934,8 @@ void Widget::stopDrawing(QPointF mousePos, qreal pressure)
   AddStrokeCommand *addCommand = new AddStrokeCommand(this, drawingOnPage, currentStroke, -1, false, true);
   undoStack.push(addCommand);
 
-  currentState = state::IDLE;
+//  currentState = state::IDLE;
+  setCurrentState(state::IDLE);
 
   update();
 }

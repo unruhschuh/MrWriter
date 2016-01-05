@@ -1230,6 +1230,8 @@ void MainWindow::cloneWindow()
   window->mainWidget->currentDocument = mainWidget->currentDocument;
   window->mainWidget->pageBuffer = mainWidget->pageBuffer;
   window->mainWidget->currentSelection = mainWidget->currentSelection;
+  qInfo() << mainWidget->currentDocument.pages[0].getDirtyRect();
+  qInfo() << window->mainWidget->currentDocument.pages[0].getDirtyRect();
   window->mainWidget->setCurrentState(mainWidget->getCurrentState());
 //  window->mainWidget->zoomTo(mainWidget->zoom);
   window->mainWidget->zoom = mainWidget->zoom;
