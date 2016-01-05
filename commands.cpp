@@ -46,11 +46,11 @@ void AddStrokeCommand::undo()
   {
     if (strokeNum == -1)
     {
-      widget->currentDocument->pages[pageNum].removeStrokeAt(widget->currentDocument->pages[pageNum].strokes().size() - 1);
+      widget->currentDocument.pages[pageNum].removeStrokeAt(widget->currentDocument.pages[pageNum].strokes().size() - 1);
     }
     else
     {
-      widget->currentDocument->pages[pageNum].removeStrokeAt(strokeNum);
+      widget->currentDocument.pages[pageNum].removeStrokeAt(strokeNum);
     }
   }
 }
@@ -61,11 +61,11 @@ void AddStrokeCommand::redo()
   {
     if (strokeNum == -1)
     {
-      widget->currentDocument->pages[pageNum].appendStroke(stroke);
+      widget->currentDocument.pages[pageNum].appendStroke(stroke);
     }
     else
     {
-      widget->currentDocument->pages[pageNum].insertStroke(strokeNum, stroke);
+      widget->currentDocument.pages[pageNum].insertStroke(strokeNum, stroke);
     }
   }
 }
@@ -89,13 +89,13 @@ RemoveStrokeCommand::RemoveStrokeCommand(Widget *newWidget, int newPageNum, int 
   pageNum = newPageNum;
   widget = newWidget;
   strokeNum = newStrokeNum;
-  stroke = widget->currentDocument->pages[pageNum].strokes()[strokeNum];
+  stroke = widget->currentDocument.pages[pageNum].strokes()[strokeNum];
   update = newUpdate;
 }
 
 void RemoveStrokeCommand::undo()
 {
-  widget->currentDocument->pages[pageNum].insertStroke(strokeNum, stroke);
+  widget->currentDocument.pages[pageNum].insertStroke(strokeNum, stroke);
 
   qreal zoom = widget->zoom;
   QRect updateRect = stroke.points.boundingRect().toRect();
@@ -106,7 +106,7 @@ void RemoveStrokeCommand::undo()
 
 void RemoveStrokeCommand::redo()
 {
-  widget->currentDocument->pages[pageNum].removeStrokeAt(strokeNum);
+  widget->currentDocument.pages[pageNum].removeStrokeAt(strokeNum);
 
   qreal zoom = widget->zoom;
   QRect updateRect = stroke.points.boundingRect().toRect();
@@ -125,7 +125,7 @@ CreateSelectionCommand::CreateSelectionCommand(Widget *widget, int pageNum, QPol
   m_widget = widget;
   m_pageNum = pageNum;
 
-  m_strokesAndPositions = widget->currentDocument->pages[pageNum].getStrokes(selectionPolygon);
+  m_strokesAndPositions = widget->currentDocument.pages[pageNum].getStrokes(selectionPolygon);
 
   m_selection = widget->currentSelection;
   for (auto sAndP : m_strokesAndPositions)
@@ -138,7 +138,7 @@ CreateSelectionCommand::CreateSelectionCommand(Widget *widget, int pageNum, QPol
 
 void CreateSelectionCommand::undo()
 {
-  m_widget->currentDocument->pages[m_pageNum].insertStrokes(m_strokesAndPositions);
+  m_widget->currentDocument.pages[m_pageNum].insertStrokes(m_strokesAndPositions);
 
   m_widget->setCurrentState(Widget::state::IDLE);
 }
@@ -147,7 +147,7 @@ void CreateSelectionCommand::redo()
 {
   for (auto &sAndP : m_strokesAndPositions)
   {
-    m_widget->currentDocument->pages[m_pageNum].removeStrokeAt(sAndP.second);
+    m_widget->currentDocument.pages[m_pageNum].removeStrokeAt(sAndP.second);
   }
   m_widget->currentSelection = m_selection;
   m_widget->setCurrentState(Widget::state::SELECTED);
@@ -171,7 +171,7 @@ void ReleaseSelectionCommand::undo()
   widget->currentSelection = selection;
   for (int i = 0; i < widget->currentSelection.strokes().size(); ++i)
   {
-    widget->currentDocument->pages[pageNum].removeLastStroke();
+    widget->currentDocument.pages[pageNum].removeLastStroke();
   }
   widget->setCurrentState(Widget::state::SELECTED);
 }
@@ -179,7 +179,7 @@ void ReleaseSelectionCommand::undo()
 void ReleaseSelectionCommand::redo()
 {
   int pageNum = widget->currentSelection.pageNum;
-  widget->currentDocument->pages[pageNum].appendStrokes(widget->currentSelection.strokes());
+  widget->currentDocument.pages[pageNum].appendStrokes(widget->currentSelection.strokes());
   widget->setCurrentState(Widget::state::IDLE);
 }
 
@@ -256,7 +256,7 @@ AddPageCommand::AddPageCommand(Widget *newWidget, int newPageNum, QUndoCommand *
 
 void AddPageCommand::undo()
 {
-  widget->currentDocument->pages.removeAt(pageNum);
+  widget->currentDocument.pages.removeAt(pageNum);
   widget->pageBuffer.removeAt(pageNum);
   widget->update();
 }
@@ -271,11 +271,11 @@ void AddPageCommand::redo()
   else
     pageNumForSettings = pageNum - 1;
 
-  page.setWidth(widget->currentDocument->pages[pageNumForSettings].getWidth());
-  page.setHeight(widget->currentDocument->pages[pageNumForSettings].getHeight());
-  page.backgroundColor = widget->currentDocument->pages[pageNumForSettings].backgroundColor;
+  page.setWidth(widget->currentDocument.pages[pageNumForSettings].getWidth());
+  page.setHeight(widget->currentDocument.pages[pageNumForSettings].getHeight());
+  page.backgroundColor = widget->currentDocument.pages[pageNumForSettings].backgroundColor;
 
-  widget->currentDocument->pages.insert(pageNum, page);
+  widget->currentDocument.pages.insert(pageNum, page);
   widget->pageBuffer.insert(pageNum, QPixmap());
   widget->updateBuffer(pageNum);
   widget->update();
@@ -290,12 +290,12 @@ RemovePageCommand::RemovePageCommand(Widget *newWidget, int newPageNum, QUndoCom
   setText(MainWindow::tr("Remove Page"));
   widget = newWidget;
   pageNum = newPageNum;
-  page = widget->currentDocument->pages[pageNum];
+  page = widget->currentDocument.pages[pageNum];
 }
 
 void RemovePageCommand::undo()
 {
-  widget->currentDocument->pages.insert(pageNum, page);
+  widget->currentDocument.pages.insert(pageNum, page);
   widget->pageBuffer.insert(pageNum, QPixmap());
   widget->updateBuffer(pageNum);
   widget->update();
@@ -303,7 +303,7 @@ void RemovePageCommand::undo()
 
 void RemovePageCommand::redo()
 {
-  widget->currentDocument->pages.removeAt(pageNum);
+  widget->currentDocument.pages.removeAt(pageNum);
   widget->pageBuffer.removeAt(pageNum);
   widget->update();
 }
@@ -369,9 +369,9 @@ ChangePageSettingsCommand::ChangePageSettingsCommand(Widget *newWidget, int newP
 {
   widget = newWidget;
   pageNum = newPageNum;
-  prevSize = QSizeF(widget->currentDocument->pages[pageNum].getWidth(), widget->currentDocument->pages[pageNum].getHeight());
+  prevSize = QSizeF(widget->currentDocument.pages[pageNum].getWidth(), widget->currentDocument.pages[pageNum].getHeight());
   size = newSize;
-  prevBackgroundColor = widget->currentDocument->pages[pageNum].getBackgroundColor();
+  prevBackgroundColor = widget->currentDocument.pages[pageNum].getBackgroundColor();
   backgroundColor = newBackgroundColor;
 }
 
@@ -379,9 +379,9 @@ void ChangePageSettingsCommand::undo()
 {
   qreal width = prevSize.width();
   qreal height = prevSize.height();
-  widget->currentDocument->pages[pageNum].setWidth(width);
-  widget->currentDocument->pages[pageNum].setHeight(height);
-  widget->currentDocument->pages[pageNum].setBackgroundColor(prevBackgroundColor);
+  widget->currentDocument.pages[pageNum].setWidth(width);
+  widget->currentDocument.pages[pageNum].setHeight(height);
+  widget->currentDocument.pages[pageNum].setBackgroundColor(prevBackgroundColor);
   widget->updateBuffer(pageNum);
   widget->setGeometry(widget->getWidgetGeometry());
 }
@@ -390,9 +390,9 @@ void ChangePageSettingsCommand::redo()
 {
   qreal width = size.width();
   qreal height = size.height();
-  widget->currentDocument->pages[pageNum].setWidth(width);
-  widget->currentDocument->pages[pageNum].setHeight(height);
-  widget->currentDocument->pages[pageNum].setBackgroundColor(backgroundColor);
+  widget->currentDocument.pages[pageNum].setWidth(width);
+  widget->currentDocument.pages[pageNum].setHeight(height);
+  widget->currentDocument.pages[pageNum].setBackgroundColor(backgroundColor);
   widget->updateBuffer(pageNum);
   widget->setGeometry(widget->getWidgetGeometry());
 }

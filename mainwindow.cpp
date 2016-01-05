@@ -83,13 +83,13 @@ MainWindow::~MainWindow()
 void MainWindow::setTitle()
 {
   QString docName;
-  if (mainWidget->currentDocument->getDocName().isEmpty())
+  if (mainWidget->currentDocument.getDocName().isEmpty())
   {
     docName = tr("untitled");
   }
   else
   {
-    docName = mainWidget->currentDocument->getDocName();
+    docName = mainWidget->currentDocument.getDocName();
   }
   QString title = PRODUCT_NAME;
   title.append(" - ");
@@ -683,13 +683,13 @@ void MainWindow::openFile()
 
   QString dir;
 
-  if (mainWidget->currentDocument->getPath().isEmpty())
+  if (mainWidget->currentDocument.getPath().isEmpty())
   {
     dir = QDir::homePath();
   }
   else
   {
-    dir = mainWidget->currentDocument->getPath();
+    dir = mainWidget->currentDocument.getPath();
   }
 
   QString fileName = QFileDialog::getOpenFileName(this, tr("Open MOJ"), dir, tr("MrWriter Files (*.moj)"));
@@ -699,9 +699,9 @@ void MainWindow::openFile()
     return;
   }
 
-  MrDoc::Document *openDocument = new MrDoc::Document();
+  MrDoc::Document openDocument;
 
-  if (openDocument->loadMOJ(fileName))
+  if (openDocument.loadMOJ(fileName))
   {
     mainWidget->letGoSelection();
     mainWidget->setDocument(openDocument);
@@ -710,7 +710,6 @@ void MainWindow::openFile()
   }
   else
   {
-    delete openDocument;
     QMessageBox errMsgBox;
     errMsgBox.setText("Couldn't open file");
     errMsgBox.exec();
@@ -721,7 +720,7 @@ bool MainWindow::saveFile()
 {
   QString dir;
   QString fileName;
-  if (mainWidget->currentDocument->getDocName().isEmpty())
+  if (mainWidget->currentDocument.getDocName().isEmpty())
   {
     QDateTime dateTime = QDateTime::currentDateTime();
     dir = QDir::homePath();
@@ -734,9 +733,9 @@ bool MainWindow::saveFile()
   }
   else
   {
-    dir = mainWidget->currentDocument->getPath();
+    dir = mainWidget->currentDocument.getPath();
     dir.append('/');
-    dir.append(mainWidget->currentDocument->getDocName());
+    dir.append(mainWidget->currentDocument.getDocName());
     dir.append(".moj");
     fileName = dir;
   }
@@ -746,7 +745,7 @@ bool MainWindow::saveFile()
     return false;
   }
 
-  if (mainWidget->currentDocument->saveMOJ(fileName))
+  if (mainWidget->currentDocument.saveMOJ(fileName))
   {
     modified();
     setTitle();
@@ -761,15 +760,15 @@ bool MainWindow::saveFile()
 void MainWindow::exportPDF()
 {
   QString fileName;
-  if (mainWidget->currentDocument->getDocName().isEmpty())
+  if (mainWidget->currentDocument.getDocName().isEmpty())
   {
     fileName = QDir::homePath();
   }
   else
   {
-    fileName = mainWidget->currentDocument->getPath();
+    fileName = mainWidget->currentDocument.getPath();
     fileName.append('/');
-    fileName.append(mainWidget->currentDocument->getDocName());
+    fileName.append(mainWidget->currentDocument.getDocName());
     fileName.append(".pdf");
   }
   fileName = QFileDialog::getSaveFileName(this, tr("Export PDF"), fileName, tr("Adobe PDF files (*.PDF)"));
@@ -779,7 +778,7 @@ void MainWindow::exportPDF()
     return;
   }
 
-  mainWidget->currentDocument->exportPDF(fileName);
+  mainWidget->currentDocument.exportPDF(fileName);
 }
 
 void MainWindow::importXOJ()
@@ -791,13 +790,13 @@ void MainWindow::importXOJ()
 
   QString dir;
 
-  if (mainWidget->currentDocument->getPath().isEmpty())
+  if (mainWidget->currentDocument.getPath().isEmpty())
   {
     dir = QDir::homePath();
   }
   else
   {
-    dir = mainWidget->currentDocument->getPath();
+    dir = mainWidget->currentDocument.getPath();
   }
 
   QString fileName = QFileDialog::getOpenFileName(this, tr("Import XOJ"), dir, tr("Xournal Files (*.xoj)"));
@@ -807,9 +806,9 @@ void MainWindow::importXOJ()
     return;
   }
 
-  MrDoc::Document *openDocument = new MrDoc::Document();
+  MrDoc::Document openDocument;
 
-  if (openDocument->loadXOJ(fileName))
+  if (openDocument.loadXOJ(fileName))
   {
     mainWidget->letGoSelection();
     mainWidget->setDocument(openDocument);
@@ -818,7 +817,6 @@ void MainWindow::importXOJ()
   }
   else
   {
-    delete openDocument;
     QMessageBox errMsgBox;
     errMsgBox.setText("Couldn't open file");
     errMsgBox.exec();
@@ -829,7 +827,7 @@ bool MainWindow::exportXOJ()
 {
   QString dir;
   QString fileName;
-  //    mainWidget->currentDocument->getDocName().isEmpty()
+  //    mainWidget->currentDocument.getDocName().isEmpty()
   dir = QDir::homePath();
   fileName = QFileDialog::getSaveFileName(this, tr("Export XOJ"), dir, tr("Xournal Files (*.xoj)"));
 
@@ -838,7 +836,7 @@ bool MainWindow::exportXOJ()
     return false;
   }
 
-  if (mainWidget->currentDocument->saveXOJ(fileName))
+  if (mainWidget->currentDocument.saveXOJ(fileName))
   {
     modified();
     setTitle();
@@ -908,7 +906,7 @@ void MainWindow::hand()
 
 void MainWindow::modified()
 {
-  setWindowModified(mainWidget->currentDocument->getDocumentChanged());
+  setWindowModified(mainWidget->currentDocument.getDocumentChanged());
 }
 
 void MainWindow::black()
@@ -1076,7 +1074,7 @@ void MainWindow::verticalScrolling()
 
   pageNum = mainWidget->getCurrentPage();
 
-  if (pageNum == mainWidget->currentDocument->pages.size() - 1)
+  if (pageNum == mainWidget->currentDocument.pages.size() - 1)
   {
     pageDownAct->setIcon(QIcon(":/images/pageDownPlusIcon.png"));
     pageDownAct->setText(tr("Page Down (add Page)"));
@@ -1089,7 +1087,7 @@ void MainWindow::verticalScrolling()
     pageDownAct->setStatusTip(tr("Page Down"));
   }
 
-  int Npages = mainWidget->currentDocument->pages.size();
+  int Npages = mainWidget->currentDocument.pages.size();
 
   QString statusMsg = QString("%1 / %2").arg(QString::number(pageNum + 1), QString::number(Npages));
 
@@ -1123,7 +1121,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 bool MainWindow::maybeSave()
 {
-  if (mainWidget->currentDocument->getDocumentChanged())
+  if (mainWidget->currentDocument.getDocumentChanged())
   {
     QMessageBox::StandardButton ret;
     ret = QMessageBox::warning(this, tr("Application"), tr("The document has been modified.\n"
@@ -1229,26 +1227,23 @@ void MainWindow::newWindow()
 void MainWindow::cloneWindow()
 {
   MainWindow *window = new MainWindow();
-  window->mainWidget->currentDocument->pages.clear();
-  window->mainWidget->pageBuffer.clear();
-  qDebug() << window->mainWidget->currentDocument->pages.size();
-  static_cast<TabletApplication *>(qApp)->mainWindows.append(window);
-  for (int i = 0; i < mainWidget->currentDocument->pages.size(); ++i)
-  {
-    window->mainWidget->currentDocument->pages.append(mainWidget->currentDocument->pages.at(i));
-    window->mainWidget->pageBuffer.append(mainWidget->pageBuffer.at(i));
-  }
+  window->mainWidget->currentDocument = mainWidget->currentDocument;
+  window->mainWidget->pageBuffer = mainWidget->pageBuffer;
   window->mainWidget->currentSelection = mainWidget->currentSelection;
   window->mainWidget->setCurrentState(mainWidget->getCurrentState());
+//  window->mainWidget->zoomTo(mainWidget->zoom);
   window->mainWidget->zoom = mainWidget->zoom;
 
   window->show();
-  window->mainWidget->update();
 
   window->mainWidget->setGeometry(window->mainWidget->getWidgetGeometry());
   window->scrollArea->updateGeometry();
   window->scrollArea->verticalScrollBar()->setValue(scrollArea->verticalScrollBar()->value());
   window->scrollArea->horizontalScrollBar()->setValue(scrollArea->horizontalScrollBar()->value());
+
+  window->mainWidget->update();
+
+  static_cast<TabletApplication *>(qApp)->mainWindows.append(window);
 }
 
 void MainWindow::maximize()
@@ -1258,22 +1253,22 @@ void MainWindow::maximize()
 
 bool MainWindow::loadXOJ(QString fileName)
 {
-  return mainWidget->currentDocument->loadXOJ(fileName);
+  return mainWidget->currentDocument.loadXOJ(fileName);
   updateGUI();
 }
 
 bool MainWindow::loadMOJ(QString fileName)
 {
-  return mainWidget->currentDocument->loadMOJ(fileName);
+  return mainWidget->currentDocument.loadMOJ(fileName);
   updateGUI();
 }
 
 void MainWindow::pageSettings()
 {
   int pageNum = mainWidget->getCurrentPage();
-  qreal width = mainWidget->currentDocument->pages[pageNum].getWidth();
-  qreal height = mainWidget->currentDocument->pages[pageNum].getHeight();
-  PageSettingsDialog *pageDialog = new PageSettingsDialog(QSizeF(width, height), mainWidget->currentDocument->pages[pageNum].backgroundColor, this);
+  qreal width = mainWidget->currentDocument.pages[pageNum].getWidth();
+  qreal height = mainWidget->currentDocument.pages[pageNum].getHeight();
+  PageSettingsDialog *pageDialog = new PageSettingsDialog(QSizeF(width, height), mainWidget->currentDocument.pages[pageNum].backgroundColor, this);
   pageDialog->setWindowModality(Qt::WindowModal);
   if (pageDialog->exec() == QDialog::Accepted)
   {

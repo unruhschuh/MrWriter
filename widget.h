@@ -89,7 +89,7 @@ public:
   void setCurrentColor(QColor newColor);
   QColor getCurrentColor();
 
-  void setDocument(MrDoc::Document *newDocument);
+  void setDocument(const MrDoc::Document &newDocument);
   void letGoSelection();
 
   void newFile();
@@ -103,7 +103,7 @@ public:
 
   void rotateSelection(qreal angle);
 
-  MrDoc::Document *currentDocument;
+  MrDoc::Document currentDocument;
   QVector<QPixmap> pageBuffer;
   QVector<QImage> pageImageBuffer;
   QMutex pageImageBufferMutex;

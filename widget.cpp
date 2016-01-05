@@ -58,7 +58,7 @@ Widget::Widget(QWidget *parent) : QWidget(parent)
   realEraser = false;
   setCursor(penCursorBitmap);
 
-  currentDocument = new MrDoc::Document();
+  currentDocument = MrDoc::Document();
 
   currentPenWidth = 1.41;
   currentColor = QColor(0, 0, 0);
@@ -84,17 +84,17 @@ void Widget::updateAllPageBuffers()
 {
   QVector<QFuture<void>> future;
   pageImageBuffer.clear();
-  for (int buffNum = 0; buffNum < currentDocument->pages.size(); ++buffNum)
+  for (int buffNum = 0; buffNum < currentDocument.pages.size(); ++buffNum)
   {
     pageImageBuffer.append(QImage());
   }
 
-  for (int buffNum = 0; buffNum < currentDocument->pages.size(); ++buffNum)
+  for (int buffNum = 0; buffNum < currentDocument.pages.size(); ++buffNum)
   {
     future.append(QtConcurrent::run(this, &Widget::updateImageBuffer, buffNum));
   }
   pageBuffer.clear();
-  for (int buffNum = 0; buffNum < currentDocument->pages.size(); ++buffNum)
+  for (int buffNum = 0; buffNum < currentDocument.pages.size(); ++buffNum)
   {
     future[buffNum].waitForFinished();
     pageBuffer.append(QPixmap::fromImage(pageImageBuffer.at(buffNum)));
@@ -109,7 +109,7 @@ void Widget::updateAllPageBuffers()
 
 void Widget::updateImageBuffer(int buffNum)
 {
-  MrDoc::Page const &page = currentDocument->pages.at(buffNum);
+  MrDoc::Page const &page = currentDocument.pages.at(buffNum);
   int pixelWidth = zoom * page.getWidth();
   int pixelHeight = zoom * page.getHeight();
   QImage image(pixelWidth, pixelHeight, QImage::Format_ARGB32_Premultiplied);
@@ -120,7 +120,7 @@ void Widget::updateImageBuffer(int buffNum)
   painter.begin(&image);
   painter.setRenderHint(QPainter::Antialiasing, true);
 
-  currentDocument->pages[buffNum].paint(painter, zoom);
+  currentDocument.pages[buffNum].paint(painter, zoom);
 
   painter.end();
 
@@ -131,7 +131,7 @@ void Widget::updateImageBuffer(int buffNum)
 
 void Widget::updateBuffer(int buffNum)
 {
-  MrDoc::Page const &page = currentDocument->pages.at(buffNum);
+  MrDoc::Page const &page = currentDocument.pages.at(buffNum);
   int pixelWidth = zoom * page.getWidth();
   int pixelHeight = zoom * page.getHeight();
   QPixmap pixmap(pixelWidth, pixelHeight);
@@ -142,7 +142,7 @@ void Widget::updateBuffer(int buffNum)
   painter.begin(&pixmap);
   painter.setRenderHint(QPainter::Antialiasing, true);
 
-  currentDocument->pages[buffNum].paint(painter, zoom);
+  currentDocument.pages[buffNum].paint(painter, zoom);
 
   painter.end();
 
@@ -157,25 +157,25 @@ void Widget::updateBufferRegion(int buffNum, QRectF const &clipRect)
   painter.setClipRect(clipRect);
   painter.setClipping(true);
 
-  painter.fillRect(clipRect, currentDocument->pages.at(buffNum).backgroundColor);
+  painter.fillRect(clipRect, currentDocument.pages.at(buffNum).backgroundColor);
   //    painter.fillRect(clipRect, Qt::red);
 
   QRectF paintRect = QRectF(clipRect.topLeft() / zoom, clipRect.bottomRight() / zoom);
-  currentDocument->pages[buffNum].paint(painter, zoom, paintRect);
+  currentDocument.pages[buffNum].paint(painter, zoom, paintRect);
 
   painter.end();
 }
 
 void Widget::updateAllDirtyBuffers()
 {
-  for (int buffNum = 0; buffNum < currentDocument->pages.size(); ++buffNum)
+  for (int buffNum = 0; buffNum < currentDocument.pages.size(); ++buffNum)
   {
-    QRectF const &dirtyRect = currentDocument->pages.at(buffNum).getDirtyRect();
+    QRectF const &dirtyRect = currentDocument.pages.at(buffNum).getDirtyRect();
     if (!dirtyRect.isNull())
     {
       QRectF dirtyBufferRect = QRectF(dirtyRect.topLeft() * zoom, dirtyRect.bottomRight() * zoom);
       updateBufferRegion(buffNum, dirtyBufferRect);
-      currentDocument->pages[buffNum].clearDirtyRect();
+      currentDocument.pages[buffNum].clearDirtyRect();
     }
   }
   update();
@@ -663,8 +663,8 @@ void Widget::startSelecting(QPointF mousePos)
   MrDoc::Selection newSelection;
 
   newSelection.pageNum = pageNum;
-  newSelection.setWidth(currentDocument->pages[pageNum].getWidth());
-  newSelection.setHeight(currentDocument->pages[pageNum].getHeight());
+  newSelection.setWidth(currentDocument.pages[pageNum].getWidth());
+  newSelection.setHeight(currentDocument.pages[pageNum].getHeight());
   newSelection.selectionPolygon.append(pagePos);
 
   currentSelection = newSelection;
@@ -691,7 +691,7 @@ void Widget::stopSelecting(QPointF mousePos)
 
   currentSelection.selectionPolygon.append(pagePos);
 
-  if (!currentDocument->pages[pageNum].getStrokes(currentSelection.selectionPolygon).isEmpty())
+  if (!currentDocument.pages[pageNum].getStrokes(currentSelection.selectionPolygon).isEmpty())
   {
     CreateSelectionCommand *createSelectionCommand = new CreateSelectionCommand(this, pageNum, currentSelection.selectionPolygon);
     undoStack.push(createSelectionCommand);
@@ -720,7 +720,7 @@ void Widget::letGoSelection()
 
 void Widget::startRuling(QPointF mousePos)
 {
-  currentDocument->setDocumentChanged(true);
+  currentDocument.setDocumentChanged(true);
   emit modified();
 
   int pageNum = getPageFromMousePos(mousePos);
@@ -803,7 +803,7 @@ void Widget::stopRuling(QPointF mousePos)
 
 void Widget::startCircling(QPointF mousePos)
 {
-  currentDocument->setDocumentChanged(true);
+  currentDocument.setDocumentChanged(true);
   emit modified();
 
   int pageNum = getPageFromMousePos(mousePos);
@@ -880,7 +880,7 @@ void Widget::startDrawing(QPointF mousePos, qreal pressure)
 {
   updateTimer->start(33); // 33 -> 30 fps
 
-  currentDocument->setDocumentChanged(true);
+  currentDocument.setDocumentChanged(true);
   emit modified();
 
   currentUpdateRect = QRect();
@@ -945,7 +945,7 @@ void Widget::erase(QPointF mousePos, bool invertEraser)
   qInfo() << "pageNum: " << pageNum << "\n";
   QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
 
-  const QVector<MrDoc::Stroke> &strokes = currentDocument->pages[pageNum].strokes();
+  const QVector<MrDoc::Stroke> &strokes = currentDocument.pages[pageNum].strokes();
 
   qreal eraserWidth = 10;
 
@@ -1081,14 +1081,14 @@ void Widget::erase(QPointF mousePos, bool invertEraser)
 
   if (strokesToDelete.size() > 0)
   {
-    currentDocument->setDocumentChanged(true);
+    currentDocument.setDocumentChanged(true);
     emit modified();
 
 //    QRect updateRect;
     std::sort(strokesToDelete.begin(), strokesToDelete.end(), std::greater<int>());
     for (int i = 0; i < strokesToDelete.size(); ++i)
     {
-//      updateRect = updateRect.united(currentDocument->pages[pageNum].m_strokes.at(strokesToDelete.at(i)).points.boundingRect().toRect());
+//      updateRect = updateRect.united(currentDocument.pages[pageNum].m_strokes.at(strokesToDelete.at(i)).points.boundingRect().toRect());
       RemoveStrokeCommand *removeCommand = new RemoveStrokeCommand(this, pageNum, strokesToDelete[i]);
       undoStack.push(removeCommand);
     }
@@ -1098,7 +1098,7 @@ void Widget::erase(QPointF mousePos, bool invertEraser)
 
 void Widget::startMovingSelection(QPointF mousePos)
 {
-  currentDocument->setDocumentChanged(true);
+  currentDocument.setDocumentChanged(true);
   emit modified();
 
   int pageNum = getPageFromMousePos(mousePos);
@@ -1129,13 +1129,13 @@ int Widget::getPageFromMousePos(QPointF mousePos)
 {
   qreal y = mousePos.y(); // - currentCOSPos.y();
   int pageNum = 0;
-  while (y > (floor(currentDocument->pages[pageNum].getHeight() * zoom)) + PAGE_GAP)
+  while (y > (floor(currentDocument.pages[pageNum].getHeight() * zoom)) + PAGE_GAP)
   {
-    y -= (floor(currentDocument->pages[pageNum].getHeight() * zoom)) + PAGE_GAP;
+    y -= (floor(currentDocument.pages[pageNum].getHeight() * zoom)) + PAGE_GAP;
     pageNum += 1;
-    if (pageNum >= currentDocument->pages.size())
+    if (pageNum >= currentDocument.pages.size())
     {
-      pageNum = currentDocument->pages.size() - 1;
+      pageNum = currentDocument.pages.size() - 1;
       break;
     }
   }
@@ -1158,11 +1158,11 @@ QPointF Widget::getPagePosFromMousePos(QPointF mousePos, int pageNum)
   qreal y = mousePos.y();
   for (int i = 0; i < pageNum; ++i)
   {
-    //        y -= (currentDocument->pages[i].getHeight() * zoom + PAGE_GAP); // THIS DOESN'T WORK PROPERLY (should be floor(...getHeight(), or just use
+    //        y -= (currentDocument.pages[i].getHeight() * zoom + PAGE_GAP); // THIS DOESN'T WORK PROPERLY (should be floor(...getHeight(), or just use
     //        pageBuffer[i].height())
     y -= (pageBuffer[i].height() + PAGE_GAP);
   }
-  //    y -= (pageNum) * (currentDocument->pages[0].getHeight() * zoom + PAGE_GAP);
+  //    y -= (pageNum) * (currentDocument.pages[0].getHeight() * zoom + PAGE_GAP);
 
   QPointF pagePos = (QPointF(x, y)) / zoom;
 
@@ -1190,8 +1190,7 @@ void Widget::newFile()
 {
   letGoSelection();
 
-  delete currentDocument;
-  currentDocument = new MrDoc::Document();
+  currentDocument = MrDoc::Document();
   pageBuffer.clear();
   undoStack.clear();
   updateAllPageBuffers();
@@ -1282,7 +1281,7 @@ void Widget::zoomFitWidth()
   int pageNum = getCurrentPage();
 
   QSize widgetSize = this->parentWidget()->size();
-  qreal newZoom = widgetSize.width() / currentDocument->pages[pageNum].getWidth();
+  qreal newZoom = widgetSize.width() / currentDocument.pages[pageNum].getWidth();
 
   zoomTo(newZoom);
 }
@@ -1292,7 +1291,7 @@ void Widget::zoomFitHeight()
   int pageNum = getCurrentPage();
 
   QSize widgetSize = this->parentWidget()->size();
-  qreal newZoom = widgetSize.height() / currentDocument->pages[pageNum].getHeight();
+  qreal newZoom = widgetSize.height() / currentDocument.pages[pageNum].getHeight();
 
   zoomTo(newZoom);
 }
@@ -1304,7 +1303,7 @@ void Widget::pageFirst()
 
 void Widget::pageLast()
 {
-  scrollDocumentToPageNum(currentDocument->pages.size() - 1);
+  scrollDocumentToPageNum(currentDocument.pages.size() - 1);
 }
 
 void Widget::pageUp()
@@ -1321,7 +1320,7 @@ void Widget::pageDown()
   int pageNum = getCurrentPage();
   ++pageNum;
 
-  if (pageNum >= currentDocument->pages.size())
+  if (pageNum >= currentDocument.pages.size())
   {
     pageAddEnd();
   }
@@ -1336,7 +1335,7 @@ void Widget::pageAddBefore()
   undoStack.push(addPageCommand);
   setGeometry(getWidgetGeometry());
   update();
-  currentDocument->setDocumentChanged(true);
+  currentDocument.setDocumentChanged(true);
   emit modified();
 }
 
@@ -1347,7 +1346,7 @@ void Widget::pageAddAfter()
   undoStack.push(addPageCommand);
   setGeometry(getWidgetGeometry());
   update();
-  currentDocument->setDocumentChanged(true);
+  currentDocument.setDocumentChanged(true);
 
   emit modified();
 }
@@ -1358,39 +1357,39 @@ void Widget::pageAddBeginning()
   undoStack.push(addPageCommand);
   setGeometry(getWidgetGeometry());
   update();
-  currentDocument->setDocumentChanged(true);
+  currentDocument.setDocumentChanged(true);
 
   emit modified();
 }
 
 void Widget::pageAddEnd()
 {
-  AddPageCommand *addPageCommand = new AddPageCommand(this, currentDocument->pages.size());
+  AddPageCommand *addPageCommand = new AddPageCommand(this, currentDocument.pages.size());
   undoStack.push(addPageCommand);
   setGeometry(getWidgetGeometry());
   update();
-  currentDocument->setDocumentChanged(true);
+  currentDocument.setDocumentChanged(true);
 
   emit modified();
 }
 
 void Widget::pageRemove()
 {
-  if (currentDocument->pages.size() > 1)
+  if (currentDocument.pages.size() > 1)
   {
     int pageNum = getCurrentPage();
     RemovePageCommand *removePageCommand = new RemovePageCommand(this, pageNum);
     undoStack.push(removePageCommand);
     setGeometry(getWidgetGeometry());
     update();
-    currentDocument->setDocumentChanged(true);
+    currentDocument.setDocumentChanged(true);
     emit modified();
   }
 }
 
 void Widget::scrollDocumentToPageNum(int pageNum)
 {
-  if (pageNum >= currentDocument->pages.size())
+  if (pageNum >= currentDocument.pages.size())
   {
     return; // page doesn't exist
   }
@@ -1402,7 +1401,7 @@ void Widget::scrollDocumentToPageNum(int pageNum)
   //    qreal x = currentCOSPos.x();
   for (int i = 0; i < pageNum; ++i)
   {
-    y += (currentDocument->pages[i].getHeight()) * zoom + PAGE_GAP;
+    y += (currentDocument.pages[i].getHeight()) * zoom + PAGE_GAP;
   }
 
   scrollArea->verticalScrollBar()->setValue(y);
@@ -1436,9 +1435,8 @@ void Widget::setCurrentTool(tool toolID)
   }
 }
 
-void Widget::setDocument(MrDoc::Document *newDocument)
+void Widget::setDocument(const MrDoc::Document &newDocument)
 {
-  delete currentDocument;
   currentDocument = newDocument;
   undoStack.clear();
   pageBuffer.clear();
@@ -1483,7 +1481,7 @@ void Widget::paste()
   undoStack.push(pasteCommand);
   undoStack.endMacro();
 
-  currentDocument->setDocumentChanged(true);
+  currentDocument.setDocumentChanged(true);
   emit modified();
 }
 
