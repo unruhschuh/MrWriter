@@ -1,0 +1,13 @@
+= MrWriter
+Notetaking and blackboard replacement application. Inspired by Xournal. Written in C++/Qt for Linux / Windows / Mac.
+
+See the http://unruhschuh.github.io/MrWriter/[project homepage] for more informations and screenshots.
+
+== Build
+* Download and install http://www.qt.io/download/[Qt]
+* Run in the terminal
+** `git clone https://github.com/unruhschuh/MrWriter.git`
+** `cd MrWriter`
+** `qmake`
+** `make`
+* Alternatively: open `MrWriter.pro` in QtCreator, build and run
