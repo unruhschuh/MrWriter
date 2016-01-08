@@ -14,6 +14,7 @@
 #include <QSettings>
 #include <QDateTime>
 //#include <QWebEngineView>
+#include <QDesktopServices>
 #include <QBoxLayout>
 
 #include <iostream>
@@ -83,13 +84,13 @@ MainWindow::~MainWindow()
 void MainWindow::setTitle()
 {
   QString docName;
-  if (mainWidget->currentDocument.getDocName().isEmpty())
+  if (mainWidget->currentDocument.docName().isEmpty())
   {
     docName = tr("untitled");
   }
   else
   {
-    docName = mainWidget->currentDocument.getDocName();
+    docName = mainWidget->currentDocument.docName();
   }
   QString title = PRODUCT_NAME;
   title.append(" - ");
@@ -465,11 +466,9 @@ void MainWindow::createActions()
   rotateAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_R));
   connect(rotateAct, SIGNAL(triggered()), this, SLOT(rotate()));
 
-  /*
   helpAct = new QAction(tr("&Help"), this);
   helpAct->setShortcut(QKeySequence(Qt::Key_F1));
   connect(helpAct, SIGNAL(triggered()), this, SLOT(help()));
-  */
 
   aboutAct = new QAction(tr("&About"), this);
   connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
@@ -554,7 +553,7 @@ void MainWindow::createMenus()
   viewMenu->addAction(loadMyStateAct);
 
   helpMenu = menuBar()->addMenu(tr("&Help"));
-//  helpMenu->addAction(helpAct);
+  helpMenu->addAction(helpAct);
   helpMenu->addAction(aboutAct);
   helpMenu->addAction(aboutQtAct);
 }
@@ -683,13 +682,13 @@ void MainWindow::openFile()
 
   QString dir;
 
-  if (mainWidget->currentDocument.getPath().isEmpty())
+  if (mainWidget->currentDocument.path().isEmpty())
   {
     dir = QDir::homePath();
   }
   else
   {
-    dir = mainWidget->currentDocument.getPath();
+    dir = mainWidget->currentDocument.path();
   }
 
   QString fileName = QFileDialog::getOpenFileName(this, tr("Open MOJ"), dir, tr("MrWriter Files (*.moj)"));
@@ -720,7 +719,7 @@ bool MainWindow::saveFile()
 {
   QString dir;
   QString fileName;
-  if (mainWidget->currentDocument.getDocName().isEmpty())
+  if (mainWidget->currentDocument.docName().isEmpty())
   {
     QDateTime dateTime = QDateTime::currentDateTime();
     dir = QDir::homePath();
@@ -733,9 +732,9 @@ bool MainWindow::saveFile()
   }
   else
   {
-    dir = mainWidget->currentDocument.getPath();
+    dir = mainWidget->currentDocument.path();
     dir.append('/');
-    dir.append(mainWidget->currentDocument.getDocName());
+    dir.append(mainWidget->currentDocument.docName());
     dir.append(".moj");
     fileName = dir;
   }
@@ -760,15 +759,15 @@ bool MainWindow::saveFile()
 void MainWindow::exportPDF()
 {
   QString fileName;
-  if (mainWidget->currentDocument.getDocName().isEmpty())
+  if (mainWidget->currentDocument.docName().isEmpty())
   {
     fileName = QDir::homePath();
   }
   else
   {
-    fileName = mainWidget->currentDocument.getPath();
+    fileName = mainWidget->currentDocument.path();
     fileName.append('/');
-    fileName.append(mainWidget->currentDocument.getDocName());
+    fileName.append(mainWidget->currentDocument.docName());
     fileName.append(".pdf");
   }
   fileName = QFileDialog::getSaveFileName(this, tr("Export PDF"), fileName, tr("Adobe PDF files (*.PDF)"));
@@ -790,13 +789,13 @@ void MainWindow::importXOJ()
 
   QString dir;
 
-  if (mainWidget->currentDocument.getPath().isEmpty())
+  if (mainWidget->currentDocument.path().isEmpty())
   {
     dir = QDir::homePath();
   }
   else
   {
-    dir = mainWidget->currentDocument.getPath();
+    dir = mainWidget->currentDocument.path();
   }
 
   QString fileName = QFileDialog::getOpenFileName(this, tr("Import XOJ"), dir, tr("Xournal Files (*.xoj)"));
@@ -827,7 +826,7 @@ bool MainWindow::exportXOJ()
 {
   QString dir;
   QString fileName;
-  //    mainWidget->currentDocument.getDocName().isEmpty()
+  //    mainWidget->currentDocument.docName().isEmpty()
   dir = QDir::homePath();
   fileName = QFileDialog::getSaveFileName(this, tr("Export XOJ"), dir, tr("Xournal Files (*.xoj)"));
 
@@ -906,7 +905,7 @@ void MainWindow::hand()
 
 void MainWindow::modified()
 {
-  setWindowModified(mainWidget->currentDocument.getDocumentChanged());
+  setWindowModified(mainWidget->currentDocument.documentChanged());
 }
 
 void MainWindow::black()
@@ -973,6 +972,12 @@ void MainWindow::white()
 {
   mainWidget->setCurrentColor(MrDoc::white);
   updateGUI();
+}
+
+
+void MainWindow::help()
+{
+  QDesktopServices::openUrl(QUrl("http://htmlpreview.github.io/?https://github.com/unruhschuh/MrWriter/blob/master/documentation/MrWriterDoc.html"));
 }
 
 /*
@@ -1121,7 +1126,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 bool MainWindow::maybeSave()
 {
-  if (mainWidget->currentDocument.getDocumentChanged())
+  if (mainWidget->currentDocument.documentChanged())
   {
     QMessageBox::StandardButton ret;
     ret = QMessageBox::warning(this, tr("Application"), tr("The document has been modified.\n"
@@ -1230,8 +1235,8 @@ void MainWindow::cloneWindow()
   window->mainWidget->currentDocument = mainWidget->currentDocument;
   window->mainWidget->pageBuffer = mainWidget->pageBuffer;
   window->mainWidget->currentSelection = mainWidget->currentSelection;
-  qInfo() << mainWidget->currentDocument.pages[0].getDirtyRect();
-  qInfo() << window->mainWidget->currentDocument.pages[0].getDirtyRect();
+  qInfo() << mainWidget->currentDocument.pages[0].dirtyRect();
+  qInfo() << window->mainWidget->currentDocument.pages[0].dirtyRect();
   window->mainWidget->setCurrentState(mainWidget->getCurrentState());
 //  window->mainWidget->zoomTo(mainWidget->zoom);
   window->mainWidget->zoom = mainWidget->zoom;
@@ -1268,9 +1273,9 @@ bool MainWindow::loadMOJ(QString fileName)
 void MainWindow::pageSettings()
 {
   int pageNum = mainWidget->getCurrentPage();
-  qreal width = mainWidget->currentDocument.pages[pageNum].getWidth();
-  qreal height = mainWidget->currentDocument.pages[pageNum].getHeight();
-  PageSettingsDialog *pageDialog = new PageSettingsDialog(QSizeF(width, height), mainWidget->currentDocument.pages[pageNum].backgroundColor, this);
+  qreal width = mainWidget->currentDocument.pages[pageNum].width();
+  qreal height = mainWidget->currentDocument.pages[pageNum].height();
+  PageSettingsDialog *pageDialog = new PageSettingsDialog(QSizeF(width, height), mainWidget->currentDocument.pages[pageNum].backgroundColor(), this);
   pageDialog->setWindowModality(Qt::WindowModal);
   if (pageDialog->exec() == QDialog::Accepted)
   {

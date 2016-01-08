@@ -11,16 +11,16 @@ class Page
 public:
   Page();
 
-  qreal getWidth() const;
-  qreal getHeight() const;
+  qreal width() const;
+  qreal height() const;
 
-  void setWidth(qreal newWidth);
-  void setHeight(qreal newHeight);
+  void setWidth(qreal width);
+  void setHeight(qreal height);
 
-  void setBackgroundColor(QColor newBackgroundColor);
-  QColor getBackgroundColor(void);
+  void setBackgroundColor(QColor backgroundColor);
+  QColor backgroundColor(void) const;
 
-  const QRectF &getDirtyRect() const;
+  const QRectF &dirtyRect() const;
   void clearDirtyRect();
 
   bool changeStrokeColor(int strokeNum, QColor color);
@@ -49,17 +49,18 @@ public:
   virtual void paint(QPainter &painter, qreal zoom, QRectF region = QRect(0, 0, 0, 0));
 
   //    QVector<Stroke> strokes;
-  QColor backgroundColor;
 
 protected:
   QVector<Stroke> m_strokes;
 
 private:
-  float width;  // post script units
-  float height; // post script units
+  QColor m_backgroundColor;
+
+  qreal m_width;  // post script units
+  qreal m_height; // post script units
 
 
-  QRectF dirtyRect;
+  QRectF m_dirtyRect;
 };
 }
 

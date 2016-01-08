@@ -271,9 +271,9 @@ void AddPageCommand::redo()
   else
     pageNumForSettings = pageNum - 1;
 
-  page.setWidth(widget->currentDocument.pages[pageNumForSettings].getWidth());
-  page.setHeight(widget->currentDocument.pages[pageNumForSettings].getHeight());
-  page.backgroundColor = widget->currentDocument.pages[pageNumForSettings].backgroundColor;
+  page.setWidth(widget->currentDocument.pages[pageNumForSettings].width());
+  page.setHeight(widget->currentDocument.pages[pageNumForSettings].height());
+  page.setBackgroundColor(widget->currentDocument.pages[pageNumForSettings].backgroundColor());
 
   widget->currentDocument.pages.insert(pageNum, page);
   widget->pageBuffer.insert(pageNum, QPixmap());
@@ -369,9 +369,9 @@ ChangePageSettingsCommand::ChangePageSettingsCommand(Widget *newWidget, int newP
 {
   widget = newWidget;
   pageNum = newPageNum;
-  prevSize = QSizeF(widget->currentDocument.pages[pageNum].getWidth(), widget->currentDocument.pages[pageNum].getHeight());
+  prevSize = QSizeF(widget->currentDocument.pages[pageNum].width(), widget->currentDocument.pages[pageNum].height());
   size = newSize;
-  prevBackgroundColor = widget->currentDocument.pages[pageNum].getBackgroundColor();
+  prevBackgroundColor = widget->currentDocument.pages[pageNum].backgroundColor();
   backgroundColor = newBackgroundColor;
 }
 

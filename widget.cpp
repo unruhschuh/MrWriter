@@ -110,11 +110,11 @@ void Widget::updateAllPageBuffers()
 void Widget::updateImageBuffer(int buffNum)
 {
   MrDoc::Page const &page = currentDocument.pages.at(buffNum);
-  int pixelWidth = zoom * page.getWidth();
-  int pixelHeight = zoom * page.getHeight();
+  int pixelWidth = zoom * page.width();
+  int pixelHeight = zoom * page.height();
   QImage image(pixelWidth, pixelHeight, QImage::Format_ARGB32_Premultiplied);
 
-  image.fill(page.backgroundColor);
+  image.fill(page.backgroundColor());
 
   QPainter painter;
   painter.begin(&image);
@@ -132,11 +132,11 @@ void Widget::updateImageBuffer(int buffNum)
 void Widget::updateBuffer(int buffNum)
 {
   MrDoc::Page const &page = currentDocument.pages.at(buffNum);
-  int pixelWidth = zoom * page.getWidth();
-  int pixelHeight = zoom * page.getHeight();
+  int pixelWidth = zoom * page.width();
+  int pixelHeight = zoom * page.height();
   QPixmap pixmap(pixelWidth, pixelHeight);
 
-  pixmap.fill(page.backgroundColor);
+  pixmap.fill(page.backgroundColor());
 
   QPainter painter;
   painter.begin(&pixmap);
@@ -157,7 +157,7 @@ void Widget::updateBufferRegion(int buffNum, QRectF const &clipRect)
   painter.setClipRect(clipRect);
   painter.setClipping(true);
 
-  painter.fillRect(clipRect, currentDocument.pages.at(buffNum).backgroundColor);
+  painter.fillRect(clipRect, currentDocument.pages.at(buffNum).backgroundColor());
   //    painter.fillRect(clipRect, Qt::red);
 
   QRectF paintRect = QRectF(clipRect.topLeft() / zoom, clipRect.bottomRight() / zoom);
@@ -170,7 +170,7 @@ void Widget::updateAllDirtyBuffers()
 {
   for (int buffNum = 0; buffNum < currentDocument.pages.size(); ++buffNum)
   {
-    QRectF const &dirtyRect = currentDocument.pages.at(buffNum).getDirtyRect();
+    QRectF const &dirtyRect = currentDocument.pages.at(buffNum).dirtyRect();
     if (!dirtyRect.isNull())
     {
       QRectF dirtyBufferRect = QRectF(dirtyRect.topLeft() * zoom, dirtyRect.bottomRight() * zoom);
@@ -663,8 +663,8 @@ void Widget::startSelecting(QPointF mousePos)
   MrDoc::Selection newSelection;
 
   newSelection.pageNum = pageNum;
-  newSelection.setWidth(currentDocument.pages[pageNum].getWidth());
-  newSelection.setHeight(currentDocument.pages[pageNum].getHeight());
+  newSelection.setWidth(currentDocument.pages[pageNum].width());
+  newSelection.setHeight(currentDocument.pages[pageNum].height());
   newSelection.selectionPolygon.append(pagePos);
 
   currentSelection = newSelection;
@@ -1130,9 +1130,9 @@ int Widget::getPageFromMousePos(QPointF mousePos)
 {
   qreal y = mousePos.y(); // - currentCOSPos.y();
   int pageNum = 0;
-  while (y > (floor(currentDocument.pages[pageNum].getHeight() * zoom)) + PAGE_GAP)
+  while (y > (floor(currentDocument.pages[pageNum].height() * zoom)) + PAGE_GAP)
   {
-    y -= (floor(currentDocument.pages[pageNum].getHeight() * zoom)) + PAGE_GAP;
+    y -= (floor(currentDocument.pages[pageNum].height() * zoom)) + PAGE_GAP;
     pageNum += 1;
     if (pageNum >= currentDocument.pages.size())
     {
@@ -1159,11 +1159,11 @@ QPointF Widget::getPagePosFromMousePos(QPointF mousePos, int pageNum)
   qreal y = mousePos.y();
   for (int i = 0; i < pageNum; ++i)
   {
-    //        y -= (currentDocument.pages[i].getHeight() * zoom + PAGE_GAP); // THIS DOESN'T WORK PROPERLY (should be floor(...getHeight(), or just use
+    //        y -= (currentDocument.pages[i].height() * zoom + PAGE_GAP); // THIS DOESN'T WORK PROPERLY (should be floor(...height(), or just use
     //        pageBuffer[i].height())
     y -= (pageBuffer[i].height() + PAGE_GAP);
   }
-  //    y -= (pageNum) * (currentDocument.pages[0].getHeight() * zoom + PAGE_GAP);
+  //    y -= (pageNum) * (currentDocument.pages[0].height() * zoom + PAGE_GAP);
 
   QPointF pagePos = (QPointF(x, y)) / zoom;
 
@@ -1282,7 +1282,7 @@ void Widget::zoomFitWidth()
   int pageNum = getCurrentPage();
 
   QSize widgetSize = this->parentWidget()->size();
-  qreal newZoom = widgetSize.width() / currentDocument.pages[pageNum].getWidth();
+  qreal newZoom = widgetSize.width() / currentDocument.pages[pageNum].width();
 
   zoomTo(newZoom);
 }
@@ -1292,7 +1292,7 @@ void Widget::zoomFitHeight()
   int pageNum = getCurrentPage();
 
   QSize widgetSize = this->parentWidget()->size();
-  qreal newZoom = widgetSize.height() / currentDocument.pages[pageNum].getHeight();
+  qreal newZoom = widgetSize.height() / currentDocument.pages[pageNum].height();
 
   zoomTo(newZoom);
 }
@@ -1402,7 +1402,7 @@ void Widget::scrollDocumentToPageNum(int pageNum)
   //    qreal x = currentCOSPos.x();
   for (int i = 0; i < pageNum; ++i)
   {
-    y += (currentDocument.pages[i].getHeight()) * zoom + PAGE_GAP;
+    y += (currentDocument.pages[i].height()) * zoom + PAGE_GAP;
   }
 
   scrollArea->verticalScrollBar()->setValue(y);

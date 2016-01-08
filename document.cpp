@@ -53,10 +53,10 @@ void Document::exportPDF(QString fileName)
     {
         svgGenerator.setFileName(fileName);
 //.prepend(QString::number(pageNum)));
-        svgGenerator.setSize(QSize(pages[pageNum].getWidth(),
-pages[pageNum].getHeight()));
-//        svgGenerator.setViewBox(QRect(0, 0, pages[pageNum+1].getWidth(),
-pages[pageNum+1].getHeight()));
+        svgGenerator.setSize(QSize(pages[pageNum].width(),
+pages[pageNum].height()));
+//        svgGenerator.setViewBox(QRect(0, 0, pages[pageNum+1].width(),
+pages[pageNum+1].height()));
         svgGenerator.setResolution(72);
         if (!painter.begin(&svgGenerator))
         {
@@ -79,7 +79,7 @@ void Document::exportPDF(QString fileName)
   pdfWriter.setOutputFileName(fileName);
   //    pdfWriter.setMargins();
 
-  pdfWriter.setPageSize(QPageSize(QSizeF(pages[0].getWidth(), pages[0].getHeight()), QPageSize::Point));
+  pdfWriter.setPageSize(QPageSize(QSizeF(pages[0].width(), pages[0].height()), QPageSize::Point));
   pdfWriter.setPageMargins(QMarginsF(0, 0, 0, 0));
   qreal zoomW = ((qreal)pdfWriter.pageRect().width()) / ((qreal)pdfWriter.paperRect().width());
   qreal zoomH = ((qreal)pdfWriter.pageRect().height()) / ((qreal)pdfWriter.paperRect().height());
@@ -96,17 +96,17 @@ void Document::exportPDF(QString fileName)
   painter.setRenderHint(QPainter::Antialiasing, true);
   for (int pageNum = 0; pageNum < pages.size(); ++pageNum)
   {
-    if (pages[pageNum].backgroundColor != QColor("white"))
+    if (pages[pageNum].backgroundColor() != QColor("white"))
     {
       QRectF pageRect = pdfWriter.pageRect(QPrinter::Point);
       pageRect.translate(-pageRect.topLeft());
-      painter.fillRect(pageRect, pages[pageNum].backgroundColor);
+      painter.fillRect(pageRect, pages[pageNum].backgroundColor());
     }
     pages[pageNum].paint(painter, zoom, QRect(0, 0, 0, 0));
 
     if (pageNum + 1 < pages.size())
     {
-      pdfWriter.setPageSize(QPageSize(QSize(pages[pageNum + 1].getWidth(), pages[pageNum + 1].getHeight())));
+      pdfWriter.setPageSize(QPageSize(QSize(pages[pageNum + 1].width(), pages[pageNum + 1].height())));
       pdfWriter.newPage();
     }
   }
@@ -173,7 +173,7 @@ bool Document::loadXOJ(QString fileName)
       QXmlStreamAttributes attributes = reader.attributes();
       QStringRef color = attributes.value("", "color");
       QColor newColor = stringToColor(color.toString());
-      pages.last().backgroundColor = newColor;
+      pages.last().setBackgroundColor(newColor);
     }
     if (reader.name() == "stroke" && reader.tokenType() == QXmlStreamReader::StartElement)
     {
@@ -224,8 +224,6 @@ bool Document::loadXOJ(QString fileName)
   }
   else
   {
-    //        path = fileInfo.absolutePath();
-    //        docName = fileInfo.completeBaseName();
     setDocumentChanged(true);
     return true;
   }
@@ -256,11 +254,11 @@ bool Document::saveXOJ(QString fileName)
   for (int i = 0; i < pages.size(); ++i)
   {
     writer.writeStartElement("page");
-    writer.writeAttribute(QXmlStreamAttribute("width", QString::number(pages[i].getWidth())));
-    writer.writeAttribute(QXmlStreamAttribute("height", QString::number(pages[i].getHeight())));
+    writer.writeAttribute(QXmlStreamAttribute("width", QString::number(pages[i].width())));
+    writer.writeAttribute(QXmlStreamAttribute("height", QString::number(pages[i].height())));
     writer.writeEmptyElement("background");
     writer.writeAttribute(QXmlStreamAttribute("type", "solid"));
-    writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(pages[i].backgroundColor.name(QColor::HexArgb))));
+    writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(pages[i].backgroundColor().name(QColor::HexArgb))));
     writer.writeAttribute(QXmlStreamAttribute("style", "plain"));
     writer.writeStartElement("layer");
 
@@ -307,9 +305,6 @@ bool Document::saveXOJ(QString fileName)
   }
   else
   {
-    //        setDocumentChanged(false);
-    //        path = fileInfo.absolutePath();
-    //        docName = fileInfo.completeBaseName();
     return true;
   }
 }
@@ -383,7 +378,7 @@ bool Document::loadMOJ(QString fileName)
       QXmlStreamAttributes attributes = reader.attributes();
       QStringRef color = attributes.value("", "color");
       QColor newColor = stringToColor(color.toString());
-      pages.last().backgroundColor = newColor;
+      pages.last().setBackgroundColor(newColor);
     }
     if (reader.name() == "stroke" && reader.tokenType() == QXmlStreamReader::StartElement)
     {
@@ -462,8 +457,8 @@ bool Document::loadMOJ(QString fileName)
   }
   else
   {
-    path = fileInfo.absolutePath();
-    docName = fileInfo.completeBaseName();
+    m_path = fileInfo.absolutePath();
+    m_docName = fileInfo.completeBaseName();
     return true;
   }
 }
@@ -497,11 +492,11 @@ bool Document::saveMOJ(QString fileName)
   for (int i = 0; i < pages.size(); ++i)
   {
     writer.writeStartElement("page");
-    writer.writeAttribute(QXmlStreamAttribute("width", QString::number(pages[i].getWidth())));
-    writer.writeAttribute(QXmlStreamAttribute("height", QString::number(pages[i].getHeight())));
+    writer.writeAttribute(QXmlStreamAttribute("width", QString::number(pages[i].width())));
+    writer.writeAttribute(QXmlStreamAttribute("height", QString::number(pages[i].height())));
     writer.writeEmptyElement("background");
     writer.writeAttribute(QXmlStreamAttribute("type", "solid"));
-    writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(pages[i].backgroundColor.name(QColor::HexArgb))));
+    writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(pages[i].backgroundColor().name(QColor::HexArgb))));
     writer.writeAttribute(QXmlStreamAttribute("style", "plain"));
     writer.writeStartElement("layer");
 
@@ -571,44 +566,44 @@ bool Document::saveMOJ(QString fileName)
   {
     setDocumentChanged(false);
 
-    path = fileInfo.absolutePath();
-    docName = fileInfo.completeBaseName();
+    m_path = fileInfo.absolutePath();
+    m_docName = fileInfo.completeBaseName();
     return true;
   }
 }
 
-bool Document::setDocName(QString newDocName)
+bool Document::setDocName(QString docName)
 {
   // check for special characters not to be used in filenames ... (probably
   // not)
-  docName = newDocName;
+  m_docName = docName;
   return true;
 }
 
-QString Document::getDocName()
+QString Document::docName()
 {
-  return docName;
+  return m_docName;
 }
 
-bool Document::setPath(QString newPath)
+bool Document::setPath(QString path)
 {
-  path = newPath;
+  m_path = path;
   return true;
 }
 
-QString Document::getPath()
+QString Document::path()
 {
-  return path;
+  return m_path;
 }
 
-bool Document::getDocumentChanged()
+bool Document::documentChanged()
 {
-  return documentChanged;
+  return m_documentChanged;
 }
 
 void Document::setDocumentChanged(bool changed)
 {
-  documentChanged = changed;
+  m_documentChanged = changed;
 }
 
 QString Document::toARGB(QString rgba)

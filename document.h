@@ -13,7 +13,7 @@ class Document
 public:
   Document();
   Document(const Document &doc);
-  //        Document& operator=(const Document& doc) {};
+
   void exportPDF(QString fileName);
 
   bool loadXOJ(QString fileName);
@@ -24,13 +24,13 @@ public:
 
   void paintPage(int pageNum, QPainter &painter, qreal zoom);
 
-  bool setDocName(QString newDocName);
-  QString getDocName();
+  bool setDocName(QString docName);
+  QString docName();
 
-  bool setPath(QString newDocName);
-  QString getPath();
+  bool setPath(QString path);
+  QString path();
 
-  bool getDocumentChanged();
+  bool documentChanged();
   void setDocumentChanged(bool changed);
 
   QVector<MrDoc::Page> pages;
@@ -41,10 +41,10 @@ public:
   QColor stringToColor(QString colorString);
 
 private:
-  bool documentChanged;
+  bool m_documentChanged;
 
-  QString docName;
-  QString path;
+  QString m_docName;
+  QString m_path;
 };
 }
 

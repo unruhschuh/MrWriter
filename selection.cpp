@@ -18,7 +18,7 @@ Selection::Selection()
 void Selection::updateBuffer(qreal zoom)
 {
   QPainter imgPainter;
-  buffer = QImage(zoom * getWidth(), zoom * getHeight(), QImage::Format_ARGB32_Premultiplied);
+  buffer = QImage(zoom * width(), zoom * height(), QImage::Format_ARGB32_Premultiplied);
   buffer.fill(qRgba(0, 0, 0, 0));
   buffer.setAlphaChannel(buffer);
   imgPainter.begin(&buffer);
