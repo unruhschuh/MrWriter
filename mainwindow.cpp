@@ -1003,6 +1003,8 @@ void MainWindow::about()
   version = version.append(QString::number(MAJOR_VERSION));
   version = version.append(".");
   version = version.append(QString::number(MINOR_VERSION));
+  version = version.append(".");
+  version = version.append(QString::number(PATCH_VERSION));
   QMessageBox msgBox(this);
   msgBox.setWindowTitle("About");
   msgBox.setTextFormat(Qt::RichText); // this is what makes the links clickable
@@ -1141,7 +1143,6 @@ bool MainWindow::maybeSave()
 
 void MainWindow::updateGUI()
 {
-  qInfo() << "updateGUI";
   QColor currentColor = mainWidget->getCurrentColor();
 
   blackAct->setChecked(currentColor == MrDoc::black);
@@ -1234,8 +1235,6 @@ void MainWindow::cloneWindow()
   window->mainWidget->currentDocument = mainWidget->currentDocument;
   window->mainWidget->pageBuffer = mainWidget->pageBuffer;
   window->mainWidget->currentSelection = mainWidget->currentSelection;
-  qInfo() << mainWidget->currentDocument.pages[0].dirtyRect();
-  qInfo() << window->mainWidget->currentDocument.pages[0].dirtyRect();
   window->mainWidget->setCurrentState(mainWidget->getCurrentState());
   //  window->mainWidget->zoomTo(mainWidget->zoom);
   window->mainWidget->zoom = mainWidget->zoom;

@@ -357,7 +357,7 @@ bool Document::loadMOJ(QString fileName)
     {
       QXmlStreamAttributes attributes = reader.attributes();
       QStringRef docversion = attributes.value("document-version");
-      if (docversion.toInt() > MY_DOC_VERSION)
+      if (docversion.toInt() > DOC_VERSION)
       {
         // TODO warn about newer document version
       }
@@ -480,7 +480,7 @@ bool Document::saveMOJ(QString fileName)
   writer.writeStartDocument("1.0", false);
   writer.writeStartElement("MrWriter");
   QString version;
-  version.append(QString::number(MAJOR_VERSION)).append(".").append(QString::number(MINOR_VERSION));
+  version.append(QString::number(MAJOR_VERSION)).append(".").append(QString::number(MINOR_VERSION)).append(QString::number(PATCH_VERSION));
   writer.writeAttribute(QXmlStreamAttribute("version", version));
   QString docVersion = QString::number(DOC_VERSION);
   writer.writeAttribute(QXmlStreamAttribute("docversion", docVersion));

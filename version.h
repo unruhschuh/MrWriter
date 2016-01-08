@@ -7,11 +7,10 @@
 #define PRODUCT_URL "http://www.unruhschuh.com/mrwriter"
 
 #define MAJOR_VERSION 0
-#define MINOR_VERSION 1
+#define MINOR_VERSION 0
+#define PATCH_VERSION 1
 
-#define DOC_VERSION 1
-
-#define MY_DOC_VERSION 0
+#define DOC_VERSION 0
 
 // idea from https://forum.qt.io/topic/41021/solved-how-to-generate-build-number/2
 #define BUILD                                                                                                                                                  \

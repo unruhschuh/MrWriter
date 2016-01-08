@@ -1,5 +1,4 @@
 #include "widget.h"
-//#include "tictoc.h"
 #include "mrdoc.h"
 #include "commands.h"
 #include "tabletapplication.h"
@@ -211,8 +210,6 @@ void Widget::paintEvent(QPaintEvent *event)
   setAutoFillBackground(true);
   setPalette(p);
 
-  //    qInfo() << "Paint Event";
-
   QPainter painter(this);
 
   if (currentState == state::DRAWING)
@@ -268,10 +265,6 @@ void Widget::updateWhileDrawing()
 void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::MouseButtons buttons, Qt::KeyboardModifiers keyboardModifiers,
                                  QTabletEvent::PointerType pointerType, QEvent::Type eventType, qreal pressure, bool tabletEvent)
 {
-  //    qInfo() << qApp->queryKeyboardModifiers();
-
-  //    qInfo() << pointerType;
-
   // Under Linux the keyboard modifiers are not reported to tabletevent. this should work
   // everywhere.
   keyboardModifiers = qApp->queryKeyboardModifiers();
@@ -289,7 +282,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
   if (eventType == QEvent::MouseButtonRelease)
   {
     ++count;
-    qInfo() << static_cast<qreal>(count) / static_cast<qreal>(timer.elapsed()) * 1000.0;
+//    qInfo() << static_cast<qreal>(count) / static_cast<qreal>(timer.elapsed()) * 1000.0;
   }
   // end benchmark
 
@@ -545,7 +538,6 @@ void Widget::tabletEvent(QTabletEvent *event)
   QEvent::Type eventType;
   if (event->type() == QTabletEvent::TabletPress)
   {
-    //        qInfo() << "tabletPressEvent";
     eventType = QEvent::MouseButtonPress;
     penDown = true;
   }
@@ -561,16 +553,11 @@ void Widget::tabletEvent(QTabletEvent *event)
 
   Qt::KeyboardModifiers keyboardModifiers = event->modifiers();
 
-  //    qInfo() << keyboardModifiers;
-  //    qInfo() << "tabletEvent";
-
   mouseAndTabletEvent(mousePos, event->button(), event->buttons(), keyboardModifiers, event->pointerType(), eventType, pressure, true);
 }
 
 void Widget::mousePressEvent(QMouseEvent *event)
 {
-  //    return; // ignore mouse event
-  //    qInfo() << "mousePressEvent";
   bool usingTablet = static_cast<TabletApplication *>(qApp)->isUsingTablet();
 
   if (!usingTablet)
@@ -588,8 +575,6 @@ void Widget::mousePressEvent(QMouseEvent *event)
 
 void Widget::mouseMoveEvent(QMouseEvent *event)
 {
-  //    return; // ignore mouse event
-  //    qInfo() << "mouseMoveEvent";
   bool usingTablet = static_cast<TabletApplication *>(qApp)->isUsingTablet();
 
   if (!usingTablet)
@@ -607,8 +592,6 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
 
 void Widget::mouseReleaseEvent(QMouseEvent *event)
 {
-  //    return; // ignore mouse event
-  //    qInfo() << "mouseReleaseEvent";
   bool usingTablet = static_cast<TabletApplication *>(qApp)->isUsingTablet();
 
   if (!usingTablet)
@@ -943,7 +926,6 @@ void Widget::stopDrawing(QPointF mousePos, qreal pressure)
 void Widget::erase(QPointF mousePos, bool invertEraser)
 {
   int pageNum = getPageFromMousePos(mousePos);
-  qInfo() << "pageNum: " << pageNum << "\n";
   QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
 
   const QVector<MrDoc::Stroke> &strokes = currentDocument.pages[pageNum].strokes();
