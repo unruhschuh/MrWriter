@@ -713,8 +713,9 @@ void Widget::letGoSelection()
     int pageNum = currentSelection.pageNum;
     ReleaseSelectionCommand *releaseCommand = new ReleaseSelectionCommand(this, pageNum);
     undoStack.push(releaseCommand);
-    updateBuffer(pageNum);
-    update();
+    updateAllDirtyBuffers();
+//    updateBuffer(pageNum);
+//    update();
   }
 }
 
@@ -1501,6 +1502,7 @@ void Widget::undo()
   if (undoStack.canUndo() && (currentState == state::IDLE || currentState == state::SELECTED))
   {
     undoStack.undo();
+    updateAllDirtyBuffers();
   }
 }
 
@@ -1509,6 +1511,7 @@ void Widget::redo()
   if (undoStack.canRedo() && (currentState == state::IDLE || currentState == state::SELECTED))
   {
     undoStack.redo();
+    updateAllDirtyBuffers();
   }
 }
 

@@ -22,15 +22,12 @@ public:
 
   QPolygonF selectionPolygon;
 
-  QImage buffer;
-  QPointF buffPos = QPointF(0, 0);
-  qreal lastZoom = 0.0;
-
-  qreal ad = 10;
-
   int pageNum;
 
 private:
+  QImage buffer;
+  qreal ad = 10;
+  qreal lastZoom = 0.0;
 };
 }
 #endif // SELECTION_H

@@ -163,7 +163,7 @@ void Page::appendStrokes(const QVector<Stroke> &strokes)
 {
   for (auto &stroke : strokes)
   {
-    m_strokes.append(stroke);
+    appendStroke(stroke);
   }
 }
 

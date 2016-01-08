@@ -12,7 +12,6 @@ Selection::Selection()
   setHeight(10.0);
   setBackgroundColor(QColor(255, 255, 255, 0)); // transparent
   lastZoom = 0.0;
-  buffPos = QPointF(0, 0);
 }
 
 void Selection::updateBuffer(qreal zoom)
@@ -44,8 +43,12 @@ void Selection::paint(QPainter &painter, qreal zoom, QRectF region __attribute__
   painter.setRenderHint(QPainter::Antialiasing, true);
   QPen pen;
   pen.setStyle(Qt::DashLine);
+  pen.setWidth(2);
   pen.setCapStyle(Qt::RoundCap);
-  painter.setBrush(QBrush(QColor(127, 127, 127, 50), Qt::SolidPattern));
+  pen.setColor(QColor(0,180,0,255));
+//  painter.setBrush(QBrush(QColor(127, 127, 127, 50), Qt::SolidPattern));
+//  painter.setBrush(QBrush(QColor(255, 165, 0, 50), Qt::SolidPattern));
+  painter.setBrush(QBrush(QColor(0, 255, 0, 50), Qt::SolidPattern));
   painter.setPen(pen);
   QTransform scaleTrans;
   scaleTrans = scaleTrans.scale(zoom, zoom);
@@ -71,7 +74,6 @@ void Selection::transform(QTransform transform, int newPageNum)
   {
     m_strokes[i].points = transform.map(m_strokes[i].points);
   }
-  buffPos = transform.map(buffPos);
   pageNum = newPageNum;
 }
 
