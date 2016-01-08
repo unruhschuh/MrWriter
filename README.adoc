@@ -1,4 +1,6 @@
 = MrWriter
+
+== About
 Notetaking and blackboard replacement application. Inspired by Xournal. Written in C++/Qt for Linux / Windows / Mac.
 
 See the http://unruhschuh.github.io/MrWriter/[project homepage] for more informations and screenshots.
@@ -10,4 +12,4 @@ See the http://unruhschuh.github.io/MrWriter/[project homepage] for more informa
 ** `cd MrWriter`
 ** `qmake`
 ** `make`
-* Alternatively: open `MrWriter.pro` in QtCreator, build and run
+* Alternatively: open `MrWriter.pro` in QtCreator, configure, build and run
