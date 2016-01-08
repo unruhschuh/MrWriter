@@ -6,12 +6,6 @@
 #include "mrdoc.h"
 #include "page.h"
 
-class dirtyCommand
-{
-signals:
-  void updateDirty();
-};
-
 class AddStrokeCommand : public QUndoCommand
 {
 public:
