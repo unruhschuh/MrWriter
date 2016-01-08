@@ -215,7 +215,7 @@ bool Document::loadXOJ(QString fileName)
 
   for (auto &page : pages)
   {
-      page.clearDirtyRect();
+    page.clearDirtyRect();
   }
 
   if (reader.hasError())
@@ -262,7 +262,7 @@ bool Document::saveXOJ(QString fileName)
     writer.writeAttribute(QXmlStreamAttribute("style", "plain"));
     writer.writeStartElement("layer");
 
-//    for (int j = 0; j < pages[i].m_strokes.size(); ++j)
+    //    for (int j = 0; j < pages[i].m_strokes.size(); ++j)
     for (auto strokes : pages[i].strokes())
     {
       writer.writeStartElement("stroke");
@@ -448,7 +448,7 @@ bool Document::loadMOJ(QString fileName)
 
   for (auto &page : pages)
   {
-      page.clearDirtyRect();
+    page.clearDirtyRect();
   }
 
   if (reader.hasError())
@@ -500,7 +500,7 @@ bool Document::saveMOJ(QString fileName)
     writer.writeAttribute(QXmlStreamAttribute("style", "plain"));
     writer.writeStartElement("layer");
 
-//    for (int j = 0; j < pages[i].m_strokes.size(); ++j)
+    //    for (int j = 0; j < pages[i].m_strokes.size(); ++j)
     for (auto strokes : pages[i].strokes())
     {
       writer.writeStartElement("stroke");

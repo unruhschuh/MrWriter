@@ -249,7 +249,7 @@ void Widget::paintEvent(QPaintEvent *event)
 
     painter.drawPixmap(rectTarget, pageBuffer.at(i), rectSource);
 
-    if ((currentState == state::SELECTING || currentState == state::SELECTED || currentState == state::MOVING_SELECTION) && i == currentSelection.pageNum)
+    if ((currentState == state::SELECTING || currentState == state::SELECTED || currentState == state::MOVING_SELECTION) && i == currentSelection.pageNum())
     {
       currentSelection.paint(painter, zoom);
     }
@@ -349,7 +349,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
   {
     if (eventType == QEvent::MouseButtonPress)
     {
-      if (currentSelection.selectionPolygon.containsPoint(pagePos, Qt::OddEvenFill) && currentSelection.pageNum == pageNum)
+      if (currentSelection.containsPoint(pagePos) && currentSelection.pageNum() == pageNum)
       {
         // move selection
         startMovingSelection(mousePos);
@@ -662,10 +662,10 @@ void Widget::startSelecting(QPointF mousePos)
 
   MrDoc::Selection newSelection;
 
-  newSelection.pageNum = pageNum;
+  newSelection.setPageNum(pageNum);
   newSelection.setWidth(currentDocument.pages[pageNum].width());
   newSelection.setHeight(currentDocument.pages[pageNum].height());
-  newSelection.selectionPolygon.append(pagePos);
+  newSelection.appendToSelectionPolygon(pagePos);
 
   currentSelection = newSelection;
 
@@ -679,7 +679,7 @@ void Widget::continueSelecting(QPointF mousePos)
   int pageNum = selectingOnPage;
   QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
 
-  currentSelection.selectionPolygon.append(pagePos);
+  currentSelection.appendToSelectionPolygon(pagePos);
 
   update();
 }
@@ -689,11 +689,11 @@ void Widget::stopSelecting(QPointF mousePos)
   int pageNum = selectingOnPage;
   QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
 
-  currentSelection.selectionPolygon.append(pagePos);
+  currentSelection.appendToSelectionPolygon(pagePos);
 
-  if (!currentDocument.pages[pageNum].getStrokes(currentSelection.selectionPolygon).isEmpty())
+  if (!currentDocument.pages[pageNum].getStrokes(currentSelection.selectionPolygon()).isEmpty())
   {
-    CreateSelectionCommand *createSelectionCommand = new CreateSelectionCommand(this, pageNum, currentSelection.selectionPolygon);
+    CreateSelectionCommand *createSelectionCommand = new CreateSelectionCommand(this, pageNum, currentSelection);
     undoStack.push(createSelectionCommand);
 
     emit updateGUI();
@@ -703,19 +703,18 @@ void Widget::stopSelecting(QPointF mousePos)
   {
     setCurrentState(state::IDLE);
   }
-
 }
 
 void Widget::letGoSelection()
 {
   if (getCurrentState() == state::SELECTED)
   {
-    int pageNum = currentSelection.pageNum;
+    int pageNum = currentSelection.pageNum();
     ReleaseSelectionCommand *releaseCommand = new ReleaseSelectionCommand(this, pageNum);
     undoStack.push(releaseCommand);
     updateAllDirtyBuffers();
-//    updateBuffer(pageNum);
-//    update();
+    //    updateBuffer(pageNum);
+    //    update();
   }
 }
 
@@ -935,7 +934,7 @@ void Widget::stopDrawing(QPointF mousePos, qreal pressure)
   AddStrokeCommand *addCommand = new AddStrokeCommand(this, drawingOnPage, currentStroke, -1, false, true);
   undoStack.push(addCommand);
 
-//  currentState = state::IDLE;
+  //  currentState = state::IDLE;
   setCurrentState(state::IDLE);
 
   update();
@@ -1086,11 +1085,11 @@ void Widget::erase(QPointF mousePos, bool invertEraser)
     currentDocument.setDocumentChanged(true);
     emit modified();
 
-//    QRect updateRect;
+    //    QRect updateRect;
     std::sort(strokesToDelete.begin(), strokesToDelete.end(), std::greater<int>());
     for (int i = 0; i < strokesToDelete.size(); ++i)
     {
-//      updateRect = updateRect.united(currentDocument.pages[pageNum].m_strokes.at(strokesToDelete.at(i)).points.boundingRect().toRect());
+      //      updateRect = updateRect.united(currentDocument.pages[pageNum].m_strokes.at(strokesToDelete.at(i)).points.boundingRect().toRect());
       RemoveStrokeCommand *removeCommand = new RemoveStrokeCommand(this, pageNum, strokesToDelete[i]);
       undoStack.push(removeCommand);
     }
@@ -1456,21 +1455,21 @@ void Widget::copy()
 void Widget::paste()
 {
   MrDoc::Selection tmpSelection = clipboard;
-  tmpSelection.pageNum = getCurrentPage();
+  tmpSelection.setPageNum(getCurrentPage());
 
   QPoint globalMousePos = parentWidget()->mapToGlobal(QPoint(0, 0)) + QPoint(parentWidget()->size().width() / 2, parentWidget()->size().height() / 2);
   QPoint mousePos = this->mapFromGlobal(globalMousePos);
-  QPointF selectionPos = getPagePosFromMousePos(mousePos, getCurrentPage()) - tmpSelection.selectionPolygon.boundingRect().center();
+  QPointF selectionPos = getPagePosFromMousePos(mousePos, getCurrentPage()) - tmpSelection.boundingRect().center();
 
   QTransform myTrans;
   myTrans = myTrans.translate(selectionPos.x(), selectionPos.y());
 
-  tmpSelection.transform(myTrans, tmpSelection.pageNum);
+  tmpSelection.transform(myTrans, tmpSelection.pageNum());
 
-//  for (int i = 0; i < tmpSelection.strokes().size(); ++i)
-//  {
-//    tmpSelection.m_strokes[i].points = myTrans.map(tmpSelection.m_strokes[i].points);
-//  }
+  //  for (int i = 0; i < tmpSelection.strokes().size(); ++i)
+  //  {
+  //    tmpSelection.m_strokes[i].points = myTrans.map(tmpSelection.m_strokes[i].points);
+  //  }
   tmpSelection.finalize();
   tmpSelection.updateBuffer(zoom);
 
@@ -1585,11 +1584,11 @@ void Widget::rotateSelection(qreal angle)
 {
   QTransform rotateTrans;
 
-  qreal dx = currentSelection.selectionPolygon.boundingRect().center().x();
-  qreal dy = currentSelection.selectionPolygon.boundingRect().center().y();
+  qreal dx = currentSelection.boundingRect().center().x();
+  qreal dy = currentSelection.boundingRect().center().y();
 
   rotateTrans = rotateTrans.translate(dx, dy).rotate(-angle).translate(-dx, -dy);
-  TransformSelectionCommand *transCommand = new TransformSelectionCommand(this, currentSelection.pageNum, rotateTrans);
+  TransformSelectionCommand *transCommand = new TransformSelectionCommand(this, currentSelection.pageNum(), rotateTrans);
   undoStack.push(transCommand);
   currentSelection.finalize();
   currentSelection.updateBuffer(zoom);

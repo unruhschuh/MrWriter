@@ -119,15 +119,16 @@ void RemoveStrokeCommand::redo()
 ** CreateSelectionCommand
 */
 
-CreateSelectionCommand::CreateSelectionCommand(Widget *widget, int pageNum, QPolygonF selectionPolygon, QUndoCommand *parent) : QUndoCommand(parent)
+CreateSelectionCommand::CreateSelectionCommand(Widget *widget, int pageNum, MrDoc::Selection selection, QUndoCommand *parent) : QUndoCommand(parent)
 {
   setText(MainWindow::tr("Create Selection"));
   m_widget = widget;
   m_pageNum = pageNum;
+  m_selection = selection;
+  m_selectionPolygon = selection.selectionPolygon();
 
-  m_strokesAndPositions = widget->currentDocument.pages[pageNum].getStrokes(selectionPolygon);
+  m_strokesAndPositions = widget->currentDocument.pages[pageNum].getStrokes(m_selectionPolygon);
 
-  m_selection = widget->currentSelection;
   for (auto sAndP : m_strokesAndPositions)
   {
     m_selection.prependStroke(sAndP.first);
@@ -178,7 +179,7 @@ void ReleaseSelectionCommand::undo()
 
 void ReleaseSelectionCommand::redo()
 {
-  int pageNum = widget->currentSelection.pageNum;
+  int pageNum = widget->currentSelection.pageNum();
   widget->currentDocument.pages[pageNum].appendStrokes(widget->currentSelection.strokes());
   widget->setCurrentState(Widget::state::IDLE);
 }

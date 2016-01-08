@@ -91,7 +91,7 @@ const QVector<Stroke> &Page::strokes()
   return m_strokes;
 }
 
-QVector<QPair<Stroke, int>> Page::getStrokes(QPolygonF &selectionPolygon)
+QVector<QPair<Stroke, int>> Page::getStrokes(QPolygonF selectionPolygon)
 {
   QVector<QPair<Stroke, int>> strokesAndPositions;
 
@@ -116,7 +116,7 @@ QVector<QPair<Stroke, int>> Page::getStrokes(QPolygonF &selectionPolygon)
   return strokesAndPositions;
 }
 
-QVector<QPair<Stroke, int>> Page::removeStrokes(QPolygonF &selectionPolygon)
+QVector<QPair<Stroke, int>> Page::removeStrokes(QPolygonF selectionPolygon)
 {
   auto removedStrokesAndPositions = getStrokes(selectionPolygon);
 

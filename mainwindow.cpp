@@ -974,7 +974,6 @@ void MainWindow::white()
   updateGUI();
 }
 
-
 void MainWindow::help()
 {
   QDesktopServices::openUrl(QUrl("http://htmlpreview.github.io/?https://github.com/unruhschuh/MrWriter/blob/master/documentation/MrWriterDoc.html"));
@@ -1238,7 +1237,7 @@ void MainWindow::cloneWindow()
   qInfo() << mainWidget->currentDocument.pages[0].dirtyRect();
   qInfo() << window->mainWidget->currentDocument.pages[0].dirtyRect();
   window->mainWidget->setCurrentState(mainWidget->getCurrentState());
-//  window->mainWidget->zoomTo(mainWidget->zoom);
+  //  window->mainWidget->zoomTo(mainWidget->zoom);
   window->mainWidget->zoom = mainWidget->zoom;
 
   window->show();

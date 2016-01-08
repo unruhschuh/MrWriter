@@ -25,10 +25,10 @@ public:
 
   bool changeStrokeColor(int strokeNum, QColor color);
 
-  const QVector<Stroke> & strokes();
+  const QVector<Stroke> &strokes();
 
-  QVector<QPair<Stroke, int>> getStrokes(QPolygonF &selectionPolygon);
-  QVector<QPair<Stroke, int>> removeStrokes(QPolygonF &selectionPolygon);
+  QVector<QPair<Stroke, int>> getStrokes(QPolygonF selectionPolygon);
+  QVector<QPair<Stroke, int>> removeStrokes(QPolygonF selectionPolygon);
   void removeStrokeAt(int i);
   void removeLastStroke();
 
@@ -58,7 +58,6 @@ private:
 
   qreal m_width;  // post script units
   qreal m_height; // post script units
-
 
   QRectF m_dirtyRect;
 };

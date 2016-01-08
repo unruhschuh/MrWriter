@@ -12,22 +12,33 @@ class Selection : public Page
 public:
   Selection();
 
+  void setPageNum(int pageNum);
+  int pageNum() const;
+
+  void setSelectionPolygon(QPolygonF selectionPolygon);
+  QPolygonF selectionPolygon() const;
+
+  bool containsPoint(QPointF pagePos);
+
+  void appendToSelectionPolygon(QPointF pagePos);
+
+  QRectF boundingRect() const;
+
   virtual void paint(QPainter &painter, qreal zoom, QRectF region = QRect(0, 0, 0, 0)) override;
 
-  void transform(QTransform transform, int newPageNum);
+  void transform(QTransform transform, int pageNum);
 
   void finalize();
 
   void updateBuffer(qreal zoom);
 
-  QPolygonF selectionPolygon;
-
-  int pageNum;
-
 private:
-  QImage buffer;
-  qreal ad = 10;
-  qreal lastZoom = 0.0;
+  QImage m_buffer;
+  qreal m_ad = 10;
+
+  QPolygonF m_selectionPolygon;
+
+  int m_pageNum;
 };
 }
 #endif // SELECTION_H
