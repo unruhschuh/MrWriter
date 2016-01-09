@@ -1,0 +1,53 @@
+= Release HowTo
+
+== Mac
+* use `macdeployqt` on the `.app` file
+* create DMG using 'Disc Utility'
+* convert DMG using `hdiutil convert -format UDZO -o our_app_ready.dmg our_app.dmg`
+* ship it
+
+== Windows
+* use `windeployqt` on the `.exe` file
+* add the following files, which don't get added by windeployqt
+** `libstdc++-6.dll`
+** `libwinpthread-1.dll`
+** `libgcc_s_dw2-1.dll`
+* zip it
+* ship it
+
+== Linux
+The directory structure for Linux deployment looks as follows:
+
+* `./MrWriter` (shell-script)
+* `./bin`
+* `./bin/platforms`
+* `./libs`
+
+The content of `MrWriter` (shell-script)
+[source,bash]
+.MrWriter
+----
+#!/bin/sh
+appname=`basename $0 | sed s,\.sh$,,`
+
+dirname=`dirname $0`
+tmp="${dirname#?}"
+
+if [ "${dirname%$tmp}" != "/" ]; then
+dirname=$PWD/$dirname
+fi
+LD_LIBRARY_PATH=$dirname/libs
+export LD_LIBRARY_PATH
+$dirname/bin/$appname "$@"
+----
+
+Follow these steps
+
+* copy the executable to `./bin`
+* use ldd on the executable
+* copy all the `.so.*` files associated with Qt5 to `./libs`
+* copy `libqxcb.so` to `./bin/platforms`
+* use `ldd` on `libqxcb.so`
+* copy all the .so.* files associated with Qt5 to `./libs`
+* tar.gz it
+* ship it
