@@ -1,0 +1,49 @@
+= Line based file format
+
+This is a draft of the new line based text file format. It should be line based, to allow git to be used.
+
+== Goals
+
+* Readable using regexp
+* Git friendly
+
+== Content
+
+=== Header
+
+* 'This is a MrWriter document'
+* document version
+* MrWriter version
+
+=== Page
+
+* width
+* height
+* background
+** solid color
+** pdf page
+** image
+
+=== Stroke
+
+* color
+* style (solid, dashed, dash-dotted, dotted)
+* width
+* points
+* pressure
+
+== Text
+
+* font
+* color
+* width
+* text
+
+== Example
+
+```
+MrDoc; doc-version:1; app-version:0.0.1
+Page; width:595; height:842; style:solid; color:#000000ff
+Stroke; #000000ff; solid; 1.41; points: 10.1 12.2 15.7 16.2 ; pressure: 0.9 0.85
+Text; font:"Times New Roman"; color:#ffffffff; width:300; text:"This is the text"
+```
