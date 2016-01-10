@@ -342,16 +342,21 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
   {
     if (eventType == QEvent::MouseButtonPress)
     {
-      if (currentSelection.containsPoint(pagePos) && currentSelection.pageNum() == pageNum)
+      if (currentSelection.pageNum() == pageNum)
       {
-        // move selection
-        startMovingSelection(mousePos);
-        return;
-      }
-      else
-      {
-        letGoSelection();
-        update();
+        using GrabZone = MrDoc::Selection::GrabZone;
+        GrabZone grabZone = currentSelection.grabZone(pagePos);
+        if (grabZone == GrabZone::None)
+        {
+          letGoSelection();
+          update();
+        }
+        else if (grabZone == GrabZone::Move)
+        {
+          // move selection
+          startMovingSelection(mousePos);
+          return;
+        }
       }
     }
     if (eventType == QEvent::MouseMove)

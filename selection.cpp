@@ -38,6 +38,99 @@ bool Selection::containsPoint(QPointF pagePos)
   return m_selectionPolygon.containsPoint(pagePos, Qt::OddEvenFill);
 }
 
+Selection::GrabZone Selection::grabZone(QPointF pagePos)
+{
+  GrabZone grabZone = GrabZone::None;
+  QRectF bRect = m_selectionPolygon.boundingRect();
+  QRectF moveRect = bRect;
+
+  QRectF topRect = bRect;
+  topRect.setTop(topRect.top() - m_ad);
+  topRect.setHeight(m_ad);
+
+  QRectF bottomRect = bRect;
+  bottomRect.setTop(bottomRect.bottom());
+  bottomRect.setHeight(m_ad);
+
+  QRectF leftRect = bRect;
+  leftRect.setLeft(leftRect.left() - m_ad);
+  leftRect.setWidth(m_ad);
+
+  QRectF rightRect = bRect;
+  rightRect.setLeft(rightRect.right());
+  rightRect.setWidth(m_ad);
+
+  QRectF topLeftRect = bRect;
+  topLeftRect.setLeft(topLeftRect.left() - m_ad);
+  topLeftRect.setTop(topLeftRect.top() - m_ad);
+  topLeftRect.setWidth(m_ad);
+  topLeftRect.setHeight(m_ad);
+
+  QRectF topRightRect = bRect;
+  topRightRect.setLeft(topRightRect.right());
+  topRightRect.setTop(topRightRect.top() - m_ad);
+  topRightRect.setWidth(m_ad);
+  topRightRect.setHeight(m_ad);
+
+  QRectF bottomLeftRect = bRect;
+  bottomLeftRect.setLeft(bottomLeftRect.left() - m_ad);
+  bottomLeftRect.setTop(bottomLeftRect.bottom());
+  bottomLeftRect.setWidth(m_ad);
+  bottomLeftRect.setHeight(m_ad);
+
+  QRectF bottomRightRect = bRect;
+  bottomRightRect.setLeft(bottomRightRect.right());
+  bottomRightRect.setTop(bottomRightRect.bottom());
+  bottomRightRect.setWidth(m_ad);
+  bottomRightRect.setHeight(m_ad);
+
+  if (moveRect.contains(pagePos))
+  {
+    grabZone = GrabZone::Move;
+  }
+  else if (topRect.contains(pagePos))
+  {
+    qInfo() << "top";
+    grabZone = GrabZone::Move;
+  }
+  else if (bottomRect.contains(pagePos))
+  {
+    qInfo() << "bottom";
+    grabZone = GrabZone::Move;
+  }
+  else if (leftRect.contains(pagePos))
+  {
+    qInfo() << "left";
+    grabZone = GrabZone::Move;
+  }
+  else if (rightRect.contains(pagePos))
+  {
+    qInfo() << "right";
+    grabZone = GrabZone::Move;
+  }
+  else if (topLeftRect.contains(pagePos))
+  {
+    qInfo() << "topLeft";
+    grabZone = GrabZone::Move;
+  }
+  else if (topRightRect.contains(pagePos))
+  {
+    qInfo() << "topRight";
+    grabZone = GrabZone::Move;
+  }
+  else if (bottomLeftRect.contains(pagePos))
+  {
+    qInfo() << "bottomLeft";
+    grabZone = GrabZone::Move;
+  }
+  else if (bottomRightRect.contains(pagePos))
+  {
+    qInfo() << "bottomRight";
+    grabZone = GrabZone::Move;
+  }
+  return grabZone;
+}
+
 void Selection::appendToSelectionPolygon(QPointF pagePos)
 {
   m_selectionPolygon.append(pagePos);
@@ -77,19 +170,23 @@ void Selection::paint(QPainter &painter, qreal zoom, QRectF region __attribute__
   painter.setPen(pen);
   QTransform scaleTrans;
   scaleTrans = scaleTrans.scale(zoom, zoom);
-  painter.drawPolygon(scaleTrans.map(m_selectionPolygon), Qt::OddEvenFill);
+  if (!m_finalized)
+  {
+    painter.drawPolygon(scaleTrans.map(m_selectionPolygon), Qt::OddEvenFill);
+  }
+  else
+  {
+    painter.drawRect(scaleTrans.map(m_selectionPolygon).boundingRect().adjusted(-m_ad, -m_ad, m_ad, m_ad));
 
-  // draw edges for grabbing to resize
-  /*
-  pen.setWidthF(0.5);
-  painter.setPen(pen);
-  QRect brect = scaleTrans.map(m_selectionPolygon).boundingRect().toRect();
-  painter.drawLine(brect.topLeft() + QPointF(m_ad/2, 0), brect.bottomLeft() + QPointF(m_ad/2, 0));
-  painter.drawLine(brect.topRight() - QPointF(m_ad/2, 0), brect.bottomRight() - QPointF(m_ad/2, 0));
-  painter.drawLine(brect.topLeft() + QPointF(0, m_ad/2), brect.topRight() + QPointF(0, m_ad/2));
-  painter.drawLine(brect.bottomLeft() - QPointF(0, m_ad/2), brect.bottomRight() - QPointF(0, m_ad/2));
-  painter.setRenderHint(QPainter::Antialiasing, false);
-  */
+    painter.setPen(pen);
+    QRect brect = scaleTrans.map(m_selectionPolygon).boundingRect().toRect();
+    qreal ad = m_ad;
+    painter.drawLine(brect.topLeft() - QPointF(0, ad), brect.bottomLeft() + QPointF(0, ad));
+    painter.drawLine(brect.topRight() - QPointF(0, ad), brect.bottomRight() + QPointF(0, ad));
+    painter.drawLine(brect.topLeft() - QPointF(ad, 0), brect.topRight() + QPointF(ad, 0));
+    painter.drawLine(brect.bottomLeft() - QPointF(ad, 0), brect.bottomRight() + QPointF(ad, 0));
+    painter.setRenderHint(QPainter::Antialiasing, false);
+  }
 }
 
 void Selection::transform(QTransform transform, int pageNum)
@@ -110,10 +207,12 @@ void Selection::finalize()
     boundingRect = boundingRect.united(m_strokes[i].boundingRect());
   }
 
-  boundingRect = boundingRect.adjusted(-m_ad, -m_ad, m_ad, m_ad);
+  boundingRect.adjust(-m_ad, -m_ad, m_ad, m_ad);
   m_selectionPolygon = QPolygonF(boundingRect);
 
   setWidth(boundingRect.width());
   setHeight(boundingRect.height());
+
+  m_finalized = true;
 }
 }
