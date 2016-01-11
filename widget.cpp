@@ -246,7 +246,7 @@ void Widget::paintEvent(QPaintEvent *event)
 
     painter.drawPixmap(rectTarget, pageBuffer.at(i), rectSource);
 
-    if ((currentState == state::SELECTING || currentState == state::SELECTED || currentState == state::MOVING_SELECTION) && i == currentSelection.pageNum())
+    if ((currentState == state::SELECTING || currentState == state::SELECTED || currentState == state::MOVING_SELECTION || currentState == state::RESIZING_SELECTION) && i == currentSelection.pageNum())
     {
       currentSelection.paint(painter, zoom);
     }
@@ -357,6 +357,12 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
           startMovingSelection(mousePos);
           return;
         }
+        else
+        {
+          // resize selection
+          startResizingSelection(mousePos, grabZone);
+          return;
+        }
       }
     }
     if (eventType == QEvent::MouseMove)
@@ -386,6 +392,20 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
     if (eventType == QEvent::MouseButtonRelease)
     {
       setCurrentState(state::SELECTED);
+      setPreviousTool();
+    }
+  }
+
+  if (currentState == state::RESIZING_SELECTION)
+  {
+    if (eventType == QEvent::MouseMove)
+    {
+      continueResizingSelection(mousePos);
+      return;
+    }
+    if (eventType == QEvent::MouseButtonRelease)
+    {
+      stopResizingSelection(mousePos);
       setPreviousTool();
     }
   }
@@ -1103,7 +1123,7 @@ void Widget::continueMovingSelection(QPointF mousePos)
   QPointF delta = (pagePos - previousPagePos);
 
   QTransform transform;
-  transform = transform.translate(delta.x(), delta.y());
+  transform.translate(delta.x(), delta.y());
 
   //    currentSelection.transform(transform, pageNum);
   TransformSelectionCommand *transSelectCommand = new TransformSelectionCommand(this, pageNum, transform);
@@ -1111,6 +1131,60 @@ void Widget::continueMovingSelection(QPointF mousePos)
 
   previousPagePos = pagePos;
   //    update(currentSelection.selectionPolygon.boundingRect().toRect());
+}
+
+void Widget::startResizingSelection(QPointF mousePos, MrDoc::Selection::GrabZone grabZone)
+{
+  currentDocument.setDocumentChanged(true);
+  emit modified();
+
+  int pageNum = currentSelection.pageNum();
+  previousPagePos = getPagePosFromMousePos(mousePos, pageNum);
+  setCurrentState(state::RESIZING_SELECTION);
+}
+
+void Widget::continueResizingSelection(QPointF mousePos)
+{
+  int pageNum = currentSelection.pageNum();
+  QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
+  QPointF delta = (pagePos - previousPagePos);
+
+  QTransform transform;
+
+  qreal sx = (currentSelection.boundingRect().width() + delta.x()) / currentSelection.boundingRect().width();
+  qreal sy = (currentSelection.boundingRect().height() + delta.y()) / currentSelection.boundingRect().height();
+
+  if (sx <= 0.01)
+  {
+    sx = 1.0;
+  }
+
+  if (sy <= 0.01)
+  {
+    sy = 1.0;
+  }
+
+  transform.translate(currentSelection.boundingRect().x(),
+                      currentSelection.boundingRect().y());
+  transform.scale(sx, sy);
+  transform.translate(-currentSelection.boundingRect().x(),
+                      -currentSelection.boundingRect().y());
+
+  TransformSelectionCommand *transSelectCommand = new TransformSelectionCommand(this, pageNum, transform);
+  undoStack.push(transSelectCommand);
+
+  previousPagePos = pagePos;
+
+//  currentSelection.finalize();
+//  currentSelection.updateBuffer(zoom);
+}
+
+void Widget::stopResizingSelection(QPointF mousePos)
+{
+  continueResizingSelection(mousePos);
+  currentSelection.finalize();
+  currentSelection.updateBuffer(zoom);
+  setCurrentState(state::SELECTED);
 }
 
 int Widget::getPageFromMousePos(QPointF mousePos)

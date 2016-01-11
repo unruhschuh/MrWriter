@@ -156,6 +156,7 @@ void MainWindow::createActions()
   exitAct->setStatusTip(tr("Exit MrWriter"));
   //    TabletApplication *qTabApp = static_cast<TabletApplication*>(qApp); // I have no idea what this was for (TOM)
   connect(exitAct, SIGNAL(triggered()), this, SLOT(exit()));
+  this->addAction(exitAct); // add to make shortcut work if menubar is hidden
 
   undoAct = mainWidget->undoStack.createUndoAction(this);
   //    undoAct = new QAction(QIcon(":/images/undoIcon.png"), tr("&Undo"), this);
@@ -465,6 +466,7 @@ void MainWindow::createActions()
   rotateAct->setStatusTip("Rotate Selection");
   rotateAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_R));
   connect(rotateAct, SIGNAL(triggered()), this, SLOT(rotate()));
+  this->addAction(rotateAct); // add to make shortcut work if menubar is hidden
 
   helpAct = new QAction(tr("&Help"), this);
   helpAct->setShortcut(QKeySequence(Qt::Key_F1));

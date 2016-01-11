@@ -45,7 +45,8 @@ public:
     CIRCLING,
     SELECTING,
     SELECTED,
-    MOVING_SELECTION
+    MOVING_SELECTION,
+    RESIZING_SELECTION
   };
 
   static constexpr qreal veryFinePenWidth = 0.42;
@@ -182,6 +183,10 @@ private:
 
   void startMovingSelection(QPointF mousePos);
   void continueMovingSelection(QPointF mousePos);
+
+  void startResizingSelection(QPointF mousePos, MrDoc::Selection::GrabZone grabZone);
+  void continueResizingSelection(QPointF mousePos);
+  void stopResizingSelection(QPointF mousePos);
 
   void setPreviousTool();
 

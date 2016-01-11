@@ -10,7 +10,7 @@ namespace MrDoc
 class Selection : public Page
 {
 public:
-  enum class GrabZone { None, Move, Top, Bottom, Left, Right, UpperLeft, UpperRight, LowerLeft, LowerRight };
+  enum class GrabZone { None, Move, Top, Bottom, Left, Right, TopLeft, TopRight, BottomLeft, BottomRight };
 
   Selection();
 
@@ -38,6 +38,7 @@ public:
 
 private:
   QImage m_buffer;
+
   qreal m_ad = 10;
 
   QPolygonF m_selectionPolygon;

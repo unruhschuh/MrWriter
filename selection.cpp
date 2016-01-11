@@ -91,42 +91,42 @@ Selection::GrabZone Selection::grabZone(QPointF pagePos)
   else if (topRect.contains(pagePos))
   {
     qInfo() << "top";
-    grabZone = GrabZone::Move;
+    grabZone = GrabZone::Top;
   }
   else if (bottomRect.contains(pagePos))
   {
     qInfo() << "bottom";
-    grabZone = GrabZone::Move;
+    grabZone = GrabZone::Bottom;
   }
   else if (leftRect.contains(pagePos))
   {
     qInfo() << "left";
-    grabZone = GrabZone::Move;
+    grabZone = GrabZone::Left;
   }
   else if (rightRect.contains(pagePos))
   {
     qInfo() << "right";
-    grabZone = GrabZone::Move;
+    grabZone = GrabZone::Right;
   }
   else if (topLeftRect.contains(pagePos))
   {
     qInfo() << "topLeft";
-    grabZone = GrabZone::Move;
+    grabZone = GrabZone::TopLeft;
   }
   else if (topRightRect.contains(pagePos))
   {
     qInfo() << "topRight";
-    grabZone = GrabZone::Move;
+    grabZone = GrabZone::TopRight;
   }
   else if (bottomLeftRect.contains(pagePos))
   {
     qInfo() << "bottomLeft";
-    grabZone = GrabZone::Move;
+    grabZone = GrabZone::BottomLeft;
   }
   else if (bottomRightRect.contains(pagePos))
   {
     qInfo() << "bottomRight";
-    grabZone = GrabZone::Move;
+    grabZone = GrabZone::BottomRight;
   }
   return grabZone;
 }
@@ -144,32 +144,34 @@ QRectF Selection::boundingRect() const
 void Selection::updateBuffer(qreal zoom)
 {
   QPainter imgPainter;
-  m_buffer = QImage(zoom * width(), zoom * height(), QImage::Format_ARGB32_Premultiplied);
+  qreal upscale = 2.0;
+  m_buffer = QImage(upscale * zoom * width(), upscale * zoom * height(), QImage::Format_ARGB32_Premultiplied);
   m_buffer.fill(qRgba(0, 0, 0, 0));
   m_buffer.setAlphaChannel(m_buffer);
   imgPainter.begin(&m_buffer);
   imgPainter.setRenderHint(QPainter::Antialiasing, true);
 
-  imgPainter.translate(-zoom * m_selectionPolygon.boundingRect().topLeft());
-  Page::paint(imgPainter, zoom);
+  imgPainter.translate(-upscale * zoom * m_selectionPolygon.boundingRect().topLeft());
+  Page::paint(imgPainter, upscale * zoom);
 }
 
 void Selection::paint(QPainter &painter, qreal zoom, QRectF region __attribute__((unused)))
 {
-  painter.drawImage(zoom * m_selectionPolygon.boundingRect().topLeft(), m_buffer);
+  QTransform scaleTrans;
+  scaleTrans = scaleTrans.scale(zoom, zoom);
 
   painter.setRenderHint(QPainter::Antialiasing, true);
+  painter.drawImage(scaleTrans.map(m_selectionPolygon).boundingRect(), m_buffer, QRectF(m_buffer.rect()));
+
   QPen pen;
   pen.setStyle(Qt::DashLine);
   pen.setWidth(2);
   pen.setCapStyle(Qt::RoundCap);
-  pen.setColor(QColor(0, 180, 0, 255));
-  //  painter.setBrush(QBrush(QColor(127, 127, 127, 50), Qt::SolidPattern));
+//  pen.setColor(QColor(0, 180, 0, 255));
+    painter.setBrush(QBrush(QColor(127, 127, 127, 50), Qt::SolidPattern));
   //  painter.setBrush(QBrush(QColor(255, 165, 0, 50), Qt::SolidPattern));
-  painter.setBrush(QBrush(QColor(0, 255, 0, 50), Qt::SolidPattern));
+//  painter.setBrush(QBrush(QColor(0, 255, 0, 50), Qt::SolidPattern));
   painter.setPen(pen);
-  QTransform scaleTrans;
-  scaleTrans = scaleTrans.scale(zoom, zoom);
   if (!m_finalized)
   {
     painter.drawPolygon(scaleTrans.map(m_selectionPolygon), Qt::OddEvenFill);
@@ -204,10 +206,10 @@ void Selection::finalize()
   QRectF boundingRect;
   for (int i = 0; i < m_strokes.size(); ++i)
   {
-    boundingRect = boundingRect.united(m_strokes[i].boundingRect());
+    boundingRect = boundingRect.united(m_strokes[i].points.boundingRect());
   }
 
-  boundingRect.adjust(-m_ad, -m_ad, m_ad, m_ad);
+//  boundingRect.adjust(-m_ad, -m_ad, m_ad, m_ad);
   m_selectionPolygon = QPolygonF(boundingRect);
 
   setWidth(boundingRect.width());
