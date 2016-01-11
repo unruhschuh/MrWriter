@@ -23,6 +23,7 @@ public:
   const QRectF &dirtyRect() const;
   void clearDirtyRect();
 
+  bool changePenWidth(int strokeNum, qreal penWidth);
   bool changeStrokeColor(int strokeNum, QColor color);
 
   const QVector<Stroke> &strokes();

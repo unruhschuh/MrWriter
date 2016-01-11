@@ -45,7 +45,8 @@ public:
     CIRCLING,
     SELECTING,
     SELECTED,
-    MOVING_SELECTION
+    MOVING_SELECTION,
+    RESIZING_SELECTION
   };
 
   static constexpr qreal veryFinePenWidth = 0.42;
@@ -60,10 +61,8 @@ public:
     return currentTool;
   }
 
-  void setCurrentPenWidth(qreal penWidth)
-  {
-    currentPenWidth = penWidth;
-  }
+  void setCurrentPenWidth(qreal penWidth);
+
   qreal getCurrentPenWidth()
   {
     return currentPenWidth;
@@ -163,6 +162,7 @@ private:
   QPointF firstMousePos;
   QPointF previousMousePos;
   QPointF previousPagePos;
+  MrDoc::Selection::GrabZone m_grabZone = MrDoc::Selection::GrabZone::None;
 
   void startDrawing(QPointF mousePos, qreal pressure);
   void continueDrawing(QPointF mousePos, qreal pressure);
@@ -182,6 +182,10 @@ private:
 
   void startMovingSelection(QPointF mousePos);
   void continueMovingSelection(QPointF mousePos);
+
+  void startResizingSelection(QPointF mousePos, MrDoc::Selection::GrabZone grabZone);
+  void continueResizingSelection(QPointF mousePos);
+  void stopResizingSelection(QPointF mousePos);
 
   void setPreviousTool();
 

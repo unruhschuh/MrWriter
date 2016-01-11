@@ -246,7 +246,7 @@ void Widget::paintEvent(QPaintEvent *event)
 
     painter.drawPixmap(rectTarget, pageBuffer.at(i), rectSource);
 
-    if ((currentState == state::SELECTING || currentState == state::SELECTED || currentState == state::MOVING_SELECTION) && i == currentSelection.pageNum())
+    if ((currentState == state::SELECTING || currentState == state::SELECTED || currentState == state::MOVING_SELECTION || currentState == state::RESIZING_SELECTION) && i == currentSelection.pageNum())
     {
       currentSelection.paint(painter, zoom);
     }
@@ -342,16 +342,28 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
   {
     if (eventType == QEvent::MouseButtonPress)
     {
-      if (currentSelection.containsPoint(pagePos) && currentSelection.pageNum() == pageNum)
+    using GrabZone = MrDoc::Selection::GrabZone;
+    GrabZone grabZone = currentSelection.grabZone(pagePos, zoom);
+    if (grabZone == GrabZone::None)
+    {
+      letGoSelection();
+      update();
+      return;
+    }
+      if (currentSelection.pageNum() == pageNum)
       {
-        // move selection
-        startMovingSelection(mousePos);
-        return;
-      }
-      else
-      {
-        letGoSelection();
-        update();
+        if (grabZone == GrabZone::Move)
+        {
+          // move selection
+          startMovingSelection(mousePos);
+          return;
+        }
+        else
+        {
+          // resize selection
+          startResizingSelection(mousePos, grabZone);
+          return;
+        }
       }
     }
     if (eventType == QEvent::MouseMove)
@@ -381,6 +393,20 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
     if (eventType == QEvent::MouseButtonRelease)
     {
       setCurrentState(state::SELECTED);
+      setPreviousTool();
+    }
+  }
+
+  if (currentState == state::RESIZING_SELECTION)
+  {
+    if (eventType == QEvent::MouseMove)
+    {
+      continueResizingSelection(mousePos);
+      return;
+    }
+    if (eventType == QEvent::MouseButtonRelease)
+    {
+      stopResizingSelection(mousePos);
       setPreviousTool();
     }
   }
@@ -696,8 +722,6 @@ void Widget::letGoSelection()
     ReleaseSelectionCommand *releaseCommand = new ReleaseSelectionCommand(this, pageNum);
     undoStack.push(releaseCommand);
     updateAllDirtyBuffers();
-    //    updateBuffer(pageNum);
-    //    update();
   }
 }
 
@@ -1098,7 +1122,7 @@ void Widget::continueMovingSelection(QPointF mousePos)
   QPointF delta = (pagePos - previousPagePos);
 
   QTransform transform;
-  transform = transform.translate(delta.x(), delta.y());
+  transform.translate(delta.x(), delta.y());
 
   //    currentSelection.transform(transform, pageNum);
   TransformSelectionCommand *transSelectCommand = new TransformSelectionCommand(this, pageNum, transform);
@@ -1106,6 +1130,125 @@ void Widget::continueMovingSelection(QPointF mousePos)
 
   previousPagePos = pagePos;
   //    update(currentSelection.selectionPolygon.boundingRect().toRect());
+}
+
+void Widget::startResizingSelection(QPointF mousePos, MrDoc::Selection::GrabZone grabZone)
+{
+  currentDocument.setDocumentChanged(true);
+  emit modified();
+
+  m_grabZone = grabZone;
+
+  int pageNum = currentSelection.pageNum();
+  previousPagePos = getPagePosFromMousePos(mousePos, pageNum);
+  setCurrentState(state::RESIZING_SELECTION);
+}
+
+void Widget::continueResizingSelection(QPointF mousePos)
+{
+  int pageNum = currentSelection.pageNum();
+  QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
+  QPointF delta = (pagePos - previousPagePos);
+
+  QTransform transform;
+
+  qreal moveX = currentSelection.boundingRect().x();
+  qreal moveY = currentSelection.boundingRect().y();
+
+  qreal sx = 0.0;
+  qreal sy = 0.0;
+
+  qreal moveBackX = 0.0;
+  qreal moveBackY = 0.0;
+
+  using GrabZone = MrDoc::Selection::GrabZone;
+  if (m_grabZone == GrabZone::Top)
+  {
+    sx = 1.0;
+    sy = (currentSelection.boundingRect().height() - delta.y()) / currentSelection.boundingRect().height();
+    moveBackX = - moveX;
+    moveBackY = - moveY + delta.y() / sy;
+  }
+  else if (m_grabZone == GrabZone::Bottom)
+  {
+    sx = 1.0;
+    sy = (currentSelection.boundingRect().height() + delta.y()) / currentSelection.boundingRect().height();
+    moveBackX = - moveX;
+    moveBackY = - moveY;
+  }
+  else if (m_grabZone == GrabZone::Left)
+  {
+    sx = (currentSelection.boundingRect().width() - delta.x()) / currentSelection.boundingRect().width();
+    sy = 1.0;
+    moveBackX = - moveX + delta.x() / sx;
+    moveBackY = - moveY;
+  }
+  else if (m_grabZone == GrabZone::Right)
+  {
+    sx = (currentSelection.boundingRect().width() + delta.x()) / currentSelection.boundingRect().width();
+    sy = 1.0;
+    moveBackX = - moveX;
+    moveBackY = - moveY;
+  }
+  else if (m_grabZone == GrabZone::TopLeft)
+  {
+    sx = (currentSelection.boundingRect().width() - delta.x()) / currentSelection.boundingRect().width();
+    sy = (currentSelection.boundingRect().height() - delta.y()) / currentSelection.boundingRect().height();
+    moveBackX = - moveX + delta.x() / sx;
+    moveBackY = - moveY + delta.y() / sy;
+  }
+  else if (m_grabZone == GrabZone::TopRight)
+  {
+    sx = (currentSelection.boundingRect().width() + delta.x()) / currentSelection.boundingRect().width();
+    sy = (currentSelection.boundingRect().height() - delta.y()) / currentSelection.boundingRect().height();
+    moveBackX = - moveX;
+    moveBackY = - moveY + delta.y() / sy;
+  }
+  else if (m_grabZone == GrabZone::BottomLeft)
+  {
+    sx = (currentSelection.boundingRect().width() - delta.x()) / currentSelection.boundingRect().width();
+    sy = (currentSelection.boundingRect().height() + delta.y()) / currentSelection.boundingRect().height();
+    moveBackX = - moveX + delta.x() / sx;
+    moveBackY = - moveY;
+  }
+  else if (m_grabZone == GrabZone::BottomRight)
+  {
+    sx = (currentSelection.boundingRect().width() + delta.x()) / currentSelection.boundingRect().width();
+    sy = (currentSelection.boundingRect().height() + delta.y()) / currentSelection.boundingRect().height();
+    moveBackX = - moveX;
+    moveBackY = - moveY;
+  }
+
+  if (sx <= 0.01)
+  {
+    sx = 1.0;
+    moveX = 0.0;
+    moveBackX = 0.0;
+  }
+
+  if (sy <= 0.01)
+  {
+    sy = 1.0;
+    moveY = 0.0;
+    moveBackY = 0.0;
+  }
+
+  transform.translate(moveX, moveY);
+  transform.scale(sx, sy);
+  transform.translate(moveBackX, moveBackY);
+
+  TransformSelectionCommand *transSelectCommand = new TransformSelectionCommand(this, pageNum, transform);
+  undoStack.push(transSelectCommand);
+
+  previousPagePos = pagePos;
+}
+
+void Widget::stopResizingSelection(QPointF mousePos)
+{
+  continueResizingSelection(mousePos);
+  currentSelection.finalize();
+  currentSelection.updateBuffer(zoom);
+  setCurrentState(state::SELECTED);
 }
 
 int Widget::getPageFromMousePos(QPointF mousePos)
@@ -1606,4 +1749,16 @@ void Widget::dashDotPattern()
 void Widget::dotPattern()
 {
   setCurrentPattern(MrDoc::dotLinePattern);
+}
+
+void Widget::setCurrentPenWidth(qreal penWidth)
+{
+currentPenWidth = penWidth;
+  if (currentState == state::SELECTED)
+  {
+    ChangePenWidthOfSelectionCommand *changePenWidthCommand = new ChangePenWidthOfSelectionCommand(this, penWidth);
+    undoStack.push(changePenWidthCommand);
+    currentSelection.updateBuffer(zoom);
+    update();
+  }
 }

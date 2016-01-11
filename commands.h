@@ -98,6 +98,20 @@ private:
   QColor color;
 };
 
+class ChangePenWidthOfSelectionCommand : public QUndoCommand
+{
+public:
+  ChangePenWidthOfSelectionCommand(Widget *newWidget, qreal penWidth, QUndoCommand *parent = 0);
+  void undo() Q_DECL_OVERRIDE;
+  void redo() Q_DECL_OVERRIDE;
+
+private:
+  Widget *widget;
+  MrDoc::Selection selection;
+  qreal m_penWidth;
+};
+
+
 class AddPageCommand : public QUndoCommand
 {
 public:

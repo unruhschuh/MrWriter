@@ -10,6 +10,8 @@ namespace MrDoc
 class Selection : public Page
 {
 public:
+  enum class GrabZone { None, Move, Top, Bottom, Left, Right, TopLeft, TopRight, BottomLeft, BottomRight };
+
   Selection();
 
   void setPageNum(int pageNum);
@@ -19,6 +21,8 @@ public:
   QPolygonF selectionPolygon() const;
 
   bool containsPoint(QPointF pagePos);
+
+  GrabZone grabZone(QPointF pagePos, qreal zoom);
 
   void appendToSelectionPolygon(QPointF pagePos);
 
@@ -34,9 +38,12 @@ public:
 
 private:
   QImage m_buffer;
+
   qreal m_ad = 10;
 
   QPolygonF m_selectionPolygon;
+
+  bool m_finalized = false;
 
   int m_pageNum;
 };

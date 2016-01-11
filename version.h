@@ -4,11 +4,11 @@
 #define VERSION_H
 
 #define PRODUCT_NAME "MrWriter"
-#define PRODUCT_URL "http://www.unruhschuh.com/mrwriter"
+#define PRODUCT_URL "http://github.com/unruhschuh/MrWriter"
 
 #define MAJOR_VERSION 0
 #define MINOR_VERSION 0
-#define PATCH_VERSION 1
+#define PATCH_VERSION 2
 
 #define DOC_VERSION 0
 
