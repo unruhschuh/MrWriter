@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <QDebug>
+#include <QtMath>
 
 namespace MrDoc
 {
@@ -38,51 +39,53 @@ bool Selection::containsPoint(QPointF pagePos)
   return m_selectionPolygon.containsPoint(pagePos, Qt::OddEvenFill);
 }
 
-Selection::GrabZone Selection::grabZone(QPointF pagePos)
+Selection::GrabZone Selection::grabZone(QPointF pagePos, qreal zoom)
 {
   GrabZone grabZone = GrabZone::None;
   QRectF bRect = m_selectionPolygon.boundingRect();
   QRectF moveRect = bRect;
 
+  qreal scaled_ad = m_ad / zoom;
+
   QRectF topRect = bRect;
-  topRect.setTop(topRect.top() - m_ad);
-  topRect.setHeight(m_ad);
+  topRect.setTop(topRect.top() - scaled_ad);
+  topRect.setHeight(scaled_ad);
 
   QRectF bottomRect = bRect;
   bottomRect.setTop(bottomRect.bottom());
-  bottomRect.setHeight(m_ad);
+  bottomRect.setHeight(scaled_ad);
 
   QRectF leftRect = bRect;
-  leftRect.setLeft(leftRect.left() - m_ad);
-  leftRect.setWidth(m_ad);
+  leftRect.setLeft(leftRect.left() - scaled_ad);
+  leftRect.setWidth(scaled_ad);
 
   QRectF rightRect = bRect;
   rightRect.setLeft(rightRect.right());
-  rightRect.setWidth(m_ad);
+  rightRect.setWidth(scaled_ad);
 
   QRectF topLeftRect = bRect;
-  topLeftRect.setLeft(topLeftRect.left() - m_ad);
-  topLeftRect.setTop(topLeftRect.top() - m_ad);
-  topLeftRect.setWidth(m_ad);
-  topLeftRect.setHeight(m_ad);
+  topLeftRect.setLeft(topLeftRect.left() - scaled_ad);
+  topLeftRect.setTop(topLeftRect.top() - scaled_ad);
+  topLeftRect.setWidth(scaled_ad);
+  topLeftRect.setHeight(scaled_ad);
 
   QRectF topRightRect = bRect;
   topRightRect.setLeft(topRightRect.right());
-  topRightRect.setTop(topRightRect.top() - m_ad);
-  topRightRect.setWidth(m_ad);
-  topRightRect.setHeight(m_ad);
+  topRightRect.setTop(topRightRect.top() - scaled_ad);
+  topRightRect.setWidth(scaled_ad);
+  topRightRect.setHeight(scaled_ad);
 
   QRectF bottomLeftRect = bRect;
-  bottomLeftRect.setLeft(bottomLeftRect.left() - m_ad);
+  bottomLeftRect.setLeft(bottomLeftRect.left() - scaled_ad);
   bottomLeftRect.setTop(bottomLeftRect.bottom());
-  bottomLeftRect.setWidth(m_ad);
-  bottomLeftRect.setHeight(m_ad);
+  bottomLeftRect.setWidth(scaled_ad);
+  bottomLeftRect.setHeight(scaled_ad);
 
   QRectF bottomRightRect = bRect;
   bottomRightRect.setLeft(bottomRightRect.right());
   bottomRightRect.setTop(bottomRightRect.bottom());
-  bottomRightRect.setWidth(m_ad);
-  bottomRightRect.setHeight(m_ad);
+  bottomRightRect.setWidth(scaled_ad);
+  bottomRightRect.setHeight(scaled_ad);
 
   if (moveRect.contains(pagePos))
   {
@@ -90,42 +93,34 @@ Selection::GrabZone Selection::grabZone(QPointF pagePos)
   }
   else if (topRect.contains(pagePos))
   {
-    qInfo() << "top";
     grabZone = GrabZone::Top;
   }
   else if (bottomRect.contains(pagePos))
   {
-    qInfo() << "bottom";
     grabZone = GrabZone::Bottom;
   }
   else if (leftRect.contains(pagePos))
   {
-    qInfo() << "left";
     grabZone = GrabZone::Left;
   }
   else if (rightRect.contains(pagePos))
   {
-    qInfo() << "right";
     grabZone = GrabZone::Right;
   }
   else if (topLeftRect.contains(pagePos))
   {
-    qInfo() << "topLeft";
     grabZone = GrabZone::TopLeft;
   }
   else if (topRightRect.contains(pagePos))
   {
-    qInfo() << "topRight";
     grabZone = GrabZone::TopRight;
   }
   else if (bottomLeftRect.contains(pagePos))
   {
-    qInfo() << "bottomLeft";
     grabZone = GrabZone::BottomLeft;
   }
   else if (bottomRightRect.contains(pagePos))
   {
-    qInfo() << "bottomRight";
     grabZone = GrabZone::BottomRight;
   }
   return grabZone;
@@ -197,6 +192,9 @@ void Selection::transform(QTransform transform, int pageNum)
   for (int i = 0; i < m_strokes.size(); ++i)
   {
     m_strokes[i].points = transform.map(m_strokes[i].points);
+    qreal s = (transform.m11() + transform.m22()) / 2.0;
+    m_strokes[i].penWidth = m_strokes[i].penWidth * s;
+    qInfo() << s;
   }
   setPageNum(pageNum);
 }

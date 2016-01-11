@@ -72,6 +72,20 @@ void Page::clearDirtyRect()
   m_dirtyRect = QRectF(0.0, 0.0, 0.0, 0.0);
 }
 
+bool Page::changePenWidth(int strokeNum, qreal penWidth)
+{
+  if (strokeNum < 0 || strokeNum >= m_strokes.size() || m_strokes.isEmpty())
+  {
+    return false;
+  }
+  else
+  {
+    m_strokes[strokeNum].penWidth = penWidth;
+    m_dirtyRect = m_dirtyRect.united(m_strokes[strokeNum].boundingRect());
+    return true;
+  }
+}
+
 bool Page::changeStrokeColor(int strokeNum, QColor color)
 {
   if (strokeNum < 0 || strokeNum >= m_strokes.size() || m_strokes.isEmpty())

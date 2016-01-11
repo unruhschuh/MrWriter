@@ -245,6 +245,32 @@ void ChangeColorOfSelectionCommand::redo()
 }
 
 /******************************************************************************
+** ChangePenWidthOfSelection
+*/
+
+ChangePenWidthOfSelectionCommand::ChangePenWidthOfSelectionCommand(Widget *newWidget, qreal penWidth, QUndoCommand *parent) : QUndoCommand(parent)
+{
+  setText(MainWindow::tr("Change Pen Width"));
+
+  widget = newWidget;
+  selection = widget->currentSelection;
+  m_penWidth = penWidth;
+}
+
+void ChangePenWidthOfSelectionCommand::undo()
+{
+  widget->currentSelection = selection;
+}
+
+void ChangePenWidthOfSelectionCommand::redo()
+{
+  for (int i = 0; i < widget->currentSelection.strokes().size(); ++i)
+  {
+    widget->currentSelection.changePenWidth(i, m_penWidth);
+  }
+}
+
+/******************************************************************************
 ** AddPageCommand
 */
 

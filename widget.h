@@ -61,10 +61,8 @@ public:
     return currentTool;
   }
 
-  void setCurrentPenWidth(qreal penWidth)
-  {
-    currentPenWidth = penWidth;
-  }
+  void setCurrentPenWidth(qreal penWidth);
+
   qreal getCurrentPenWidth()
   {
     return currentPenWidth;
@@ -164,6 +162,7 @@ private:
   QPointF firstMousePos;
   QPointF previousMousePos;
   QPointF previousPagePos;
+  MrDoc::Selection::GrabZone m_grabZone = MrDoc::Selection::GrabZone::None;
 
   void startDrawing(QPointF mousePos, qreal pressure);
   void continueDrawing(QPointF mousePos, qreal pressure);
