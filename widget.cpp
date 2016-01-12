@@ -342,28 +342,25 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
   {
     if (eventType == QEvent::MouseButtonPress)
     {
-    using GrabZone = MrDoc::Selection::GrabZone;
-    GrabZone grabZone = currentSelection.grabZone(pagePos, zoom);
-    if (grabZone == GrabZone::None)
-    {
-      letGoSelection();
-      update();
-      return;
-    }
-      if (currentSelection.pageNum() == pageNum)
+      using GrabZone = MrDoc::Selection::GrabZone;
+      GrabZone grabZone = currentSelection.grabZone(pagePos, zoom);
+      if (grabZone == GrabZone::None)
       {
-        if (grabZone == GrabZone::Move)
-        {
-          // move selection
-          startMovingSelection(mousePos);
-          return;
-        }
-        else
-        {
-          // resize selection
-          startResizingSelection(mousePos, grabZone);
-          return;
-        }
+        letGoSelection();
+        update();
+  //      return;
+      }
+      else if (grabZone == GrabZone::Move)
+      {
+        // move selection
+        startMovingSelection(mousePos);
+        return;
+      }
+      else
+      {
+        // resize selection
+        startResizingSelection(mousePos, grabZone);
+        return;
       }
     }
     if (eventType == QEvent::MouseMove)
@@ -722,6 +719,7 @@ void Widget::letGoSelection()
     ReleaseSelectionCommand *releaseCommand = new ReleaseSelectionCommand(this, pageNum);
     undoStack.push(releaseCommand);
     updateAllDirtyBuffers();
+    setCurrentState(state::IDLE);
   }
 }
 
