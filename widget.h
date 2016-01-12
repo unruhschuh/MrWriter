@@ -46,7 +46,8 @@ public:
     SELECTING,
     SELECTED,
     MOVING_SELECTION,
-    RESIZING_SELECTION
+    RESIZING_SELECTION,
+    ROTATING_SELECTION
   };
 
   static constexpr qreal veryFinePenWidth = 0.42;
@@ -109,6 +110,8 @@ public:
 
   QColor currentColor;
   qreal currentPenWidth;
+
+  qreal m_currentAngle;
 
   void setCurrentPattern(QVector<qreal> newPattern);
   QVector<qreal> getCurrentPattern();
@@ -182,6 +185,10 @@ private:
 
   void startMovingSelection(QPointF mousePos);
   void continueMovingSelection(QPointF mousePos);
+
+  void startRotatingSelection(QPointF mousePos);
+  void continueRotatingSelection(QPointF mousePos);
+  void stopRotatingSelection(QPointF mousePos);
 
   void startResizingSelection(QPointF mousePos, MrDoc::Selection::GrabZone grabZone);
   void continueResizingSelection(QPointF mousePos);

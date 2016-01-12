@@ -246,7 +246,7 @@ void Widget::paintEvent(QPaintEvent *event)
 
     painter.drawPixmap(rectTarget, pageBuffer.at(i), rectSource);
 
-    if ((currentState == state::SELECTING || currentState == state::SELECTED || currentState == state::MOVING_SELECTION || currentState == state::RESIZING_SELECTION) && i == currentSelection.pageNum())
+    if ((currentState == state::SELECTING || currentState == state::SELECTED || currentState == state::MOVING_SELECTION || currentState == state::RESIZING_SELECTION || currentState == state::ROTATING_SELECTION) && i == currentSelection.pageNum())
     {
       currentSelection.paint(painter, zoom);
     }
@@ -356,6 +356,11 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
         startMovingSelection(mousePos);
         return;
       }
+      else if (grabZone == GrabZone::Rotate)
+      {
+        startRotatingSelection(mousePos);
+        return;
+      }
       else
       {
         // resize selection
@@ -390,6 +395,20 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
     if (eventType == QEvent::MouseButtonRelease)
     {
       setCurrentState(state::SELECTED);
+      setPreviousTool();
+    }
+  }
+
+  if (currentState == state::ROTATING_SELECTION)
+  {
+    if (eventType == QEvent::MouseMove)
+    {
+      continueRotatingSelection(mousePos);
+      return;
+    }
+    if (eventType == QEvent::MouseButtonRelease)
+    {
+      stopRotatingSelection(mousePos);
       setPreviousTool();
     }
   }
@@ -1130,6 +1149,47 @@ void Widget::continueMovingSelection(QPointF mousePos)
   //    update(currentSelection.selectionPolygon.boundingRect().toRect());
 }
 
+void Widget::startRotatingSelection(QPointF mousePos)
+{
+  currentDocument.setDocumentChanged(true);
+  emit modified();
+
+  m_currentAngle = 0.0;
+
+  int pageNum = currentSelection.pageNum();
+  previousPagePos = getPagePosFromMousePos(mousePos, pageNum);
+  setCurrentState(state::ROTATING_SELECTION);
+}
+
+void Widget::continueRotatingSelection(QPointF mousePos)
+{
+  int pageNum = currentSelection.pageNum();
+  QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
+
+  m_currentAngle = QLineF(currentSelection.boundingRect().center(), pagePos).angleTo(QLineF(currentSelection.boundingRect().center(), previousPagePos));
+  currentSelection.setAngle(m_currentAngle);
+}
+
+void Widget::stopRotatingSelection(QPointF mousePos)
+{
+  continueRotatingSelection(mousePos);
+  int pageNum = currentSelection.pageNum();
+
+  QTransform transform;
+  transform.translate(currentSelection.boundingRect().center().x(), currentSelection.boundingRect().center().y());
+  transform.rotate(m_currentAngle);
+  transform.translate(- currentSelection.boundingRect().center().x(), - currentSelection.boundingRect().center().y());
+
+  TransformSelectionCommand *transSelectCommand = new TransformSelectionCommand(this, pageNum, transform);
+  undoStack.push(transSelectCommand);
+
+  currentSelection.finalize();
+  currentSelection.updateBuffer(zoom);
+  setCurrentState(state::SELECTED);
+
+  currentSelection.setAngle(0.0);
+}
+
 void Widget::startResizingSelection(QPointF mousePos, MrDoc::Selection::GrabZone grabZone)
 {
   currentDocument.setDocumentChanged(true);
@@ -1155,6 +1215,8 @@ void Widget::continueResizingSelection(QPointF mousePos)
 
   qreal sx = 0.0;
   qreal sy = 0.0;
+
+  qreal angle = 0.0;
 
   qreal moveBackX = 0.0;
   qreal moveBackY = 0.0;
@@ -1235,6 +1297,8 @@ void Widget::continueResizingSelection(QPointF mousePos)
   transform.scale(sx, sy);
   transform.translate(moveBackX, moveBackY);
 
+//  m_currentTransform = transform * m_currentTransform;
+
   TransformSelectionCommand *transSelectCommand = new TransformSelectionCommand(this, pageNum, transform);
   undoStack.push(transSelectCommand);
 
@@ -1244,9 +1308,11 @@ void Widget::continueResizingSelection(QPointF mousePos)
 void Widget::stopResizingSelection(QPointF mousePos)
 {
   continueResizingSelection(mousePos);
+
   currentSelection.finalize();
   currentSelection.updateBuffer(zoom);
   setCurrentState(state::SELECTED);
+
 }
 
 int Widget::getPageFromMousePos(QPointF mousePos)
