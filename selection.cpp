@@ -201,6 +201,7 @@ void Selection::paint(QPainter &painter, qreal zoom, QRectF region __attribute__
 
     // draw GrabZones for resizing
     pen.setColor(QColor(127,127,127,255));
+//    pen.setColor(QColor(255,255,255,255));
     pen.setWidthF(0.5);
     painter.setPen(pen);
     QRect brect = scaleTrans.map(m_selectionPolygon).boundingRect().toRect();
@@ -211,13 +212,14 @@ void Selection::paint(QPainter &painter, qreal zoom, QRectF region __attribute__
     painter.drawLine(brect.bottomLeft() - QPointF(ad, 0), brect.bottomRight() + QPointF(ad, 0));
 
     pen.setWidth(2);
-    pen.setColor(QColor(0,0,0,127));
+//    pen.setColor(QColor(0,0,0,127));
     painter.setPen(pen);
     QRectF outerRect = scaleTrans.map(m_selectionPolygon).boundingRect().adjusted(-m_ad, -m_ad, m_ad, m_ad);
     // draw bounding rect
     painter.drawRect(outerRect);
 
     // draw GrabZone for rotating
+    pen.setColor(QColor(0,0,0,127));
     pen.setStyle(Qt::SolidLine);
     painter.setPen(pen);
     painter.setBrush(QBrush(QColor(127, 127, 127, 255), Qt::SolidPattern));

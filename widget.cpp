@@ -1180,6 +1180,8 @@ void Widget::stopRotatingSelection(QPointF mousePos)
   transform.rotate(m_currentAngle);
   transform.translate(- currentSelection.boundingRect().center().x(), - currentSelection.boundingRect().center().y());
 
+  currentSelection.setAngle(0.0);
+
   TransformSelectionCommand *transSelectCommand = new TransformSelectionCommand(this, pageNum, transform);
   undoStack.push(transSelectCommand);
 
@@ -1187,7 +1189,6 @@ void Widget::stopRotatingSelection(QPointF mousePos)
   currentSelection.updateBuffer(zoom);
   setCurrentState(state::SELECTED);
 
-  currentSelection.setAngle(0.0);
 }
 
 void Widget::startResizingSelection(QPointF mousePos, MrDoc::Selection::GrabZone grabZone)
