@@ -22,7 +22,7 @@ public:
 
   bool containsPoint(QPointF pagePos);
 
-  GrabZone grabZone(QPointF pagePos);
+  GrabZone grabZone(QPointF pagePos, qreal zoom);
 
   void appendToSelectionPolygon(QPointF pagePos);
 
