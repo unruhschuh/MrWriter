@@ -11,15 +11,19 @@
 namespace MrDoc
 {
 
+/**
+ * @brief The Stroke struct
+ * @todo turn this into a class. make sure, points and pressures are of the same length using a setter
+ */
 struct Stroke
 {
 public:
+  Stroke();
   //    enum class dashPattern { SolidLine, DashLine, DashDotLine, DotLine };
   void paint(QPainter &painter, qreal zoom, bool last = false);
 
   QRectF boundingRect() const;
 
-  Stroke();
   QPolygonF points;
   QVector<qreal> pressures;
   QVector<qreal> pattern;

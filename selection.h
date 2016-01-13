@@ -10,7 +10,7 @@ namespace MrDoc
 class Selection : public Page
 {
 public:
-  enum class GrabZone { None, Move, Top, Bottom, Left, Right, TopLeft, TopRight, BottomLeft, BottomRight };
+  enum class GrabZone { None, Move, Top, Bottom, Left, Right, TopLeft, TopRight, BottomLeft, BottomRight, Rotate };
 
   Selection();
 
@@ -23,6 +23,8 @@ public:
   bool containsPoint(QPointF pagePos);
 
   GrabZone grabZone(QPointF pagePos, qreal zoom);
+
+  void setAngle(qreal angle);
 
   void appendToSelectionPolygon(QPointF pagePos);
 
@@ -40,6 +42,8 @@ private:
   QImage m_buffer;
 
   qreal m_ad = 10;
+
+  qreal m_angle = 0.0;
 
   QPolygonF m_selectionPolygon;
 

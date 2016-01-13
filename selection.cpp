@@ -87,6 +87,12 @@ Selection::GrabZone Selection::grabZone(QPointF pagePos, qreal zoom)
   bottomRightRect.setWidth(scaled_ad);
   bottomRightRect.setHeight(scaled_ad);
 
+  QRectF rotateRect = bRect;
+  rotateRect.setTop(rotateRect.top() - 1.0 * scaled_ad - 35.0/zoom);
+  rotateRect.setLeft(rotateRect.center().x() - 5.0/zoom);
+  rotateRect.setWidth(10.0/zoom);
+  rotateRect.setHeight(10.0/zoom);
+
   if (moveRect.contains(pagePos))
   {
     grabZone = GrabZone::Move;
@@ -123,7 +129,18 @@ Selection::GrabZone Selection::grabZone(QPointF pagePos, qreal zoom)
   {
     grabZone = GrabZone::BottomRight;
   }
+  else if (rotateRect.contains(pagePos))
+  {
+    grabZone = GrabZone::Rotate;
+  }
+  qInfo() << bRect;
+  qInfo() << rotateRect;
   return grabZone;
+}
+
+void Selection::setAngle(qreal angle)
+{
+  m_angle = angle;
 }
 
 void Selection::appendToSelectionPolygon(QPointF pagePos)
@@ -155,11 +172,19 @@ void Selection::paint(QPainter &painter, qreal zoom, QRectF region __attribute__
   QTransform scaleTrans;
   scaleTrans = scaleTrans.scale(zoom, zoom);
 
+  QTransform paintTrans;
+  paintTrans.translate(m_selectionPolygon.boundingRect().center().x() * zoom, m_selectionPolygon.boundingRect().center().y() * zoom);
+  paintTrans.rotate(m_angle);
+  paintTrans.translate(- m_selectionPolygon.boundingRect().center().x() * zoom, - m_selectionPolygon.boundingRect().center().y() * zoom);
+
+  painter.setTransform(paintTrans, true);
+
   painter.setRenderHint(QPainter::Antialiasing, true);
   painter.drawImage(scaleTrans.map(m_selectionPolygon).boundingRect(), m_buffer, QRectF(m_buffer.rect()));
 
   QPen pen;
-  pen.setStyle(Qt::DashLine);
+//  pen.setStyle(Qt::DashLine);
+  pen.setStyle(Qt::SolidLine);
   pen.setWidth(2);
   pen.setCapStyle(Qt::RoundCap);
 //  pen.setColor(QColor(0, 180, 0, 255));
@@ -173,8 +198,11 @@ void Selection::paint(QPainter &painter, qreal zoom, QRectF region __attribute__
   }
   else
   {
-    painter.drawRect(scaleTrans.map(m_selectionPolygon).boundingRect().adjusted(-m_ad, -m_ad, m_ad, m_ad));
 
+    // draw GrabZones for resizing
+    pen.setColor(QColor(127,127,127,255));
+//    pen.setColor(QColor(255,255,255,255));
+    pen.setWidthF(0.5);
     painter.setPen(pen);
     QRect brect = scaleTrans.map(m_selectionPolygon).boundingRect().toRect();
     qreal ad = m_ad;
@@ -182,8 +210,27 @@ void Selection::paint(QPainter &painter, qreal zoom, QRectF region __attribute__
     painter.drawLine(brect.topRight() - QPointF(0, ad), brect.bottomRight() + QPointF(0, ad));
     painter.drawLine(brect.topLeft() - QPointF(ad, 0), brect.topRight() + QPointF(ad, 0));
     painter.drawLine(brect.bottomLeft() - QPointF(ad, 0), brect.bottomRight() + QPointF(ad, 0));
-    painter.setRenderHint(QPainter::Antialiasing, false);
+
+    pen.setWidth(2);
+//    pen.setColor(QColor(0,0,0,127));
+    painter.setPen(pen);
+    QRectF outerRect = scaleTrans.map(m_selectionPolygon).boundingRect().adjusted(-m_ad, -m_ad, m_ad, m_ad);
+    // draw bounding rect
+    painter.drawRect(outerRect);
+
+    // draw GrabZone for rotating
+    pen.setColor(QColor(0,0,0,127));
+    pen.setStyle(Qt::SolidLine);
+    painter.setPen(pen);
+    painter.setBrush(QBrush(QColor(127, 127, 127, 255), Qt::SolidPattern));
+    QPointF rotateLineFrom =  (outerRect.topRight() + outerRect.topLeft()) / 2.0;
+    QPointF rotateLineTo =  (outerRect.topRight() + outerRect.topLeft()) / 2.0 - QPointF(0, 30);
+    painter.drawLine(rotateLineFrom, rotateLineTo);
+    painter.drawEllipse(rotateLineTo, 5, 5);
   }
+  painter.setRenderHint(QPainter::Antialiasing, false);
+
+  painter.setTransform(paintTrans.inverted(), true);
 }
 
 void Selection::transform(QTransform transform, int pageNum)
@@ -192,10 +239,15 @@ void Selection::transform(QTransform transform, int pageNum)
   for (int i = 0; i < m_strokes.size(); ++i)
   {
     m_strokes[i].points = transform.map(m_strokes[i].points);
-    qreal s = (transform.m11() + transform.m22()) / 2.0;
-    m_strokes[i].penWidth = m_strokes[i].penWidth * s;
-    qInfo() << s;
+    if (!transform.isRotating())
+    {
+      qreal s = (transform.m11() + transform.m22()) / 2.0;
+      m_strokes[i].penWidth = m_strokes[i].penWidth * s;
+    }
   }
+
+  m_angle = 0.0;
+
   setPageNum(pageNum);
 }
 
@@ -212,6 +264,8 @@ void Selection::finalize()
 
   setWidth(boundingRect.width());
   setHeight(boundingRect.height());
+
+  m_angle = 0.0;
 
   m_finalized = true;
 }
