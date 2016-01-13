@@ -1011,14 +1011,18 @@ void MainWindow::about()
   msgBox.setWindowTitle("About");
   msgBox.setTextFormat(Qt::RichText); // this is what makes the links clickable
   QString aboutText;
-  aboutText = aboutText.append("<center>");
-  aboutText = aboutText.append(PRODUCT_NAME);
-  aboutText = aboutText.append(" ");
-  aboutText = aboutText.append(version);
-  aboutText = aboutText.append(" Build ");
-  aboutText = aboutText.append(BUILD);
-  aboutText = aboutText.append("<br/><br/>Written by Thomas Leitz<br/><br/><a href='http://github.com/unruhschuh/MrWriter'>github.com/unruhschuh/MrWriter</a>");
-  aboutText = aboutText.append("<br/><br/>Licensed under the GNU GENERAL PUBLIC LICENSE Version 3.0<br/><br/><a "
+  aboutText.append("<center>");
+  aboutText.append(PRODUCT_NAME);
+  aboutText.append(" ");
+  aboutText.append(version);
+  aboutText.append(" Build ");
+  aboutText.append(BUILD);
+  aboutText.append("<br/><br/>Written by Thomas Leitz<br/><br/><a href='");
+  aboutText.append(PRODUCT_URL);
+  aboutText.append("'>");
+  aboutText.append(PRODUCT_URL);
+  aboutText.append("</a>");
+  aboutText.append("<br/><br/>Licensed under the GNU GENERAL PUBLIC LICENSE Version 3.0<br/><br/><a "
                                "href='http://www.gnu.org/licenses/'>www.gnu.org/licenses</a></center>");
   msgBox.setText(aboutText);
   msgBox.setStandardButtons(QMessageBox::Ok);
