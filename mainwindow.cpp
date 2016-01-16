@@ -137,6 +137,12 @@ void MainWindow::createActions()
   connect(saveFileAct, SIGNAL(triggered()), this, SLOT(saveFile()));
   this->addAction(saveFileAct);
 
+  saveFileAsAct = new QAction(tr("&Save file as"), this);
+  saveFileAsAct->setShortcuts(QKeySequence::SaveAs);
+  saveFileAsAct->setStatusTip(tr("Save File as"));
+  connect(saveFileAsAct, SIGNAL(triggered()), this, SLOT(saveFileAs()));
+  this->addAction(saveFileAsAct);
+
   exportPDFAct = new QAction(QIcon(":/images/savePDFIcon.png"), tr("Export PDF"), this);
   exportPDFAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_E));
   //    zoomFitWidthAct->setShortcut(QKeySequence(Qt::Key_Z));
@@ -499,6 +505,7 @@ void MainWindow::createMenus()
   fileMenu->addAction(newFileAct);
   fileMenu->addAction(openFileAct);
   fileMenu->addAction(saveFileAct);
+  fileMenu->addAction(saveFileAsAct);
   fileMenu->addAction(exportPDFAct);
   fileMenu->addAction(importXOJAct);
   fileMenu->addAction(exportXOJAct);
@@ -512,6 +519,8 @@ void MainWindow::createMenus()
   editMenu->addAction(cutAct);
   editMenu->addAction(copyAct);
   editMenu->addAction(pasteAct);
+  editMenu->addSeparator();
+  editMenu->addAction(selectAllAct);
   editMenu->addSeparator();
   editMenu->addAction(rotateAct);
 
@@ -725,20 +734,48 @@ void MainWindow::openFile()
   }
 }
 
+QString MainWindow::askForFileName()
+{
+  QDateTime dateTime = QDateTime::currentDateTime();
+  QString dir = QDir::homePath();
+  dir.append("/");
+  dir.append(dateTime.toString("yyyy-MM-dd"));
+  dir.append("-Note-");
+  dir.append(dateTime.toString("HH-mm"));
+  dir.append(".moj");
+  QString fileName = QFileDialog::getSaveFileName(this, tr("Save MOJ"), dir, tr("MrWriter Files (*.moj)"));
+
+  return fileName;
+}
+
+bool MainWindow::saveFileAs()
+{
+  QString fileName = askForFileName();
+
+  if (fileName.isNull())
+  {
+    return false;
+  }
+
+  if (mainWidget->currentDocument.saveMOJ(fileName))
+  {
+    modified();
+    setTitle();
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
+
 bool MainWindow::saveFile()
 {
   QString dir;
   QString fileName;
   if (mainWidget->currentDocument.docName().isEmpty())
   {
-    QDateTime dateTime = QDateTime::currentDateTime();
-    dir = QDir::homePath();
-    dir.append("/");
-    dir.append(dateTime.toString("yyyy-MM-dd"));
-    dir.append("-Note-");
-    dir.append(dateTime.toString("HH-mm"));
-    dir.append(".moj");
-    fileName = QFileDialog::getSaveFileName(this, tr("Save MOJ"), dir, tr("MrWriter Files (*.moj)"));
+    fileName = askForFileName();
   }
   else
   {
@@ -1247,6 +1284,7 @@ void MainWindow::cloneWindow()
 {
   MainWindow *window = new MainWindow();
   window->mainWidget->currentDocument = mainWidget->currentDocument;
+  window->mainWidget->currentDocument.setDocName("");
   window->mainWidget->pageBuffer = mainWidget->pageBuffer;
   window->mainWidget->currentSelection = mainWidget->currentSelection;
   window->mainWidget->setCurrentState(mainWidget->getCurrentState());
@@ -1261,6 +1299,7 @@ void MainWindow::cloneWindow()
   window->scrollArea->horizontalScrollBar()->setValue(scrollArea->horizontalScrollBar()->value());
 
   window->mainWidget->update();
+  window->mainWidget->updateGUI();
 
   static_cast<TabletApplication *>(qApp)->mainWindows.append(window);
 }

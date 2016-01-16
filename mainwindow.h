@@ -33,6 +33,8 @@ private slots:
   void cloneWindow();
   void newFile();
   void openFile();
+
+  bool saveFileAs();
   bool saveFile();
   void exportPDF();
 
@@ -98,6 +100,8 @@ private:
   void createToolBars();
   void createMenus();
 
+  QString askForFileName();
+
   QLabel pageStatus;
   QLabel penWidthStatus;
   QLabel colorStatus;
@@ -109,6 +113,7 @@ private:
   QAction *newFileAct;
   QAction *openFileAct;
   QAction *saveFileAct;
+  QAction *saveFileAsAct;
   QAction *exportPDFAct;
   QAction *exitAct;
 

@@ -1638,6 +1638,12 @@ void Widget::setDocument(const MrDoc::Document &newDocument)
 
 void Widget::selectAll()
 {
+
+  if (currentState == state::SELECTED)
+  {
+    letGoSelection();
+  }
+
   int pageNum = getCurrentPage();
   QRectF selectRect;
   for (auto &stroke : currentDocument.pages[pageNum].strokes())
@@ -1646,15 +1652,22 @@ void Widget::selectAll()
   }
   QPolygonF selectionPolygon = QPolygonF(selectRect);
 
-  currentSelection.setSelectionPolygon(selectionPolygon);
+  MrDoc::Selection selection;
+  selection.setPageNum(pageNum);
+  selection.setSelectionPolygon(selectionPolygon);
 
-  if (!currentDocument.pages[pageNum].getStrokes(currentSelection.selectionPolygon()).isEmpty())
+  if (!currentDocument.pages[pageNum].getStrokes(selection.selectionPolygon()).isEmpty())
   {
-    CreateSelectionCommand *createSelectionCommand = new CreateSelectionCommand(this, pageNum, currentSelection);
+    currentSelection = selection;
+    CreateSelectionCommand *createSelectionCommand = new CreateSelectionCommand(this, pageNum, selection);
     undoStack.push(createSelectionCommand);
 
     emit updateGUI();
     update();
+  }
+  else
+  {
+    setCurrentState(state::IDLE);
   }
 }
 
