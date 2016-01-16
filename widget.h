@@ -203,6 +203,8 @@ private slots:
 
   void undo();
   void redo();
+
+  void selectAll();
   void copy();
   void paste();
   void cut();

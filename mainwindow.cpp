@@ -178,6 +178,12 @@ void MainWindow::createActions()
   //    disconnect(redoAct, SIGNAL(triggered()), mainWidget->undoStack, SLOT(redo()));
   this->addAction(redoAct); // add to make shortcut work if menubar is hidden
 
+  selectAllAct = new QAction(tr("Select &All"), this);
+  selectAllAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_A));
+  selectAllAct->setToolTip(tr("Select All"));
+  connect(selectAllAct, SIGNAL(triggered()), mainWidget, SLOT(selectAll()));
+  this->addAction(selectAllAct);
+
   copyAct = new QAction(QIcon(":/images/copyIcon.png"), tr("&Copy"), this);
   copyAct->setShortcuts(QKeySequence::Copy);
   copyAct->setStatusTip(tr("Copy"));
@@ -233,11 +239,13 @@ void MainWindow::createActions()
   pageUpAct->setStatusTip(tr("Page Up"));
   pageUpAct->setShortcut(QKeySequence(Qt::Key_Up));
   connect(pageUpAct, SIGNAL(triggered()), mainWidget, SLOT(pageUp()));
+  this->addAction(pageUpAct);
 
   pageDownAct = new QAction(QIcon(":/images/pageDownIcon.png"), tr("Page &Down"), this);
   pageDownAct->setStatusTip(tr("Page Down"));
   pageDownAct->setShortcut(QKeySequence(Qt::Key_Down));
   connect(pageDownAct, SIGNAL(triggered()), mainWidget, SLOT(pageDown()));
+  this->addAction(pageDownAct);
 
   pageAddBeforeAct = new QAction(tr("New Page &Before"), this);
   pageAddBeforeAct->setStatusTip(tr("New Page before current Page"));

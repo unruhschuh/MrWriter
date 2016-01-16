@@ -1636,6 +1636,28 @@ void Widget::setDocument(const MrDoc::Document &newDocument)
   pageFirst();
 }
 
+void Widget::selectAll()
+{
+  int pageNum = getCurrentPage();
+  QRectF selectRect;
+  for (auto &stroke : currentDocument.pages[pageNum].strokes())
+  {
+    selectRect = selectRect.united(stroke.boundingRect());
+  }
+  QPolygonF selectionPolygon = QPolygonF(selectRect);
+
+  currentSelection.setSelectionPolygon(selectionPolygon);
+
+  if (!currentDocument.pages[pageNum].getStrokes(currentSelection.selectionPolygon()).isEmpty())
+  {
+    CreateSelectionCommand *createSelectionCommand = new CreateSelectionCommand(this, pageNum, currentSelection);
+    undoStack.push(createSelectionCommand);
+
+    emit updateGUI();
+    update();
+  }
+}
+
 void Widget::copy()
 {
   clipboard = currentSelection;

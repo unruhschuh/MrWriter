@@ -15,7 +15,7 @@ You can find the newest version at http://github.com/unruhschuh/MrWriter[MrWrite
 === Tools
 
 [[ToolsTable]]
-.Tools/Users/tom/QtProjects/MrWriter/documentation
+.Tools
 [cols="^.^1,<.^1,.^100", options="header"]
 |===
 | Icon
@@ -104,5 +104,5 @@ MrWriter makes excessive use of keyboard shortcuts. The table <<ShortcutsTable>>
 | kbd:[S]
 
 | Pen Width
-| kbd:kbd:[Ctrl]/kbd:[Cmd+1] through kbd:[5]
+| kbd:[Ctrl]/kbd:[Cmd+1] through kbd:[5]
 |====================
