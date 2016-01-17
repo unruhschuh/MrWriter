@@ -19,6 +19,7 @@ Older versions and the source code can be downloaded [here](https://github.com/u
 ### Screenshots
 #### Linux
 ![Linux](https://cloud.githubusercontent.com/assets/13489581/12101731/9be44ec4-b336-11e5-9e89-452f41a62308.png)
+![Linux](images/MrWriterLin.png)
 
 #### Windows
 ![Windows](https://cloud.githubusercontent.com/assets/13489581/12101734/9beadb18-b336-11e5-9d0a-4fbea52786ae.png)
