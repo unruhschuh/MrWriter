@@ -18,14 +18,13 @@ Older versions and the source code can be downloaded [here](https://github.com/u
 
 ### Screenshots
 #### Linux
-![Linux](https://cloud.githubusercontent.com/assets/13489581/12101731/9be44ec4-b336-11e5-9e89-452f41a62308.png)
 ![Linux](images/MrWriterLin.png)
 
 #### Windows
-![Windows](https://cloud.githubusercontent.com/assets/13489581/12101734/9beadb18-b336-11e5-9d0a-4fbea52786ae.png)
+![Linux](images/MrWriterWin.png)
 
 #### Mac OS X
-![Mac OS X](https://cloud.githubusercontent.com/assets/13489581/12101733/9be8b004-b336-11e5-97bc-9ffb5ca139df.png)
+![Linux](images/MrWriterMac.png)
 
 ### Author
 MrWriter is written by Thomas Leitz ([@unruhschuh](http://github.com/unruhschuh)) and licensed under the GNU General Public License 3.0. MrWriter is written in C++/Qt and runs on Linux, Windows and Mac OS X.
