@@ -6,6 +6,7 @@ layout: index
 MrWriter is an application aiming to replace both pen and paper for handwritten note taking, as well as blackboards for giving lectures in front of students. It is highly inspired by Xournal / Xournal++ but the focus is more on taking notes and platform independence, rather than PDF annotation. Xournal files (.xoj) can be imported, but only strokes get recognized.
 
 ### Download
+
 | Platform | Download |
 | --- | --- |
 | Linux | [MrWriter-0.0.2_Linux.tar.gz](https://github.com/unruhschuh/MrWriter/releases/download/v0.0.2/MrWriter-0.0.2_Linux.tar.gz) |
