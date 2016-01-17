@@ -14,7 +14,6 @@ QT       += svg
 #QT       += webenginewidgets
 
 system(touch version.h)
-system(sh make_doc.sh)
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
