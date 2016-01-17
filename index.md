@@ -11,7 +11,7 @@ MrWriter is an application aiming to replace both pen and paper for handwritten 
 | --- | --- |
 | Linux | [MrWriter-0.0.2_Linux.tar.gz](https://github.com/unruhschuh/MrWriter/releases/download/v0.0.2/MrWriter-0.0.2_Linux.tar.gz) |
 | Linux (AppImage) | [MrWriter-0.0.2.AppImage](https://github.com/unruhschuh/MrWriter/releases/download/v0.0.2/MrWriter-0.0.2.AppImage) |
-| Mac OS X | [MrWriter-0.0.2.dmg](https://github.com/unruhschuh/MrWriter/releases/download/v0.0.2/MrWriter-0.0.2_Mac.dmg) |
+| Mac OS X | [MrWriter-0.0.2_Mac.dmg](https://github.com/unruhschuh/MrWriter/releases/download/v0.0.2/MrWriter-0.0.2_Mac.dmg) |
 | Windows | [MrWriter-0.0.2_Win.zip](https://github.com/unruhschuh/MrWriter/releases/download/v0.0.2/MrWriter-0.0.2_Win.zip) |
 
 Older versions and the source code can be downloaded [here](https://github.com/unruhschuh/MrWriter/releases).
