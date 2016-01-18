@@ -1728,6 +1728,7 @@ void Widget::undo()
   if (undoStack.canUndo() && (currentState == state::IDLE || currentState == state::SELECTED))
   {
     undoStack.undo();
+    currentSelection.updateBuffer(zoom);
     updateAllDirtyBuffers();
   }
 }
@@ -1737,6 +1738,7 @@ void Widget::redo()
   if (undoStack.canRedo() && (currentState == state::IDLE || currentState == state::SELECTED))
   {
     undoStack.redo();
+    currentSelection.updateBuffer(zoom);
     updateAllDirtyBuffers();
   }
 }
@@ -1826,6 +1828,13 @@ void Widget::setCurrentPattern(QVector<qreal> newPattern)
 {
   currentPattern = newPattern;
   emit updateGUI();
+  if (currentState == state::SELECTED)
+  {
+    ChangePatternOfSelectionCommand *changePatternCommand = new ChangePatternOfSelectionCommand(this, newPattern);
+    undoStack.push(changePatternCommand);
+    currentSelection.updateBuffer(zoom);
+    update();
+  }
 }
 
 QVector<qreal> Widget::getCurrentPattern()

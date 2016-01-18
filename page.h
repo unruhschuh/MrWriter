@@ -25,6 +25,7 @@ public:
 
   bool changePenWidth(int strokeNum, qreal penWidth);
   bool changeStrokeColor(int strokeNum, QColor color);
+  bool changeStrokePattern(int strokeNum, QVector<qreal> pattern);
 
   const QVector<Stroke> &strokes();
 

@@ -51,7 +51,7 @@ private:
 
   int m_pageNum;
 
-  qreal constexpr static m_rotateRectRadius = 10.0;
+  qreal constexpr static m_rotateRectRadius = 8.0;
   qreal constexpr static m_rotateRectCenter = 30;
 };
 }

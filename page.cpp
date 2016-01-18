@@ -100,6 +100,20 @@ bool Page::changeStrokeColor(int strokeNum, QColor color)
   }
 }
 
+bool Page::changeStrokePattern(int strokeNum, QVector<qreal> pattern)
+{
+  if (strokeNum < 0 || strokeNum >= m_strokes.size() || m_strokes.isEmpty())
+  {
+    return false;
+  }
+  else
+  {
+    m_strokes[strokeNum].pattern = pattern;
+    m_dirtyRect = m_dirtyRect.united(m_strokes[strokeNum].boundingRect());
+    return true;
+  }
+}
+
 const QVector<Stroke> &Page::strokes()
 {
   return m_strokes;
