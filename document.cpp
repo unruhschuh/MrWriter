@@ -237,11 +237,14 @@ bool Document::saveXOJ(QString fileName)
     return false;
   }
 
-  QXmlStreamWriter writer;
+  QByteArray uncompressedData;
+
+  QXmlStreamWriter writer(&uncompressedData);
+//  QXmlStreamWriter writer;
 
   writer.setAutoFormatting(true);
 
-  writer.setDevice(&file);
+//  writer.setDevice(&file);
 
   writer.writeStartDocument("1.0", false);
   writer.writeStartElement("xournal");
@@ -295,7 +298,13 @@ bool Document::saveXOJ(QString fileName)
 
   writer.writeEndDocument();
 
-  QFileInfo fileInfo(file);
+  QByteArray compressedData;
+
+  QCompressor::gzipCompress(uncompressedData, compressedData);
+
+  file.write(compressedData);
+
+//  QFileInfo fileInfo(file);
 
   file.close();
 
@@ -471,11 +480,13 @@ bool Document::saveMOJ(QString fileName)
     return false;
   }
 
-  QXmlStreamWriter writer;
+  QByteArray uncompressedData;
+
+  QXmlStreamWriter writer(&uncompressedData);
 
   writer.setAutoFormatting(true);
 
-  writer.setDevice(&file);
+//  writer.setDevice(&file);
 
   writer.writeStartDocument("1.0", false);
   writer.writeStartElement("MrWriter");
@@ -553,6 +564,10 @@ bool Document::saveMOJ(QString fileName)
   }
 
   writer.writeEndDocument();
+
+  QByteArray compressedData;
+  QCompressor::gzipCompress(uncompressedData, compressedData);
+  file.write(compressedData);
 
   QFileInfo fileInfo(file);
 
