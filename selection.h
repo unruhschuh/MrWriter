@@ -50,6 +50,9 @@ private:
   bool m_finalized = false;
 
   int m_pageNum;
+
+  qreal constexpr static m_rotateRectRadius = 10.0;
+  qreal constexpr static m_rotateRectCenter = 30;
 };
 }
 #endif // SELECTION_H

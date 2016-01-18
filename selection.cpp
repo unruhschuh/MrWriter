@@ -88,10 +88,10 @@ Selection::GrabZone Selection::grabZone(QPointF pagePos, qreal zoom)
   bottomRightRect.setHeight(scaled_ad);
 
   QRectF rotateRect = bRect;
-  rotateRect.setTop(rotateRect.top() - 1.0 * scaled_ad - 35.0/zoom);
-  rotateRect.setLeft(rotateRect.center().x() - 5.0/zoom);
-  rotateRect.setWidth(10.0/zoom);
-  rotateRect.setHeight(10.0/zoom);
+  rotateRect.setTop(rotateRect.top() - 1.0 * scaled_ad - (m_rotateRectCenter+m_rotateRectRadius)/zoom);
+  rotateRect.setLeft(rotateRect.center().x() - m_rotateRectRadius/zoom);
+  rotateRect.setWidth(2.0 * m_rotateRectRadius/zoom);
+  rotateRect.setHeight(2.0 * m_rotateRectRadius/zoom);
 
   if (moveRect.contains(pagePos))
   {
@@ -222,11 +222,11 @@ void Selection::paint(QPainter &painter, qreal zoom, QRectF region __attribute__
     pen.setColor(QColor(0,0,0,127));
     pen.setStyle(Qt::SolidLine);
     painter.setPen(pen);
-    painter.setBrush(QBrush(QColor(127, 127, 127, 255), Qt::SolidPattern));
+    painter.setBrush(QBrush(QColor(127, 127, 127, 127), Qt::SolidPattern));
     QPointF rotateLineFrom =  (outerRect.topRight() + outerRect.topLeft()) / 2.0;
-    QPointF rotateLineTo =  (outerRect.topRight() + outerRect.topLeft()) / 2.0 - QPointF(0, 30);
+    QPointF rotateLineTo =  (outerRect.topRight() + outerRect.topLeft()) / 2.0 - QPointF(0, m_rotateRectCenter-m_rotateRectRadius);
     painter.drawLine(rotateLineFrom, rotateLineTo);
-    painter.drawEllipse(rotateLineTo, 5, 5);
+    painter.drawEllipse(rotateLineTo - QPointF(0.0, m_rotateRectRadius), m_rotateRectRadius, m_rotateRectRadius);
   }
   painter.setRenderHint(QPainter::Antialiasing, false);
 

@@ -324,11 +324,13 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
     }
     if (eventType == QEvent::MouseMove)
     {
-      int dx = mousePos.x() - previousMousePos.x();
-      int dy = mousePos.y() - previousMousePos.y();
+      int dx = 1 * (mousePos.x() - previousMousePos.x());
+      int dy = 1 * (mousePos.y() - previousMousePos.y());
 
       scrollArea->horizontalScrollBar()->setValue(scrollArea->horizontalScrollBar()->value() - dx);
       scrollArea->verticalScrollBar()->setValue(scrollArea->verticalScrollBar()->value() - dy);
+
+      qInfo() << dy;
 
       mousePos -= QPointF(dx, dy);
 
@@ -548,8 +550,8 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
       }
       if (currentTool == tool::HAND)
       {
-        int dx = 2 * (mousePos.x() - previousMousePos.x());
-        int dy = 2 * (mousePos.y() - previousMousePos.y());
+        int dx = 1 * (mousePos.x() - previousMousePos.x());
+        int dy = 1 * (mousePos.y() - previousMousePos.y());
 
         scrollArea->horizontalScrollBar()->setValue(scrollArea->horizontalScrollBar()->value() - dx);
         scrollArea->verticalScrollBar()->setValue(scrollArea->verticalScrollBar()->value() - dy);
