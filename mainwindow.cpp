@@ -817,7 +817,7 @@ void MainWindow::exportPDF()
     fileName.append(mainWidget->currentDocument.docName());
     fileName.append(".pdf");
   }
-  fileName = QFileDialog::getSaveFileName(this, tr("Export PDF"), fileName, tr("Adobe PDF files (*.PDF)"));
+  fileName = QFileDialog::getSaveFileName(this, tr("Export PDF"), fileName, tr("Adobe PDF files (*.pdf)"));
 
   if (fileName.isNull())
   {
