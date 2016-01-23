@@ -124,7 +124,6 @@ private:
   qreal m_penWidth;
 };
 
-
 class AddPageCommand : public QUndoCommand
 {
 public:
