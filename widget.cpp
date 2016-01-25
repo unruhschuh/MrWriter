@@ -1220,8 +1220,6 @@ void Widget::continueResizingSelection(QPointF mousePos)
   qreal sx = 0.0;
   qreal sy = 0.0;
 
-  qreal angle = 0.0;
-
   qreal moveBackX = 0.0;
   qreal moveBackY = 0.0;
 

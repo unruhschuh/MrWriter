@@ -23,6 +23,7 @@ public:
   void paint(QPainter &painter, qreal zoom, bool last = false);
 
   QRectF boundingRect() const;
+  QRectF boundingRectSansPenWidth() const;
 
   QPolygonF points;
   QVector<qreal> pressures;

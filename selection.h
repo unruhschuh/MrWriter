@@ -56,6 +56,10 @@ private:
 
   qreal m_ad = 10;
 
+  qreal static constexpr m_padding = 10.0;
+  qreal m_y_padding = m_padding;
+  qreal m_x_padding = m_padding;
+
   qreal m_angle = 0.0;
 
   QPolygonF m_selectionPolygon;

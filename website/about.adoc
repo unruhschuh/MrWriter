@@ -1,0 +1,12 @@
+---
+layout: page
+title: About
+permalink: /about/
+weight: 4
+---
+
+MrWriter is written by Thomas Leitz (http://github.com/unruhschuh[@unruhschuh]) and licensed under the GNU General Public License 3.0. MrWriter is written in C++/Qt and runs on Linux, Windows and Mac OS X.
+
+
+
+

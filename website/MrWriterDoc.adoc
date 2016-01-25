@@ -1,0 +1,114 @@
+---
+layout: page
+title: Documentation
+permalink: /documentation/
+weight: 3
+---
+
+:toc:
+:toc-placement: preamble
+:sectnums!:
+:data-uri:
+:experimental:
+
+= MrWriter
+
+MrWriter is a programm aimed at replacing pen and paper for note taking as well as blackboards in schools and universities.
+You can find the newest version at http://github.com/unruhschuh/MrWriter[MrWriter]
+
+== Users Guide
+
+=== Tools
+
+[[ToolsTable]]
+.Tools
+[cols="^.^1,<.^1,.^100", options="header"]
+|===
+| Icon
+| Name
+| Function
+
+| image:../images/penIcon.png[width=32]
+| Pen
+| Draw freehand lines. If you use a Wacom style pen, lines change their width with respect to pressure.
+
+| image:../images/rulerIcon.png[width=32]
+| Ruler
+| Draw straight lines.
+
+| image:../images/circleIcon.png[width=32]
+| Circle
+| Draw circles starting at the center and defining the radius.
+
+| image:../images/eraserIcon.png[width=32]
+| Eraser
+| Erase strokes. Hold the kbd:[Shift] key to erase freely.
+
+| image:../images/selectIcon.png[width=32]
+| Select
+| Select strokes. If selected, strokes can be moved, copied, cut, and rotated.
+
+| image:../images/handIcon.png[width=32]
+| Hand
+| Move the document around.
+|===
+
+== Keyboard shortcuts
+
+MrWriter makes excessive use of keyboard shortcuts. The table <<ShortcutsTable>> shows a complete list of all shortcuts.
+
+[[ShortcutsTable]]
+.Shortcuts
+[cols="1,1",options="header"]
+|====================
+| Action
+| Shortcut
+
+| Choose Pen
+| kbd:[1]
+
+| Choose Ruler
+| kbd:[2]
+
+| Choose Circle
+| kbd:[3]
+
+| Choose Eraser
+| kbd:[4]
+
+| Choose Select
+| kbd:[5]
+
+| Choose Hand
+| kbd:[6]
+
+| Erase freely
+| hold kbd:[Shift] while using the Eraser Tool
+
+| Save File
+| kbd:[Ctrl] / kbd:[Cmd+s] on Windows and Linux
+
+| Black
+| kbd:[Q]
+
+| Red
+| kbd:[W]
+
+| Green
+| kbd:[E]
+
+| Blue
+| kbd:[R]
+
+| Toggle Toolbar
+| kbd:[T]
+
+| Toggle Fullscreen
+| kbd:[F]
+
+| Toggle Statusbar
+| kbd:[S]
+
+| Pen Width
+| kbd:[Ctrl]/kbd:[Cmd+1] through kbd:[5]
+|====================

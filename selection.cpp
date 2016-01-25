@@ -236,6 +236,11 @@ void Selection::paint(QPainter &painter, qreal zoom, QRectF region __attribute__
 void Selection::transform(QTransform transform, int pageNum)
 {
   m_selectionPolygon = transform.map(m_selectionPolygon);
+
+  qreal sx = transform.m11();
+  qreal sy = transform.m22();
+  qreal s = (sx + sy) / 2.0;
+
   for (int i = 0; i < m_strokes.size(); ++i)
   {
     m_strokes[i].points = transform.map(m_strokes[i].points);
@@ -245,9 +250,18 @@ void Selection::transform(QTransform transform, int pageNum)
     */
     if (transform.determinant() != 1)
     {
-      qreal s = (transform.m11() + transform.m22()) / 2.0;
       m_strokes[i].penWidth = m_strokes[i].penWidth * s;
     }
+  }
+  if (transform.determinant() != 1)
+  {
+    m_x_padding *= sx;
+    m_y_padding *= sy;
+  }
+  if (transform.isRotating())
+  {
+    m_x_padding = m_padding;
+    m_y_padding = m_padding;
   }
 
   m_angle = 0.0;
@@ -260,10 +274,11 @@ void Selection::finalize()
   QRectF boundingRect;
   for (int i = 0; i < m_strokes.size(); ++i)
   {
-    boundingRect = boundingRect.united(m_strokes[i].points.boundingRect());
+    boundingRect = boundingRect.united(m_strokes[i].boundingRectSansPenWidth());
   }
 
   //  boundingRect.adjust(-m_ad, -m_ad, m_ad, m_ad);
+  boundingRect.adjust(-m_x_padding, -m_y_padding, m_x_padding, m_y_padding);
   m_selectionPolygon = QPolygonF(boundingRect);
 
   setWidth(boundingRect.width());
