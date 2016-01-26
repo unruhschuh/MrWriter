@@ -109,9 +109,10 @@ void Widget::updateAllPageBuffers()
 void Widget::updateImageBuffer(int buffNum)
 {
   MrDoc::Page const &page = currentDocument.pages.at(buffNum);
-  int pixelWidth = zoom * page.width();
-  int pixelHeight = zoom * page.height();
+  int pixelWidth = zoom * page.width() * devicePixelRatio();
+  int pixelHeight = zoom * page.height() * devicePixelRatio();
   QImage image(pixelWidth, pixelHeight, QImage::Format_ARGB32_Premultiplied);
+  image.setDevicePixelRatio(devicePixelRatio());
 
   image.fill(page.backgroundColor());
 
@@ -131,9 +132,10 @@ void Widget::updateImageBuffer(int buffNum)
 void Widget::updateBuffer(int buffNum)
 {
   MrDoc::Page const &page = currentDocument.pages.at(buffNum);
-  int pixelWidth = zoom * page.width();
-  int pixelHeight = zoom * page.height();
+  int pixelWidth = zoom * page.width() * devicePixelRatio();
+  int pixelHeight = zoom * page.height() * devicePixelRatio();
   QPixmap pixmap(pixelWidth, pixelHeight);
+  pixmap.setDevicePixelRatio(devicePixelRatio());
 
   pixmap.fill(page.backgroundColor());
 
@@ -195,9 +197,9 @@ QRect Widget::getWidgetGeometry()
   int height = 0;
   for (int i = 0; i < pageBuffer.size(); ++i)
   {
-    height += pageBuffer[i].height() + PAGE_GAP;
-    if (pageBuffer[i].width() > width)
-      width = pageBuffer[i].width();
+    height += pageBuffer[i].height()/devicePixelRatio() + PAGE_GAP;
+    if (pageBuffer[i].width()/devicePixelRatio() > width)
+      width = pageBuffer[i].width()/devicePixelRatio();
   }
   height -= PAGE_GAP;
   return QRect(0, 0, width, height);
@@ -218,8 +220,9 @@ void Widget::paintEvent(QPaintEvent *event)
     QTransform trans;
     for (int i = 0; i < drawingOnPage; ++i)
     {
-      trans = trans.translate(0, -(pageBuffer.at(i).height() + PAGE_GAP));
+      trans = trans.translate(0, -(pageBuffer.at(i).height() + PAGE_GAP*devicePixelRatio()));
     }
+    trans = trans.scale(devicePixelRatio(),devicePixelRatio());
     rectSource = trans.mapRect(event->rect());
 
     //        QPixmap tmp = QPixmap::fromImage(pageBuffer.at(drawingOnPage));
@@ -241,8 +244,8 @@ void Widget::paintEvent(QPaintEvent *event)
     QRectF rectTarget;
     //        rectTarget.setTopLeft(QPointF(0.0, currentYPos));
     rectTarget.setTopLeft(QPointF(0.0, 0.0));
-    rectTarget.setWidth(pageBuffer.at(i).width());
-    rectTarget.setHeight(pageBuffer.at(i).height());
+    rectTarget.setWidth(pageBuffer.at(i).width()/devicePixelRatio());
+    rectTarget.setHeight(pageBuffer.at(i).height()/devicePixelRatio());
 
     painter.drawPixmap(rectTarget, pageBuffer.at(i), rectSource);
 
@@ -253,7 +256,7 @@ void Widget::paintEvent(QPaintEvent *event)
       currentSelection.paint(painter, zoom);
     }
 
-    painter.translate(QPointF(0.0, rectSource.height() + PAGE_GAP));
+    painter.translate(QPointF(0.0, rectSource.height()/devicePixelRatio() + PAGE_GAP));
   }
 }
 
@@ -1352,8 +1355,8 @@ QPointF Widget::getPagePosFromMousePos(QPointF mousePos, int pageNum)
   for (int i = 0; i < pageNum; ++i)
   {
     //        y -= (currentDocument.pages[i].height() * zoom + PAGE_GAP); // THIS DOESN'T WORK PROPERLY (should be floor(...height(), or just use
-    //        pageBuffer[i].height())
-    y -= (pageBuffer[i].height() + PAGE_GAP);
+    //        pageBuffer[i].height()/devicePixelRatio())
+    y -= (pageBuffer[i].height()/devicePixelRatio() + PAGE_GAP);
   }
   //    y -= (pageNum) * (currentDocument.pages[0].height() * zoom + PAGE_GAP);
 
@@ -1370,7 +1373,7 @@ QPointF Widget::getAbsolutePagePosFromMousePos(QPointF mousePos)
   qreal y = 0.0;
   for (int i = 0; i < pageNum; ++i)
   {
-    y += (pageBuffer[i].height() + PAGE_GAP);
+    y += (pageBuffer[i].height()/devicePixelRatio() + PAGE_GAP);
   }
   y *= zoom;
 
