@@ -240,11 +240,11 @@ bool Document::saveXOJ(QString fileName)
   QByteArray uncompressedData;
 
   QXmlStreamWriter writer(&uncompressedData);
-//  QXmlStreamWriter writer;
+  //  QXmlStreamWriter writer;
 
   writer.setAutoFormatting(true);
 
-//  writer.setDevice(&file);
+  //  writer.setDevice(&file);
 
   writer.writeStartDocument("1.0", false);
   writer.writeStartElement("xournal");
@@ -304,7 +304,7 @@ bool Document::saveXOJ(QString fileName)
 
   file.write(compressedData);
 
-//  QFileInfo fileInfo(file);
+  //  QFileInfo fileInfo(file);
 
   file.close();
 
@@ -486,7 +486,7 @@ bool Document::saveMOJ(QString fileName)
 
   writer.setAutoFormatting(true);
 
-//  writer.setDevice(&file);
+  //  writer.setDevice(&file);
 
   writer.writeStartDocument("1.0", false);
   writer.writeStartElement("MrWriter");

@@ -10,7 +10,20 @@ namespace MrDoc
 class Selection : public Page
 {
 public:
-  enum class GrabZone { None, Move, Top, Bottom, Left, Right, TopLeft, TopRight, BottomLeft, BottomRight, Rotate };
+  enum class GrabZone
+  {
+    None,
+    Move,
+    Top,
+    Bottom,
+    Left,
+    Right,
+    TopLeft,
+    TopRight,
+    BottomLeft,
+    BottomRight,
+    Rotate
+  };
 
   Selection();
 
@@ -43,6 +56,10 @@ private:
 
   qreal m_ad = 10;
 
+  qreal static constexpr m_padding = 10.0;
+  qreal m_y_padding = m_padding;
+  qreal m_x_padding = m_padding;
+
   qreal m_angle = 0.0;
 
   QPolygonF m_selectionPolygon;
@@ -52,7 +69,7 @@ private:
   int m_pageNum;
 
   qreal constexpr static m_rotateRectRadius = 8.0;
-  qreal constexpr static m_rotateRectCenter = 30;
+  qreal constexpr static m_rotateRectCenter = 20;
 };
 }
 #endif // SELECTION_H

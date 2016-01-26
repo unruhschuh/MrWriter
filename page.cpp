@@ -187,17 +187,17 @@ void Page::appendStroke(const Stroke &stroke)
   m_strokes.append(stroke);
 }
 
+void Page::prependStroke(const Stroke &stroke)
+{
+  m_dirtyRect = m_dirtyRect.united(stroke.boundingRect());
+  m_strokes.prepend(stroke);
+}
+
 void Page::appendStrokes(const QVector<Stroke> &strokes)
 {
   for (auto &stroke : strokes)
   {
     appendStroke(stroke);
   }
-}
-
-void Page::prependStroke(const Stroke &stroke)
-{
-  m_dirtyRect = m_dirtyRect.united(stroke.boundingRect());
-  m_strokes.append(stroke);
 }
 }

@@ -88,10 +88,10 @@ Selection::GrabZone Selection::grabZone(QPointF pagePos, qreal zoom)
   bottomRightRect.setHeight(scaled_ad);
 
   QRectF rotateRect = bRect;
-  rotateRect.setTop(rotateRect.top() - 1.0 * scaled_ad - (m_rotateRectCenter+m_rotateRectRadius)/zoom);
-  rotateRect.setLeft(rotateRect.center().x() - m_rotateRectRadius/zoom);
-  rotateRect.setWidth(2.0 * m_rotateRectRadius/zoom);
-  rotateRect.setHeight(2.0 * m_rotateRectRadius/zoom);
+  rotateRect.setTop(rotateRect.top() - 1.0 * scaled_ad - (m_rotateRectCenter + m_rotateRectRadius) / zoom);
+  rotateRect.setLeft(rotateRect.center().x() - m_rotateRectRadius / zoom);
+  rotateRect.setWidth(2.0 * m_rotateRectRadius / zoom);
+  rotateRect.setHeight(2.0 * m_rotateRectRadius / zoom);
 
   if (moveRect.contains(pagePos))
   {
@@ -175,7 +175,7 @@ void Selection::paint(QPainter &painter, qreal zoom, QRectF region __attribute__
   QTransform paintTrans;
   paintTrans.translate(m_selectionPolygon.boundingRect().center().x() * zoom, m_selectionPolygon.boundingRect().center().y() * zoom);
   paintTrans.rotate(m_angle);
-  paintTrans.translate(- m_selectionPolygon.boundingRect().center().x() * zoom, - m_selectionPolygon.boundingRect().center().y() * zoom);
+  paintTrans.translate(-m_selectionPolygon.boundingRect().center().x() * zoom, -m_selectionPolygon.boundingRect().center().y() * zoom);
 
   painter.setTransform(paintTrans, true);
 
@@ -183,14 +183,14 @@ void Selection::paint(QPainter &painter, qreal zoom, QRectF region __attribute__
   painter.drawImage(scaleTrans.map(m_selectionPolygon).boundingRect(), m_buffer, QRectF(m_buffer.rect()));
 
   QPen pen;
-//  pen.setStyle(Qt::DashLine);
+  //  pen.setStyle(Qt::DashLine);
   pen.setStyle(Qt::SolidLine);
   pen.setWidth(2);
   pen.setCapStyle(Qt::RoundCap);
-//  pen.setColor(QColor(0, 180, 0, 255));
-    painter.setBrush(QBrush(QColor(127, 127, 127, 50), Qt::SolidPattern));
+  //  pen.setColor(QColor(0, 180, 0, 255));
+  painter.setBrush(QBrush(QColor(127, 127, 127, 50), Qt::SolidPattern));
   //  painter.setBrush(QBrush(QColor(255, 165, 0, 50), Qt::SolidPattern));
-//  painter.setBrush(QBrush(QColor(0, 255, 0, 50), Qt::SolidPattern));
+  //  painter.setBrush(QBrush(QColor(0, 255, 0, 50), Qt::SolidPattern));
   painter.setPen(pen);
   if (!m_finalized)
   {
@@ -200,8 +200,8 @@ void Selection::paint(QPainter &painter, qreal zoom, QRectF region __attribute__
   {
 
     // draw GrabZones for resizing
-    pen.setColor(QColor(127,127,127,255));
-//    pen.setColor(QColor(255,255,255,255));
+    pen.setColor(QColor(127, 127, 127, 255));
+    //    pen.setColor(QColor(255,255,255,255));
     pen.setWidthF(0.5);
     painter.setPen(pen);
     QRect brect = scaleTrans.map(m_selectionPolygon).boundingRect().toRect();
@@ -212,19 +212,19 @@ void Selection::paint(QPainter &painter, qreal zoom, QRectF region __attribute__
     painter.drawLine(brect.bottomLeft() - QPointF(ad, 0), brect.bottomRight() + QPointF(ad, 0));
 
     pen.setWidth(2);
-//    pen.setColor(QColor(0,0,0,127));
+    //    pen.setColor(QColor(0,0,0,127));
     painter.setPen(pen);
     QRectF outerRect = scaleTrans.map(m_selectionPolygon).boundingRect().adjusted(-m_ad, -m_ad, m_ad, m_ad);
     // draw bounding rect
     painter.drawRect(outerRect);
 
     // draw GrabZone for rotating
-    pen.setColor(QColor(0,0,0,127));
+    pen.setColor(QColor(0, 0, 0, 127));
     pen.setStyle(Qt::SolidLine);
     painter.setPen(pen);
     painter.setBrush(QBrush(QColor(127, 127, 127, 127), Qt::SolidPattern));
-    QPointF rotateLineFrom =  (outerRect.topRight() + outerRect.topLeft()) / 2.0;
-    QPointF rotateLineTo =  (outerRect.topRight() + outerRect.topLeft()) / 2.0 - QPointF(0, m_rotateRectCenter-m_rotateRectRadius);
+    QPointF rotateLineFrom = (outerRect.topRight() + outerRect.topLeft()) / 2.0;
+    QPointF rotateLineTo = (outerRect.topRight() + outerRect.topLeft()) / 2.0 - QPointF(0, m_rotateRectCenter - m_rotateRectRadius);
     painter.drawLine(rotateLineFrom, rotateLineTo);
     painter.drawEllipse(rotateLineTo - QPointF(0.0, m_rotateRectRadius), m_rotateRectRadius, m_rotateRectRadius);
   }
@@ -236,14 +236,32 @@ void Selection::paint(QPainter &painter, qreal zoom, QRectF region __attribute__
 void Selection::transform(QTransform transform, int pageNum)
 {
   m_selectionPolygon = transform.map(m_selectionPolygon);
+
+  qreal sx = transform.m11();
+  qreal sy = transform.m22();
+  qreal s = (sx + sy) / 2.0;
+
   for (int i = 0; i < m_strokes.size(); ++i)
   {
     m_strokes[i].points = transform.map(m_strokes[i].points);
-    if (!transform.isRotating())
+    /*
+    'if (!transform.isRotating())' doesn't work, since rotation of 180 and 360 degrees is treated as a scaling transformation. Same goes for
+    'if (transform.isScaling())'
+    */
+    if (transform.determinant() != 1)
     {
-      qreal s = (transform.m11() + transform.m22()) / 2.0;
       m_strokes[i].penWidth = m_strokes[i].penWidth * s;
     }
+  }
+  if (transform.determinant() != 1)
+  {
+    m_x_padding *= sx;
+    m_y_padding *= sy;
+  }
+  if (transform.isRotating())
+  {
+    m_x_padding = m_padding;
+    m_y_padding = m_padding;
   }
 
   m_angle = 0.0;
@@ -256,10 +274,11 @@ void Selection::finalize()
   QRectF boundingRect;
   for (int i = 0; i < m_strokes.size(); ++i)
   {
-    boundingRect = boundingRect.united(m_strokes[i].points.boundingRect());
+    boundingRect = boundingRect.united(m_strokes[i].boundingRectSansPenWidth());
   }
 
-//  boundingRect.adjust(-m_ad, -m_ad, m_ad, m_ad);
+  //  boundingRect.adjust(-m_ad, -m_ad, m_ad, m_ad);
+  boundingRect.adjust(-m_x_padding, -m_y_padding, m_x_padding, m_y_padding);
   m_selectionPolygon = QPolygonF(boundingRect);
 
   setWidth(boundingRect.width());
