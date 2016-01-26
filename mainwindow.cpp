@@ -31,6 +31,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
   //    this->resize(1024,768);
 
+  qApp->setAttribute(Qt::AA_UseHighDpiPixmaps);
+
   mainWidget = new Widget(this);
   connect(mainWidget, SIGNAL(select()), this, SLOT(select()));
   connect(mainWidget, SIGNAL(pen()), this, SLOT(pen()));
