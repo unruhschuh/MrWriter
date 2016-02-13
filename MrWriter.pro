@@ -10,7 +10,7 @@ QT       += core gui
 QT       += xml
 QT       += printsupport
 QT       += concurrent
-QT       += svg
+#QT       += svg
 #QT       += webenginewidgets
 
 system(touch version.h)
