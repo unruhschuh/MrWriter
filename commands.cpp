@@ -219,28 +219,54 @@ bool TransformSelectionCommand::mergeWith(const QUndoCommand *other)
 }
 
 /******************************************************************************
-** ChangeColorOfSelection
+** ChangeColorOfSelectionCommand
 */
 
-ChangeColorOfSelectionCommand::ChangeColorOfSelectionCommand(Widget *newWidget, QColor newColor, QUndoCommand *parent) : QUndoCommand(parent)
+ChangeColorOfSelectionCommand::ChangeColorOfSelectionCommand(Widget *widget, QColor color, QUndoCommand *parent) : QUndoCommand(parent)
 {
   setText(MainWindow::tr("Change Color"));
 
-  widget = newWidget;
-  selection = widget->currentSelection;
-  color = newColor;
+  m_widget = widget;
+  m_selection = m_widget->currentSelection;
+  m_color = color;
 }
 
 void ChangeColorOfSelectionCommand::undo()
 {
-  widget->currentSelection = selection;
+  m_widget->currentSelection = m_selection;
 }
 
 void ChangeColorOfSelectionCommand::redo()
 {
-  for (int i = 0; i < widget->currentSelection.strokes().size(); ++i)
+  for (int i = 0; i < m_widget->currentSelection.strokes().size(); ++i)
   {
-    widget->currentSelection.changeStrokeColor(i, color);
+    m_widget->currentSelection.changeStrokeColor(i, m_color);
+  }
+}
+
+/******************************************************************************
+** ChangePatternOfSelectionCommand
+*/
+
+ChangePatternOfSelectionCommand::ChangePatternOfSelectionCommand(Widget *widget, QVector<qreal> pattern, QUndoCommand *parent) : QUndoCommand(parent)
+{
+  setText(MainWindow::tr("Change Pattern"));
+
+  m_widget = widget;
+  m_selection = m_widget->currentSelection;
+  m_pattern = pattern;
+}
+
+void ChangePatternOfSelectionCommand::undo()
+{
+  m_widget->currentSelection = m_selection;
+}
+
+void ChangePatternOfSelectionCommand::redo()
+{
+  for (int i = 0; i < m_widget->currentSelection.strokes().size(); ++i)
+  {
+    m_widget->currentSelection.changeStrokePattern(i, m_pattern);
   }
 }
 

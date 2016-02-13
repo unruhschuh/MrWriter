@@ -31,6 +31,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
   //    this->resize(1024,768);
 
+  qApp->setAttribute(Qt::AA_UseHighDpiPixmaps);
+
   mainWidget = new Widget(this);
   connect(mainWidget, SIGNAL(select()), this, SLOT(select()));
   connect(mainWidget, SIGNAL(pen()), this, SLOT(pen()));
@@ -817,7 +819,7 @@ void MainWindow::exportPDF()
     fileName.append(mainWidget->currentDocument.docName());
     fileName.append(".pdf");
   }
-  fileName = QFileDialog::getSaveFileName(this, tr("Export PDF"), fileName, tr("Adobe PDF files (*.PDF)"));
+  fileName = QFileDialog::getSaveFileName(this, tr("Export PDF"), fileName, tr("Adobe PDF files (*.pdf)"));
 
   if (fileName.isNull())
   {
@@ -1068,7 +1070,7 @@ void MainWindow::about()
   aboutText.append(PRODUCT_URL);
   aboutText.append("</a>");
   aboutText.append("<br/><br/>Licensed under the GNU GENERAL PUBLIC LICENSE Version 3.0<br/><br/><a "
-                               "href='http://www.gnu.org/licenses/'>www.gnu.org/licenses</a></center>");
+                   "href='http://www.gnu.org/licenses/'>www.gnu.org/licenses</a></center>");
   msgBox.setText(aboutText);
   msgBox.setStandardButtons(QMessageBox::Ok);
   msgBox.setIconPixmap(QIcon(":/images/Icon1024.png").pixmap(QSize(100, 100)));

@@ -45,6 +45,7 @@ bool TabletApplication::event(QEvent *event)
     {
       mainWindows.append(newWindow);
       newWindow->show();
+      newWindow->updateGUI();
     }
     else
     {

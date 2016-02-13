@@ -100,6 +100,20 @@ bool Page::changeStrokeColor(int strokeNum, QColor color)
   }
 }
 
+bool Page::changeStrokePattern(int strokeNum, QVector<qreal> pattern)
+{
+  if (strokeNum < 0 || strokeNum >= m_strokes.size() || m_strokes.isEmpty())
+  {
+    return false;
+  }
+  else
+  {
+    m_strokes[strokeNum].pattern = pattern;
+    m_dirtyRect = m_dirtyRect.united(m_strokes[strokeNum].boundingRect());
+    return true;
+  }
+}
+
 const QVector<Stroke> &Page::strokes()
 {
   return m_strokes;
@@ -173,17 +187,17 @@ void Page::appendStroke(const Stroke &stroke)
   m_strokes.append(stroke);
 }
 
+void Page::prependStroke(const Stroke &stroke)
+{
+  m_dirtyRect = m_dirtyRect.united(stroke.boundingRect());
+  m_strokes.prepend(stroke);
+}
+
 void Page::appendStrokes(const QVector<Stroke> &strokes)
 {
   for (auto &stroke : strokes)
   {
     appendStroke(stroke);
   }
-}
-
-void Page::prependStroke(const Stroke &stroke)
-{
-  m_dirtyRect = m_dirtyRect.united(stroke.boundingRect());
-  m_strokes.append(stroke);
 }
 }

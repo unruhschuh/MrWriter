@@ -88,14 +88,27 @@ private:
 class ChangeColorOfSelectionCommand : public QUndoCommand
 {
 public:
-  ChangeColorOfSelectionCommand(Widget *newWidget, QColor newColor, QUndoCommand *parent = 0);
+  ChangeColorOfSelectionCommand(Widget *widget, QColor color, QUndoCommand *parent = 0);
   void undo() Q_DECL_OVERRIDE;
   void redo() Q_DECL_OVERRIDE;
 
 private:
-  Widget *widget;
-  MrDoc::Selection selection;
-  QColor color;
+  Widget *m_widget;
+  MrDoc::Selection m_selection;
+  QColor m_color;
+};
+
+class ChangePatternOfSelectionCommand : public QUndoCommand
+{
+public:
+  ChangePatternOfSelectionCommand(Widget *widget, QVector<qreal> pattern, QUndoCommand *parent = 0);
+  void undo() Q_DECL_OVERRIDE;
+  void redo() Q_DECL_OVERRIDE;
+
+private:
+  Widget *m_widget;
+  MrDoc::Selection m_selection;
+  QVector<qreal> m_pattern;
 };
 
 class ChangePenWidthOfSelectionCommand : public QUndoCommand
@@ -110,7 +123,6 @@ private:
   MrDoc::Selection selection;
   qreal m_penWidth;
 };
-
 
 class AddPageCommand : public QUndoCommand
 {

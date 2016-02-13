@@ -55,8 +55,7 @@ void Stroke::paint(QPainter &painter, qreal zoom, bool last)
 
 QRectF Stroke::boundingRect() const
 {
-  QPolygonF tmpPoints = points;
-  QRectF bRect = tmpPoints.boundingRect();
+  QRectF bRect = boundingRectSansPenWidth();
   qreal maxPressure = 0.0;
   for (qreal p : pressures)
   {
@@ -67,5 +66,17 @@ QRectF Stroke::boundingRect() const
   }
   qreal pad = maxPressure * penWidth;
   return bRect.adjusted(-pad, -pad, pad, pad);
+}
+
+QRectF Stroke::boundingRectSansPenWidth() const
+{
+  QPolygonF tmpPoints = points;
+  QRectF bRect = tmpPoints.boundingRect();
+  if (bRect.isNull())
+  {
+    qreal ad = 0.0001;
+    bRect.adjust(-ad,-ad,ad,ad);
+  }
+  return bRect;
 }
 }

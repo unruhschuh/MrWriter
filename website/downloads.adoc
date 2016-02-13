@@ -1,0 +1,27 @@
+---
+layout: page
+title: Downloads
+permalink: /downloads/
+weight: 1
+---
+
+## Download MrWriter
+
+|===
+| Platform | Download
+
+| Linux
+| https://github.com/unruhschuh/MrWriter/releases/download/v0.0.2/MrWriter-0.0.2_Linux.tar.gz[MrWriter-0.0.2_Linux.tar.gz]
+
+| Linux (AppImage)
+| https://github.com/unruhschuh/MrWriter/releases/download/v0.0.2/MrWriter-0.0.2.AppImage[MrWriter-0.0.2.AppImage]
+
+| Mac OS X
+| https://github.com/unruhschuh/MrWriter/releases/download/v0.0.2/MrWriter-0.0.2_Mac.dmg[MrWriter-0.0.2_Mac.dmg]
+
+| Windows
+| https://github.com/unruhschuh/MrWriter/releases/download/v0.0.2/MrWriter-0.0.2_Win.zip[MrWriter-0.0.2_Win.zip]
+|===
+
+Older versions and the source code can be downloaded https://github.com/unruhschuh/MrWriter/releases[here].
+

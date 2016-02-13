@@ -109,9 +109,10 @@ void Widget::updateAllPageBuffers()
 void Widget::updateImageBuffer(int buffNum)
 {
   MrDoc::Page const &page = currentDocument.pages.at(buffNum);
-  int pixelWidth = zoom * page.width();
-  int pixelHeight = zoom * page.height();
+  int pixelWidth = zoom * page.width() * devicePixelRatio();
+  int pixelHeight = zoom * page.height() * devicePixelRatio();
   QImage image(pixelWidth, pixelHeight, QImage::Format_ARGB32_Premultiplied);
+  image.setDevicePixelRatio(devicePixelRatio());
 
   image.fill(page.backgroundColor());
 
@@ -131,9 +132,10 @@ void Widget::updateImageBuffer(int buffNum)
 void Widget::updateBuffer(int buffNum)
 {
   MrDoc::Page const &page = currentDocument.pages.at(buffNum);
-  int pixelWidth = zoom * page.width();
-  int pixelHeight = zoom * page.height();
+  int pixelWidth = zoom * page.width() * devicePixelRatio();
+  int pixelHeight = zoom * page.height() * devicePixelRatio();
   QPixmap pixmap(pixelWidth, pixelHeight);
+  pixmap.setDevicePixelRatio(devicePixelRatio());
 
   pixmap.fill(page.backgroundColor());
 
@@ -195,9 +197,9 @@ QRect Widget::getWidgetGeometry()
   int height = 0;
   for (int i = 0; i < pageBuffer.size(); ++i)
   {
-    height += pageBuffer[i].height() + PAGE_GAP;
-    if (pageBuffer[i].width() > width)
-      width = pageBuffer[i].width();
+    height += pageBuffer[i].height()/devicePixelRatio() + PAGE_GAP;
+    if (pageBuffer[i].width()/devicePixelRatio() > width)
+      width = pageBuffer[i].width()/devicePixelRatio();
   }
   height -= PAGE_GAP;
   return QRect(0, 0, width, height);
@@ -218,8 +220,9 @@ void Widget::paintEvent(QPaintEvent *event)
     QTransform trans;
     for (int i = 0; i < drawingOnPage; ++i)
     {
-      trans = trans.translate(0, -(pageBuffer.at(i).height() + PAGE_GAP));
+      trans = trans.translate(0, -(pageBuffer.at(i).height() + PAGE_GAP*devicePixelRatio()));
     }
+    trans = trans.scale(devicePixelRatio(),devicePixelRatio());
     rectSource = trans.mapRect(event->rect());
 
     //        QPixmap tmp = QPixmap::fromImage(pageBuffer.at(drawingOnPage));
@@ -241,17 +244,19 @@ void Widget::paintEvent(QPaintEvent *event)
     QRectF rectTarget;
     //        rectTarget.setTopLeft(QPointF(0.0, currentYPos));
     rectTarget.setTopLeft(QPointF(0.0, 0.0));
-    rectTarget.setWidth(pageBuffer.at(i).width());
-    rectTarget.setHeight(pageBuffer.at(i).height());
+    rectTarget.setWidth(pageBuffer.at(i).width()/devicePixelRatio());
+    rectTarget.setHeight(pageBuffer.at(i).height()/devicePixelRatio());
 
     painter.drawPixmap(rectTarget, pageBuffer.at(i), rectSource);
 
-    if ((currentState == state::SELECTING || currentState == state::SELECTED || currentState == state::MOVING_SELECTION || currentState == state::RESIZING_SELECTION || currentState == state::ROTATING_SELECTION) && i == currentSelection.pageNum())
+    if ((currentState == state::SELECTING || currentState == state::SELECTED || currentState == state::MOVING_SELECTION ||
+         currentState == state::RESIZING_SELECTION || currentState == state::ROTATING_SELECTION) &&
+        i == currentSelection.pageNum())
     {
       currentSelection.paint(painter, zoom);
     }
 
-    painter.translate(QPointF(0.0, rectSource.height() + PAGE_GAP));
+    painter.translate(QPointF(0.0, rectSource.height()/devicePixelRatio() + PAGE_GAP));
   }
 }
 
@@ -282,7 +287,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
   if (eventType == QEvent::MouseButtonRelease)
   {
     ++count;
-//    qInfo() << static_cast<qreal>(count) / static_cast<qreal>(timer.elapsed()) * 1000.0;
+    //    qInfo() << static_cast<qreal>(count) / static_cast<qreal>(timer.elapsed()) * 1000.0;
   }
   // end benchmark
 
@@ -324,11 +329,13 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
     }
     if (eventType == QEvent::MouseMove)
     {
-      int dx = mousePos.x() - previousMousePos.x();
-      int dy = mousePos.y() - previousMousePos.y();
+      int dx = 1 * (mousePos.x() - previousMousePos.x());
+      int dy = 1 * (mousePos.y() - previousMousePos.y());
 
       scrollArea->horizontalScrollBar()->setValue(scrollArea->horizontalScrollBar()->value() - dx);
       scrollArea->verticalScrollBar()->setValue(scrollArea->verticalScrollBar()->value() - dy);
+
+      qInfo() << dy;
 
       mousePos -= QPointF(dx, dy);
 
@@ -348,7 +355,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
       {
         letGoSelection();
         update();
-  //      return;
+        //      return;
       }
       else if (grabZone == GrabZone::Move)
       {
@@ -548,8 +555,8 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
       }
       if (currentTool == tool::HAND)
       {
-        int dx = mousePos.x() - previousMousePos.x();
-        int dy = mousePos.y() - previousMousePos.y();
+        int dx = 1 * (mousePos.x() - previousMousePos.x());
+        int dy = 1 * (mousePos.y() - previousMousePos.y());
 
         scrollArea->horizontalScrollBar()->setValue(scrollArea->horizontalScrollBar()->value() - dx);
         scrollArea->verticalScrollBar()->setValue(scrollArea->verticalScrollBar()->value() - dy);
@@ -1178,7 +1185,7 @@ void Widget::stopRotatingSelection(QPointF mousePos)
   QTransform transform;
   transform.translate(currentSelection.boundingRect().center().x(), currentSelection.boundingRect().center().y());
   transform.rotate(m_currentAngle);
-  transform.translate(- currentSelection.boundingRect().center().x(), - currentSelection.boundingRect().center().y());
+  transform.translate(-currentSelection.boundingRect().center().x(), -currentSelection.boundingRect().center().y());
 
   currentSelection.setAngle(0.0);
 
@@ -1188,7 +1195,6 @@ void Widget::stopRotatingSelection(QPointF mousePos)
   currentSelection.finalize();
   currentSelection.updateBuffer(zoom);
   setCurrentState(state::SELECTED);
-
 }
 
 void Widget::startResizingSelection(QPointF mousePos, MrDoc::Selection::GrabZone grabZone)
@@ -1217,8 +1223,6 @@ void Widget::continueResizingSelection(QPointF mousePos)
   qreal sx = 0.0;
   qreal sy = 0.0;
 
-  qreal angle = 0.0;
-
   qreal moveBackX = 0.0;
   qreal moveBackY = 0.0;
 
@@ -1227,57 +1231,57 @@ void Widget::continueResizingSelection(QPointF mousePos)
   {
     sx = 1.0;
     sy = (currentSelection.boundingRect().height() - delta.y()) / currentSelection.boundingRect().height();
-    moveBackX = - moveX;
-    moveBackY = - moveY + delta.y() / sy;
+    moveBackX = -moveX;
+    moveBackY = -moveY + delta.y() / sy;
   }
   else if (m_grabZone == GrabZone::Bottom)
   {
     sx = 1.0;
     sy = (currentSelection.boundingRect().height() + delta.y()) / currentSelection.boundingRect().height();
-    moveBackX = - moveX;
-    moveBackY = - moveY;
+    moveBackX = -moveX;
+    moveBackY = -moveY;
   }
   else if (m_grabZone == GrabZone::Left)
   {
     sx = (currentSelection.boundingRect().width() - delta.x()) / currentSelection.boundingRect().width();
     sy = 1.0;
-    moveBackX = - moveX + delta.x() / sx;
-    moveBackY = - moveY;
+    moveBackX = -moveX + delta.x() / sx;
+    moveBackY = -moveY;
   }
   else if (m_grabZone == GrabZone::Right)
   {
     sx = (currentSelection.boundingRect().width() + delta.x()) / currentSelection.boundingRect().width();
     sy = 1.0;
-    moveBackX = - moveX;
-    moveBackY = - moveY;
+    moveBackX = -moveX;
+    moveBackY = -moveY;
   }
   else if (m_grabZone == GrabZone::TopLeft)
   {
     sx = (currentSelection.boundingRect().width() - delta.x()) / currentSelection.boundingRect().width();
     sy = (currentSelection.boundingRect().height() - delta.y()) / currentSelection.boundingRect().height();
-    moveBackX = - moveX + delta.x() / sx;
-    moveBackY = - moveY + delta.y() / sy;
+    moveBackX = -moveX + delta.x() / sx;
+    moveBackY = -moveY + delta.y() / sy;
   }
   else if (m_grabZone == GrabZone::TopRight)
   {
     sx = (currentSelection.boundingRect().width() + delta.x()) / currentSelection.boundingRect().width();
     sy = (currentSelection.boundingRect().height() - delta.y()) / currentSelection.boundingRect().height();
-    moveBackX = - moveX;
-    moveBackY = - moveY + delta.y() / sy;
+    moveBackX = -moveX;
+    moveBackY = -moveY + delta.y() / sy;
   }
   else if (m_grabZone == GrabZone::BottomLeft)
   {
     sx = (currentSelection.boundingRect().width() - delta.x()) / currentSelection.boundingRect().width();
     sy = (currentSelection.boundingRect().height() + delta.y()) / currentSelection.boundingRect().height();
-    moveBackX = - moveX + delta.x() / sx;
-    moveBackY = - moveY;
+    moveBackX = -moveX + delta.x() / sx;
+    moveBackY = -moveY;
   }
   else if (m_grabZone == GrabZone::BottomRight)
   {
     sx = (currentSelection.boundingRect().width() + delta.x()) / currentSelection.boundingRect().width();
     sy = (currentSelection.boundingRect().height() + delta.y()) / currentSelection.boundingRect().height();
-    moveBackX = - moveX;
-    moveBackY = - moveY;
+    moveBackX = -moveX;
+    moveBackY = -moveY;
   }
 
   if (sx <= 0.01)
@@ -1298,7 +1302,7 @@ void Widget::continueResizingSelection(QPointF mousePos)
   transform.scale(sx, sy);
   transform.translate(moveBackX, moveBackY);
 
-//  m_currentTransform = transform * m_currentTransform;
+  //  m_currentTransform = transform * m_currentTransform;
 
   TransformSelectionCommand *transSelectCommand = new TransformSelectionCommand(this, pageNum, transform);
   undoStack.push(transSelectCommand);
@@ -1313,7 +1317,6 @@ void Widget::stopResizingSelection(QPointF mousePos)
   currentSelection.finalize();
   currentSelection.updateBuffer(zoom);
   setCurrentState(state::SELECTED);
-
 }
 
 int Widget::getPageFromMousePos(QPointF mousePos)
@@ -1350,8 +1353,8 @@ QPointF Widget::getPagePosFromMousePos(QPointF mousePos, int pageNum)
   for (int i = 0; i < pageNum; ++i)
   {
     //        y -= (currentDocument.pages[i].height() * zoom + PAGE_GAP); // THIS DOESN'T WORK PROPERLY (should be floor(...height(), or just use
-    //        pageBuffer[i].height())
-    y -= (pageBuffer[i].height() + PAGE_GAP);
+    //        pageBuffer[i].height()/devicePixelRatio())
+    y -= (pageBuffer[i].height()/devicePixelRatio() + PAGE_GAP);
   }
   //    y -= (pageNum) * (currentDocument.pages[0].height() * zoom + PAGE_GAP);
 
@@ -1368,7 +1371,7 @@ QPointF Widget::getAbsolutePagePosFromMousePos(QPointF mousePos)
   qreal y = 0.0;
   for (int i = 0; i < pageNum; ++i)
   {
-    y += (pageBuffer[i].height() + PAGE_GAP);
+    y += (pageBuffer[i].height()/devicePixelRatio() + PAGE_GAP);
   }
   y *= zoom;
 
@@ -1726,6 +1729,7 @@ void Widget::undo()
   if (undoStack.canUndo() && (currentState == state::IDLE || currentState == state::SELECTED))
   {
     undoStack.undo();
+    currentSelection.updateBuffer(zoom);
     updateAllDirtyBuffers();
   }
 }
@@ -1735,6 +1739,7 @@ void Widget::redo()
   if (undoStack.canRedo() && (currentState == state::IDLE || currentState == state::SELECTED))
   {
     undoStack.redo();
+    currentSelection.updateBuffer(zoom);
     updateAllDirtyBuffers();
   }
 }
@@ -1824,6 +1829,13 @@ void Widget::setCurrentPattern(QVector<qreal> newPattern)
 {
   currentPattern = newPattern;
   emit updateGUI();
+  if (currentState == state::SELECTED)
+  {
+    ChangePatternOfSelectionCommand *changePatternCommand = new ChangePatternOfSelectionCommand(this, newPattern);
+    undoStack.push(changePatternCommand);
+    currentSelection.updateBuffer(zoom);
+    update();
+  }
 }
 
 QVector<qreal> Widget::getCurrentPattern()
@@ -1853,7 +1865,7 @@ void Widget::dotPattern()
 
 void Widget::setCurrentPenWidth(qreal penWidth)
 {
-currentPenWidth = penWidth;
+  currentPenWidth = penWidth;
   if (currentState == state::SELECTED)
   {
     ChangePenWidthOfSelectionCommand *changePenWidthCommand = new ChangePenWidthOfSelectionCommand(this, penWidth);
