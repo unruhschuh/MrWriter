@@ -72,6 +72,10 @@ public:
   void mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::MouseButtons buttons, Qt::KeyboardModifiers keyboardModifiers,
                            QTabletEvent::PointerType pointerType, QEvent::Type eventType, qreal pressure, bool tabletEvent);
 
+  /**
+   * @brief updateAllPageBuffers
+   * @todo use std::unique_lock
+   */
   void updateAllPageBuffers();
   void updateImageBuffer(int buffNum);
   void updateBuffer(int i);
