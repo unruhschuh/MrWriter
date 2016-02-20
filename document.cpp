@@ -11,7 +11,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QErrorMessage>
-#include <QSvgGenerator>
+//#include <QSvgGenerator>
 #include <QDebug>
 
 #include <zlib.h>

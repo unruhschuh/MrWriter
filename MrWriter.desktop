@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=MrWriter
+GenericName=note program
+Icon=MyIcon
+Exec=MrWriter %F
+Terminal=false
+Categories=Office;
