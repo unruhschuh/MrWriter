@@ -58,18 +58,18 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
   //    setCentralWidget(mainWidget);
 
-  mainWidget->scrollArea = scrollArea;
+  mainWidget->m_scrollArea = scrollArea;
 
   QWidget *sep1 = new QWidget();
   sep1->setFixedWidth(10);
   QWidget *sep2 = new QWidget();
   sep2->setFixedWidth(10);
 
-  statusBar()->addPermanentWidget(&colorStatus);
+  statusBar()->addPermanentWidget(&m_colorStatus);
   statusBar()->addPermanentWidget(sep1);
-  statusBar()->addPermanentWidget(&penWidthStatus);
+  statusBar()->addPermanentWidget(&m_penWidthStatus);
   statusBar()->addPermanentWidget(sep2);
-  statusBar()->addPermanentWidget(&pageStatus);
+  statusBar()->addPermanentWidget(&m_pageStatus);
 
   createActions();
   createMenus();
@@ -86,13 +86,13 @@ MainWindow::~MainWindow()
 void MainWindow::setTitle()
 {
   QString docName;
-  if (mainWidget->currentDocument.docName().isEmpty())
+  if (mainWidget->m_currentDocument.docName().isEmpty())
   {
     docName = tr("untitled");
   }
   else
   {
-    docName = mainWidget->currentDocument.docName();
+    docName = mainWidget->m_currentDocument.docName();
   }
   QString title = PRODUCT_NAME;
   title.append(" - ");
@@ -103,480 +103,480 @@ void MainWindow::setTitle()
 
 void MainWindow::createActions()
 {
-  newWindowAct = new QAction(tr("New &Window"), this);
-  newWindowAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Modifier::SHIFT + Qt::Key_N));
-  newWindowAct->setStatusTip(tr("New Window"));
-  connect(newWindowAct, SIGNAL(triggered()), this, SLOT(newWindow()));
-  this->addAction(newWindowAct);
+  m_newWindowAct = new QAction(tr("New &Window"), this);
+  m_newWindowAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Modifier::SHIFT + Qt::Key_N));
+  m_newWindowAct->setStatusTip(tr("New Window"));
+  connect(m_newWindowAct, SIGNAL(triggered()), this, SLOT(newWindow()));
+  this->addAction(m_newWindowAct);
 
-  cloneWindowAct = new QAction(tr("Clone Window"), this);
-  cloneWindowAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Modifier::SHIFT + Qt::Key_C));
-  cloneWindowAct->setStatusTip(tr("Clone Window"));
-  connect(cloneWindowAct, SIGNAL(triggered()), this, SLOT(cloneWindow()));
-  this->addAction(cloneWindowAct);
+  m_cloneWindowAct = new QAction(tr("Clone Window"), this);
+  m_cloneWindowAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Modifier::SHIFT + Qt::Key_C));
+  m_cloneWindowAct->setStatusTip(tr("Clone Window"));
+  connect(m_cloneWindowAct, SIGNAL(triggered()), this, SLOT(cloneWindow()));
+  this->addAction(m_cloneWindowAct);
 
-  closeWindowAct = new QAction(tr("Close Window"), this);
-  closeWindowAct->setShortcut(QKeySequence(QKeySequence::Close));
-  closeWindowAct->setStatusTip(tr("Close Window"));
-  connect(closeWindowAct, SIGNAL(triggered()), this, SLOT(close()));
-  this->addAction(closeWindowAct);
+  m_closeWindowAct = new QAction(tr("Close Window"), this);
+  m_closeWindowAct->setShortcut(QKeySequence(QKeySequence::Close));
+  m_closeWindowAct->setStatusTip(tr("Close Window"));
+  connect(m_closeWindowAct, SIGNAL(triggered()), this, SLOT(close()));
+  this->addAction(m_closeWindowAct);
 
-  newFileAct = new QAction(QIcon(":/images/newIcon.png"), tr("&New file"), this);
-  newFileAct->setShortcuts(QKeySequence::New);
-  newFileAct->setStatusTip(tr("New File"));
-  connect(newFileAct, SIGNAL(triggered()), this, SLOT(newFile()));
-  this->addAction(newFileAct); // add to make shortcut work if menubar is hidden
+  m_newFileAct = new QAction(QIcon(":/images/newIcon.png"), tr("&New file"), this);
+  m_newFileAct->setShortcuts(QKeySequence::New);
+  m_newFileAct->setStatusTip(tr("New File"));
+  connect(m_newFileAct, SIGNAL(triggered()), this, SLOT(newFile()));
+  this->addAction(m_newFileAct); // add to make shortcut work if menubar is hidden
 
-  openFileAct = new QAction(QIcon(":/images/openIcon.png"), tr("&Open file"), this);
-  openFileAct->setShortcuts(QKeySequence::Open);
-  openFileAct->setStatusTip(tr("Open File"));
-  connect(openFileAct, SIGNAL(triggered()), this, SLOT(openFile()));
-  this->addAction(openFileAct);
+  m_openFileAct = new QAction(QIcon(":/images/openIcon.png"), tr("&Open file"), this);
+  m_openFileAct->setShortcuts(QKeySequence::Open);
+  m_openFileAct->setStatusTip(tr("Open File"));
+  connect(m_openFileAct, SIGNAL(triggered()), this, SLOT(openFile()));
+  this->addAction(m_openFileAct);
 
-  saveFileAct = new QAction(QIcon(":/images/saveIcon.png"), tr("&Save file"), this);
-  saveFileAct->setShortcuts(QKeySequence::Save);
-  saveFileAct->setStatusTip(tr("Save File"));
-  connect(saveFileAct, SIGNAL(triggered()), this, SLOT(saveFile()));
-  this->addAction(saveFileAct);
+  m_saveFileAct = new QAction(QIcon(":/images/saveIcon.png"), tr("&Save file"), this);
+  m_saveFileAct->setShortcuts(QKeySequence::Save);
+  m_saveFileAct->setStatusTip(tr("Save File"));
+  connect(m_saveFileAct, SIGNAL(triggered()), this, SLOT(saveFile()));
+  this->addAction(m_saveFileAct);
 
-  saveFileAsAct = new QAction(tr("&Save file as"), this);
-  saveFileAsAct->setShortcuts(QKeySequence::SaveAs);
-  saveFileAsAct->setStatusTip(tr("Save File as"));
-  connect(saveFileAsAct, SIGNAL(triggered()), this, SLOT(saveFileAs()));
-  this->addAction(saveFileAsAct);
+  m_saveFileAsAct = new QAction(tr("&Save file as"), this);
+  m_saveFileAsAct->setShortcuts(QKeySequence::SaveAs);
+  m_saveFileAsAct->setStatusTip(tr("Save File as"));
+  connect(m_saveFileAsAct, SIGNAL(triggered()), this, SLOT(saveFileAs()));
+  this->addAction(m_saveFileAsAct);
 
-  exportPDFAct = new QAction(QIcon(":/images/savePDFIcon.png"), tr("Export PDF"), this);
-  exportPDFAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_E));
+  m_exportPDFAct = new QAction(QIcon(":/images/savePDFIcon.png"), tr("Export PDF"), this);
+  m_exportPDFAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_E));
   //    zoomFitWidthAct->setShortcut(QKeySequence(Qt::Key_Z));
-  exportPDFAct->setStatusTip(tr("Export PDF"));
-  connect(exportPDFAct, SIGNAL(triggered()), this, SLOT(exportPDF()));
+  m_exportPDFAct->setStatusTip(tr("Export PDF"));
+  connect(m_exportPDFAct, SIGNAL(triggered()), this, SLOT(exportPDF()));
 
-  importXOJAct = new QAction(tr("Import Xournal File"), this);
-  importXOJAct->setStatusTip(tr("Import Xournal File"));
-  connect(importXOJAct, SIGNAL(triggered()), this, SLOT(importXOJ()));
+  m_importXOJAct = new QAction(tr("Import Xournal File"), this);
+  m_importXOJAct->setStatusTip(tr("Import Xournal File"));
+  connect(m_importXOJAct, SIGNAL(triggered()), this, SLOT(importXOJ()));
 
-  exportXOJAct = new QAction(tr("Export Xournal File"), this);
-  exportXOJAct->setStatusTip(tr("Export Xournal File"));
-  connect(exportXOJAct, SIGNAL(triggered()), this, SLOT(exportXOJ()));
+  m_exportXOJAct = new QAction(tr("Export Xournal File"), this);
+  m_exportXOJAct->setStatusTip(tr("Export Xournal File"));
+  connect(m_exportXOJAct, SIGNAL(triggered()), this, SLOT(exportXOJ()));
 
-  exitAct = new QAction(tr("E&xit"), this);
-  exitAct->setShortcuts(QKeySequence::Quit);
-  exitAct->setStatusTip(tr("Exit MrWriter"));
+  m_exitAct = new QAction(tr("E&xit"), this);
+  m_exitAct->setShortcuts(QKeySequence::Quit);
+  m_exitAct->setStatusTip(tr("Exit MrWriter"));
   //    TabletApplication *qTabApp = static_cast<TabletApplication*>(qApp); // I have no idea what this was for (TOM)
-  connect(exitAct, SIGNAL(triggered()), this, SLOT(exit()));
-  this->addAction(exitAct); // add to make shortcut work if menubar is hidden
+  connect(m_exitAct, SIGNAL(triggered()), this, SLOT(exit()));
+  this->addAction(m_exitAct); // add to make shortcut work if menubar is hidden
 
-  undoAct = mainWidget->undoStack.createUndoAction(this);
+  m_undoAct = mainWidget->m_undoStack.createUndoAction(this);
   //    undoAct = new QAction(QIcon(":/images/undoIcon.png"), tr("&Undo"), this);
-  undoAct->setIcon(QIcon(":/images/undoIcon.png"));
-  undoAct->setShortcut(QKeySequence::Undo);
-  undoAct->setStatusTip(tr("Undo"));
-  undoAct->disconnect(SIGNAL(triggered()));
-  connect(undoAct, SIGNAL(triggered()), mainWidget, SLOT(undo()));
+  m_undoAct->setIcon(QIcon(":/images/undoIcon.png"));
+  m_undoAct->setShortcut(QKeySequence::Undo);
+  m_undoAct->setStatusTip(tr("Undo"));
+  m_undoAct->disconnect(SIGNAL(triggered()));
+  connect(m_undoAct, SIGNAL(triggered()), mainWidget, SLOT(undo()));
   //    disconnect(undoAct, SIGNAL(triggered()), mainWidget->undoStack, SLOT(undo()));
-  this->addAction(undoAct); // add to make shortcut work if menubar is hidden
+  this->addAction(m_undoAct); // add to make shortcut work if menubar is hidden
 
-  redoAct = mainWidget->undoStack.createRedoAction(this);
+  m_redoAct = mainWidget->m_undoStack.createRedoAction(this);
   //    redoAct = new QAction(QIcon(":/images/redoIcon.png"), tr("&Redo"), this);
-  redoAct->setIcon(QIcon(":/images/redoIcon.png"));
-  redoAct->setShortcut(QKeySequence::Redo);
-  redoAct->setStatusTip(tr("Redo"));
-  redoAct->disconnect(SIGNAL(triggered()));
-  connect(redoAct, SIGNAL(triggered()), mainWidget, SLOT(redo()));
+  m_redoAct->setIcon(QIcon(":/images/redoIcon.png"));
+  m_redoAct->setShortcut(QKeySequence::Redo);
+  m_redoAct->setStatusTip(tr("Redo"));
+  m_redoAct->disconnect(SIGNAL(triggered()));
+  connect(m_redoAct, SIGNAL(triggered()), mainWidget, SLOT(redo()));
   //    disconnect(redoAct, SIGNAL(triggered()), mainWidget->undoStack, SLOT(redo()));
-  this->addAction(redoAct); // add to make shortcut work if menubar is hidden
+  this->addAction(m_redoAct); // add to make shortcut work if menubar is hidden
 
-  selectAllAct = new QAction(tr("Select &All"), this);
-  selectAllAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_A));
-  selectAllAct->setToolTip(tr("Select All"));
-  connect(selectAllAct, SIGNAL(triggered()), mainWidget, SLOT(selectAll()));
-  this->addAction(selectAllAct);
+  m_selectAllAct = new QAction(tr("Select &All"), this);
+  m_selectAllAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_A));
+  m_selectAllAct->setToolTip(tr("Select All"));
+  connect(m_selectAllAct, SIGNAL(triggered()), mainWidget, SLOT(selectAll()));
+  this->addAction(m_selectAllAct);
 
-  copyAct = new QAction(QIcon(":/images/copyIcon.png"), tr("&Copy"), this);
-  copyAct->setShortcuts(QKeySequence::Copy);
-  copyAct->setStatusTip(tr("Copy"));
-  connect(copyAct, SIGNAL(triggered()), mainWidget, SLOT(copy()));
-  this->addAction(copyAct); // add to make shortcut work if menubar is hidden
+  m_copyAct = new QAction(QIcon(":/images/copyIcon.png"), tr("&Copy"), this);
+  m_copyAct->setShortcuts(QKeySequence::Copy);
+  m_copyAct->setStatusTip(tr("Copy"));
+  connect(m_copyAct, SIGNAL(triggered()), mainWidget, SLOT(copy()));
+  this->addAction(m_copyAct); // add to make shortcut work if menubar is hidden
 
-  pasteAct = new QAction(QIcon(":/images/pasteIcon.png"), tr("&Paste"), this);
-  pasteAct->setShortcuts(QKeySequence::Paste);
-  pasteAct->setStatusTip(tr("Paste"));
-  connect(pasteAct, SIGNAL(triggered()), mainWidget, SLOT(paste()));
-  this->addAction(pasteAct); // add to make shortcut work if menubar is hidden
+  m_pasteAct = new QAction(QIcon(":/images/pasteIcon.png"), tr("&Paste"), this);
+  m_pasteAct->setShortcuts(QKeySequence::Paste);
+  m_pasteAct->setStatusTip(tr("Paste"));
+  connect(m_pasteAct, SIGNAL(triggered()), mainWidget, SLOT(paste()));
+  this->addAction(m_pasteAct); // add to make shortcut work if menubar is hidden
 
-  cutAct = new QAction(QIcon(":/images/cutIcon.png"), tr("Cut"), this);
-  cutAct->setShortcuts(QKeySequence::Cut);
-  cutAct->setStatusTip(tr("Cut"));
-  connect(cutAct, SIGNAL(triggered()), mainWidget, SLOT(cut()));
-  this->addAction(cutAct); // add to make shortcut work if menubar is hidden
+  m_cutAct = new QAction(QIcon(":/images/cutIcon.png"), tr("Cut"), this);
+  m_cutAct->setShortcuts(QKeySequence::Cut);
+  m_cutAct->setStatusTip(tr("Cut"));
+  connect(m_cutAct, SIGNAL(triggered()), mainWidget, SLOT(cut()));
+  this->addAction(m_cutAct); // add to make shortcut work if menubar is hidden
 
-  zoomInAct = new QAction(QIcon(":/images/zoomInIcon.png"), tr("Zoom &In"), this);
-  zoomInAct->setShortcut(QKeySequence::ZoomIn);
-  zoomInAct->setStatusTip(tr("Zoom In"));
-  connect(zoomInAct, SIGNAL(triggered()), this, SLOT(zoomIn()));
-  this->addAction(zoomInAct); // add to make shortcut work if menubar is hidden
+  m_zoomInAct = new QAction(QIcon(":/images/zoomInIcon.png"), tr("Zoom &In"), this);
+  m_zoomInAct->setShortcut(QKeySequence::ZoomIn);
+  m_zoomInAct->setStatusTip(tr("Zoom In"));
+  connect(m_zoomInAct, SIGNAL(triggered()), this, SLOT(zoomIn()));
+  this->addAction(m_zoomInAct); // add to make shortcut work if menubar is hidden
 
-  zoomOutAct = new QAction(QIcon(":/images/zoomOutIcon.png"), tr("Zoom &Out"), this); // QAction(QIcon(":/images/new.png"), tr("&New"), this);
-  zoomOutAct->setShortcut(QKeySequence::ZoomOut);
-  zoomOutAct->setStatusTip(tr("Zoom Out"));
-  connect(zoomOutAct, SIGNAL(triggered()), this, SLOT(zoomOut()));
-  this->addAction(zoomOutAct); // add to make shortcut work if menubar is hidden
+  m_zoomOutAct = new QAction(QIcon(":/images/zoomOutIcon.png"), tr("Zoom &Out"), this); // QAction(QIcon(":/images/new.png"), tr("&New"), this);
+  m_zoomOutAct->setShortcut(QKeySequence::ZoomOut);
+  m_zoomOutAct->setStatusTip(tr("Zoom Out"));
+  connect(m_zoomOutAct, SIGNAL(triggered()), this, SLOT(zoomOut()));
+  this->addAction(m_zoomOutAct); // add to make shortcut work if menubar is hidden
 
-  zoomFitWidthAct = new QAction(QIcon(":/images/zoomFitWidthIcon.png"), tr("Zoom to fit width"), this); // QAction(QIcon(":/images/new.png"), tr("&New"), this);
-  zoomFitWidthAct->setStatusTip(tr("Zoom to fit width"));
-  zoomFitWidthAct->setShortcut(QKeySequence(Qt::Key_Z));
-  connect(zoomFitWidthAct, SIGNAL(triggered()), this, SLOT(zoomFitWidth()));
-  this->addAction(zoomFitWidthAct); // add to make shortcut work if menubar is hidden
+  m_zoomFitWidthAct = new QAction(QIcon(":/images/zoomFitWidthIcon.png"), tr("Zoom to fit width"), this); // QAction(QIcon(":/images/new.png"), tr("&New"), this);
+  m_zoomFitWidthAct->setStatusTip(tr("Zoom to fit width"));
+  m_zoomFitWidthAct->setShortcut(QKeySequence(Qt::Key_Z));
+  connect(m_zoomFitWidthAct, SIGNAL(triggered()), this, SLOT(zoomFitWidth()));
+  this->addAction(m_zoomFitWidthAct); // add to make shortcut work if menubar is hidden
 
-  zoomFitHeightAct =
+  m_zoomFitHeightAct =
       new QAction(QIcon(":/images/zoomFitHeightIcon.png"), tr("Zoom to fit Height"), this); // QAction(QIcon(":/images/new.png"), tr("&New"), this);
-  zoomFitHeightAct->setStatusTip(tr("Zoom to fit Height"));
-  zoomFitHeightAct->setShortcut(QKeySequence(Qt::Key_X));
-  connect(zoomFitHeightAct, SIGNAL(triggered()), this, SLOT(zoomFitHeight()));
-  this->addAction(zoomFitHeightAct); // add to make shortcut work if menubar is hidden
+  m_zoomFitHeightAct->setStatusTip(tr("Zoom to fit Height"));
+  m_zoomFitHeightAct->setShortcut(QKeySequence(Qt::Key_X));
+  connect(m_zoomFitHeightAct, SIGNAL(triggered()), this, SLOT(zoomFitHeight()));
+  this->addAction(m_zoomFitHeightAct); // add to make shortcut work if menubar is hidden
 
-  pageFirstAct = new QAction(QIcon(":/images/pageFirstIcon.png"), tr("First Page"), this);
-  pageFirstAct->setStatusTip(tr("First Page"));
-  connect(pageFirstAct, SIGNAL(triggered()), mainWidget, SLOT(pageFirst()));
+  m_pageFirstAct = new QAction(QIcon(":/images/pageFirstIcon.png"), tr("First Page"), this);
+  m_pageFirstAct->setStatusTip(tr("First Page"));
+  connect(m_pageFirstAct, SIGNAL(triggered()), mainWidget, SLOT(pageFirst()));
 
-  pageLastAct = new QAction(QIcon(":/images/pageLastIcon.png"), tr("Last Page"), this);
-  pageLastAct->setStatusTip(tr("Last Page"));
-  connect(pageLastAct, SIGNAL(triggered()), mainWidget, SLOT(pageLast()));
+  m_pageLastAct = new QAction(QIcon(":/images/pageLastIcon.png"), tr("Last Page"), this);
+  m_pageLastAct->setStatusTip(tr("Last Page"));
+  connect(m_pageLastAct, SIGNAL(triggered()), mainWidget, SLOT(pageLast()));
 
-  pageUpAct = new QAction(QIcon(":/images/pageUpIcon.png"), tr("Page &Up"), this);
-  pageUpAct->setStatusTip(tr("Page Up"));
-  pageUpAct->setShortcut(QKeySequence(Qt::Key_Up));
-  connect(pageUpAct, SIGNAL(triggered()), mainWidget, SLOT(pageUp()));
-  this->addAction(pageUpAct);
+  m_pageUpAct = new QAction(QIcon(":/images/pageUpIcon.png"), tr("Page &Up"), this);
+  m_pageUpAct->setStatusTip(tr("Page Up"));
+  m_pageUpAct->setShortcut(QKeySequence(Qt::Key_Up));
+  connect(m_pageUpAct, SIGNAL(triggered()), mainWidget, SLOT(pageUp()));
+  this->addAction(m_pageUpAct);
 
-  pageDownAct = new QAction(QIcon(":/images/pageDownIcon.png"), tr("Page &Down"), this);
-  pageDownAct->setStatusTip(tr("Page Down"));
-  pageDownAct->setShortcut(QKeySequence(Qt::Key_Down));
-  connect(pageDownAct, SIGNAL(triggered()), mainWidget, SLOT(pageDown()));
-  this->addAction(pageDownAct);
+  m_pageDownAct = new QAction(QIcon(":/images/pageDownIcon.png"), tr("Page &Down"), this);
+  m_pageDownAct->setStatusTip(tr("Page Down"));
+  m_pageDownAct->setShortcut(QKeySequence(Qt::Key_Down));
+  connect(m_pageDownAct, SIGNAL(triggered()), mainWidget, SLOT(pageDown()));
+  this->addAction(m_pageDownAct);
 
-  pageAddBeforeAct = new QAction(tr("New Page &Before"), this);
-  pageAddBeforeAct->setStatusTip(tr("New Page before current Page"));
-  connect(pageAddBeforeAct, SIGNAL(triggered()), mainWidget, SLOT(pageAddBefore()));
+  m_pageAddBeforeAct = new QAction(tr("New Page &Before"), this);
+  m_pageAddBeforeAct->setStatusTip(tr("New Page before current Page"));
+  connect(m_pageAddBeforeAct, SIGNAL(triggered()), mainWidget, SLOT(pageAddBefore()));
 
-  pageAddAfterAct = new QAction(tr("New Page &After"), this);
-  pageAddAfterAct->setStatusTip(tr("New Page after current Page"));
-  connect(pageAddAfterAct, SIGNAL(triggered()), mainWidget, SLOT(pageAddAfter()));
+  m_pageAddAfterAct = new QAction(tr("New Page &After"), this);
+  m_pageAddAfterAct->setStatusTip(tr("New Page after current Page"));
+  connect(m_pageAddAfterAct, SIGNAL(triggered()), mainWidget, SLOT(pageAddAfter()));
 
-  pageAddEndAct = new QAction(tr("New Page at &End"), this);
-  pageAddEndAct->setStatusTip(tr("New Page after last Page"));
-  connect(pageAddEndAct, SIGNAL(triggered()), mainWidget, SLOT(pageAddEnd()));
+  m_pageAddEndAct = new QAction(tr("New Page at &End"), this);
+  m_pageAddEndAct->setStatusTip(tr("New Page after last Page"));
+  connect(m_pageAddEndAct, SIGNAL(triggered()), mainWidget, SLOT(pageAddEnd()));
 
-  pageAddBeginningAct = new QAction(tr("New Page at Beginning"), this);
-  pageAddBeginningAct->setStatusTip(tr("New Page before first Page"));
-  connect(pageAddBeginningAct, SIGNAL(triggered()), mainWidget, SLOT(pageAddBeginning()));
+  m_pageAddBeginningAct = new QAction(tr("New Page at Beginning"), this);
+  m_pageAddBeginningAct->setStatusTip(tr("New Page before first Page"));
+  connect(m_pageAddBeginningAct, SIGNAL(triggered()), mainWidget, SLOT(pageAddBeginning()));
 
-  pageRemoveAct = new QAction(tr("Remove Current Page"), this);
-  pageRemoveAct->setStatusTip(tr("Remove Current Page"));
-  connect(pageRemoveAct, SIGNAL(triggered()), mainWidget, SLOT(pageRemove()));
+  m_pageRemoveAct = new QAction(tr("Remove Current Page"), this);
+  m_pageRemoveAct->setStatusTip(tr("Remove Current Page"));
+  connect(m_pageRemoveAct, SIGNAL(triggered()), mainWidget, SLOT(pageRemove()));
 
-  pageSettingsAct = new QAction(tr("Page Settings"), this);
-  pageSettingsAct->setStatusTip(tr("Page Settings"));
-  connect(pageSettingsAct, SIGNAL(triggered()), this, SLOT(pageSettings()));
+  m_pageSettingsAct = new QAction(tr("Page Settings"), this);
+  m_pageSettingsAct->setStatusTip(tr("Page Settings"));
+  connect(m_pageSettingsAct, SIGNAL(triggered()), this, SLOT(pageSettings()));
 
-  saveMyStateAct = new QAction(tr("Save window state"), this);
-  saveMyStateAct->setStatusTip(tr("Save window state"));
-  connect(saveMyStateAct, SIGNAL(triggered()), this, SLOT(saveMyState()));
+  m_saveMyStateAct = new QAction(tr("Save window state"), this);
+  m_saveMyStateAct->setStatusTip(tr("Save window state"));
+  connect(m_saveMyStateAct, SIGNAL(triggered()), this, SLOT(saveMyState()));
 
-  loadMyStateAct = new QAction(tr("Load window state"), this);
-  loadMyStateAct->setStatusTip(tr("Load window state"));
-  connect(loadMyStateAct, SIGNAL(triggered()), this, SLOT(loadMyState()));
+  m_loadMyStateAct = new QAction(tr("Load window state"), this);
+  m_loadMyStateAct->setStatusTip(tr("Load window state"));
+  connect(m_loadMyStateAct, SIGNAL(triggered()), this, SLOT(loadMyState()));
 
-  penAct = new QAction(QIcon(":/images/penIcon.png"), tr("Pen"), this);
-  penAct->setStatusTip(tr("Pen Tool"));
-  penAct->setShortcut(QKeySequence(Qt::Key_1));
-  penAct->setCheckable(true);
-  penAct->setChecked(true);
-  connect(penAct, SIGNAL(triggered()), this, SLOT(pen()));
-  this->addAction(penAct); // add to make shortcut work if menubar is hidden
+  m_penAct = new QAction(QIcon(":/images/penIcon.png"), tr("Pen"), this);
+  m_penAct->setStatusTip(tr("Pen Tool"));
+  m_penAct->setShortcut(QKeySequence(Qt::Key_1));
+  m_penAct->setCheckable(true);
+  m_penAct->setChecked(true);
+  connect(m_penAct, SIGNAL(triggered()), this, SLOT(pen()));
+  this->addAction(m_penAct); // add to make shortcut work if menubar is hidden
 
-  rulerAct = new QAction(QIcon(":/images/rulerIcon.png"), tr("Ruler"), this);
-  rulerAct->setStatusTip(tr("Ruler Tool"));
-  rulerAct->setShortcut(QKeySequence(Qt::Key_2));
-  rulerAct->setCheckable(true);
-  rulerAct->setChecked(false);
-  connect(rulerAct, SIGNAL(triggered()), this, SLOT(ruler()));
-  this->addAction(rulerAct); // add to make shortcut work if menubar is hidden
+  m_rulerAct = new QAction(QIcon(":/images/rulerIcon.png"), tr("Ruler"), this);
+  m_rulerAct->setStatusTip(tr("Ruler Tool"));
+  m_rulerAct->setShortcut(QKeySequence(Qt::Key_2));
+  m_rulerAct->setCheckable(true);
+  m_rulerAct->setChecked(false);
+  connect(m_rulerAct, SIGNAL(triggered()), this, SLOT(ruler()));
+  this->addAction(m_rulerAct); // add to make shortcut work if menubar is hidden
 
-  circleAct = new QAction(QIcon(":/images/circleIcon.png"), tr("circle"), this);
-  circleAct->setStatusTip(tr("circle Tool"));
-  circleAct->setShortcut(QKeySequence(Qt::Key_3));
-  circleAct->setCheckable(true);
-  circleAct->setChecked(false);
-  connect(circleAct, SIGNAL(triggered()), this, SLOT(circle()));
-  this->addAction(circleAct); // add to make shortcut work if menubar is hidden
+  m_circleAct = new QAction(QIcon(":/images/circleIcon.png"), tr("circle"), this);
+  m_circleAct->setStatusTip(tr("circle Tool"));
+  m_circleAct->setShortcut(QKeySequence(Qt::Key_3));
+  m_circleAct->setCheckable(true);
+  m_circleAct->setChecked(false);
+  connect(m_circleAct, SIGNAL(triggered()), this, SLOT(circle()));
+  this->addAction(m_circleAct); // add to make shortcut work if menubar is hidden
 
-  eraserAct = new QAction(QIcon(":/images/eraserIcon.png"), tr("Eraser"), this);
-  eraserAct->setStatusTip(tr("Eraser Tool"));
-  eraserAct->setShortcut(QKeySequence(Qt::Key_4));
-  eraserAct->setCheckable(true);
-  connect(eraserAct, SIGNAL(triggered()), this, SLOT(eraser()));
-  this->addAction(eraserAct); // add to make shortcut work if menubar is hidden
+  m_eraserAct = new QAction(QIcon(":/images/eraserIcon.png"), tr("Eraser"), this);
+  m_eraserAct->setStatusTip(tr("Eraser Tool"));
+  m_eraserAct->setShortcut(QKeySequence(Qt::Key_4));
+  m_eraserAct->setCheckable(true);
+  connect(m_eraserAct, SIGNAL(triggered()), this, SLOT(eraser()));
+  this->addAction(m_eraserAct); // add to make shortcut work if menubar is hidden
 
-  selectAct = new QAction(QIcon(":/images/selectIcon.png"), tr("Select"), this);
-  selectAct->setStatusTip(tr("Select Tool"));
-  selectAct->setShortcut(QKeySequence(Qt::Key_5));
-  selectAct->setCheckable(true);
-  connect(selectAct, SIGNAL(triggered()), this, SLOT(select()));
-  this->addAction(selectAct); // add to make shortcut work if menubar is hidden
+  m_selectAct = new QAction(QIcon(":/images/selectIcon.png"), tr("Select"), this);
+  m_selectAct->setStatusTip(tr("Select Tool"));
+  m_selectAct->setShortcut(QKeySequence(Qt::Key_5));
+  m_selectAct->setCheckable(true);
+  connect(m_selectAct, SIGNAL(triggered()), this, SLOT(select()));
+  this->addAction(m_selectAct); // add to make shortcut work if menubar is hidden
 
-  handAct = new QAction(QIcon(":/images/handIcon.png"), tr("Hand"), this);
-  handAct->setStatusTip(tr("Hand Tool"));
-  handAct->setShortcut(QKeySequence(Qt::Key_6));
-  handAct->setCheckable(true);
-  connect(handAct, SIGNAL(triggered()), this, SLOT(hand()));
-  this->addAction(handAct); // add to make shortcut work if menubar is hidden
+  m_handAct = new QAction(QIcon(":/images/handIcon.png"), tr("Hand"), this);
+  m_handAct->setStatusTip(tr("Hand Tool"));
+  m_handAct->setShortcut(QKeySequence(Qt::Key_6));
+  m_handAct->setCheckable(true);
+  connect(m_handAct, SIGNAL(triggered()), this, SLOT(hand()));
+  this->addAction(m_handAct); // add to make shortcut work if menubar is hidden
 
-  solidPatternAct = new QAction(QIcon(":/images/solidPatternIcon.png"), tr("solid line"), this);
-  solidPatternAct->setStatusTip(tr("solid line"));
-  solidPatternAct->setCheckable(true);
-  connect(solidPatternAct, SIGNAL(triggered()), mainWidget, SLOT(solidPattern()));
+  m_solidPatternAct = new QAction(QIcon(":/images/solidPatternIcon.png"), tr("solid line"), this);
+  m_solidPatternAct->setStatusTip(tr("solid line"));
+  m_solidPatternAct->setCheckable(true);
+  connect(m_solidPatternAct, SIGNAL(triggered()), mainWidget, SLOT(solidPattern()));
 
-  dashPatternAct = new QAction(QIcon(":/images/dashPatternIcon.png"), tr("dash line"), this);
-  dashPatternAct->setStatusTip(tr("dash line"));
-  dashPatternAct->setCheckable(true);
-  connect(dashPatternAct, SIGNAL(triggered()), mainWidget, SLOT(dashPattern()));
+  m_dashPatternAct = new QAction(QIcon(":/images/dashPatternIcon.png"), tr("dash line"), this);
+  m_dashPatternAct->setStatusTip(tr("dash line"));
+  m_dashPatternAct->setCheckable(true);
+  connect(m_dashPatternAct, SIGNAL(triggered()), mainWidget, SLOT(dashPattern()));
 
-  dashDotPatternAct = new QAction(QIcon(":/images/dashDotPatternIcon.png"), tr("dash dot line"), this);
-  dashDotPatternAct->setStatusTip(tr("dash dot line"));
-  dashDotPatternAct->setCheckable(true);
-  connect(dashDotPatternAct, SIGNAL(triggered()), mainWidget, SLOT(dashDotPattern()));
+  m_dashDotPatternAct = new QAction(QIcon(":/images/dashDotPatternIcon.png"), tr("dash dot line"), this);
+  m_dashDotPatternAct->setStatusTip(tr("dash dot line"));
+  m_dashDotPatternAct->setCheckable(true);
+  connect(m_dashDotPatternAct, SIGNAL(triggered()), mainWidget, SLOT(dashDotPattern()));
 
-  dotPatternAct = new QAction(QIcon(":/images/dotPatternIcon.png"), tr("dot line"), this);
-  dotPatternAct->setStatusTip(tr("dot line"));
-  dotPatternAct->setCheckable(true);
-  connect(dotPatternAct, SIGNAL(triggered()), mainWidget, SLOT(dotPattern()));
+  m_dotPatternAct = new QAction(QIcon(":/images/dotPatternIcon.png"), tr("dot line"), this);
+  m_dotPatternAct->setStatusTip(tr("dot line"));
+  m_dotPatternAct->setCheckable(true);
+  connect(m_dotPatternAct, SIGNAL(triggered()), mainWidget, SLOT(dotPattern()));
 
-  veryFinePenWidthAct = new QAction(QIcon(":/images/veryFinePenWidthIcon.png"), tr("Very Fine"), this);
-  veryFinePenWidthAct->setStatusTip(tr("Very Fine Pen Width"));
-  veryFinePenWidthAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_1));
-  veryFinePenWidthAct->setCheckable(true);
-  veryFinePenWidthAct->setChecked(false);
-  connect(veryFinePenWidthAct, SIGNAL(triggered()), mainWidget, SLOT(veryFine()));
+  m_veryFinePenWidthAct = new QAction(QIcon(":/images/veryFinePenWidthIcon.png"), tr("Very Fine"), this);
+  m_veryFinePenWidthAct->setStatusTip(tr("Very Fine Pen Width"));
+  m_veryFinePenWidthAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_1));
+  m_veryFinePenWidthAct->setCheckable(true);
+  m_veryFinePenWidthAct->setChecked(false);
+  connect(m_veryFinePenWidthAct, SIGNAL(triggered()), mainWidget, SLOT(veryFine()));
 
-  finePenWidthAct = new QAction(QIcon(":/images/finePenWidthIcon.png"), tr("Fine"), this);
-  finePenWidthAct->setStatusTip(tr("Fine Pen Width"));
-  finePenWidthAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_2));
-  finePenWidthAct->setCheckable(true);
-  finePenWidthAct->setChecked(false);
-  connect(finePenWidthAct, SIGNAL(triggered()), mainWidget, SLOT(fine()));
+  m_finePenWidthAct = new QAction(QIcon(":/images/finePenWidthIcon.png"), tr("Fine"), this);
+  m_finePenWidthAct->setStatusTip(tr("Fine Pen Width"));
+  m_finePenWidthAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_2));
+  m_finePenWidthAct->setCheckable(true);
+  m_finePenWidthAct->setChecked(false);
+  connect(m_finePenWidthAct, SIGNAL(triggered()), mainWidget, SLOT(fine()));
 
-  mediumPenWidthAct = new QAction(QIcon(":/images/mediumPenWidthIcon.png"), tr("Medium"), this);
-  mediumPenWidthAct->setStatusTip(tr("Medium Pen Width"));
-  mediumPenWidthAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_3));
-  mediumPenWidthAct->setCheckable(true);
-  mediumPenWidthAct->setChecked(false);
-  connect(mediumPenWidthAct, SIGNAL(triggered()), mainWidget, SLOT(medium()));
+  m_mediumPenWidthAct = new QAction(QIcon(":/images/mediumPenWidthIcon.png"), tr("Medium"), this);
+  m_mediumPenWidthAct->setStatusTip(tr("Medium Pen Width"));
+  m_mediumPenWidthAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_3));
+  m_mediumPenWidthAct->setCheckable(true);
+  m_mediumPenWidthAct->setChecked(false);
+  connect(m_mediumPenWidthAct, SIGNAL(triggered()), mainWidget, SLOT(medium()));
 
-  thickPenWidthAct = new QAction(QIcon(":/images/thickPenWidthIcon.png"), tr("Thick"), this);
-  thickPenWidthAct->setStatusTip(tr("Thick Pen Width"));
-  thickPenWidthAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_4));
-  thickPenWidthAct->setCheckable(true);
-  thickPenWidthAct->setChecked(false);
-  connect(thickPenWidthAct, SIGNAL(triggered()), mainWidget, SLOT(thick()));
+  m_thickPenWidthAct = new QAction(QIcon(":/images/thickPenWidthIcon.png"), tr("Thick"), this);
+  m_thickPenWidthAct->setStatusTip(tr("Thick Pen Width"));
+  m_thickPenWidthAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_4));
+  m_thickPenWidthAct->setCheckable(true);
+  m_thickPenWidthAct->setChecked(false);
+  connect(m_thickPenWidthAct, SIGNAL(triggered()), mainWidget, SLOT(thick()));
 
-  veryThickPenWidthAct = new QAction(QIcon(":/images/veryThickPenWidthIcon.png"), tr("Very Thick"), this);
-  veryThickPenWidthAct->setStatusTip(tr("Very Thick Pen Width"));
-  veryThickPenWidthAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_5));
-  veryThickPenWidthAct->setCheckable(true);
-  veryThickPenWidthAct->setChecked(false);
-  connect(veryThickPenWidthAct, SIGNAL(triggered()), mainWidget, SLOT(veryThick()));
+  m_veryThickPenWidthAct = new QAction(QIcon(":/images/veryThickPenWidthIcon.png"), tr("Very Thick"), this);
+  m_veryThickPenWidthAct->setStatusTip(tr("Very Thick Pen Width"));
+  m_veryThickPenWidthAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_5));
+  m_veryThickPenWidthAct->setCheckable(true);
+  m_veryThickPenWidthAct->setChecked(false);
+  connect(m_veryThickPenWidthAct, SIGNAL(triggered()), mainWidget, SLOT(veryThick()));
 
-  toolbarAct = new QAction(tr("show Toolbar"), this);
-  toolbarAct->setShortcut(QKeySequence(Qt::Key_T));
-  toolbarAct->setCheckable(true);
-  toolbarAct->setChecked(true);
-  connect(toolbarAct, SIGNAL(triggered()), this, SLOT(toolbar()));
-  this->addAction(toolbarAct); // add to make shortcut work if menubar is hidden
+  m_toolbarAct = new QAction(tr("show Toolbar"), this);
+  m_toolbarAct->setShortcut(QKeySequence(Qt::Key_T));
+  m_toolbarAct->setCheckable(true);
+  m_toolbarAct->setChecked(true);
+  connect(m_toolbarAct, SIGNAL(triggered()), this, SLOT(toolbar()));
+  this->addAction(m_toolbarAct); // add to make shortcut work if menubar is hidden
 
-  statusbarAct = new QAction(tr("show Statusbar"), this);
-  statusbarAct->setShortcut(QKeySequence(Qt::Key_S));
-  statusbarAct->setCheckable(true);
-  statusbarAct->setChecked(true);
-  connect(statusbarAct, SIGNAL(triggered()), this, SLOT(statusbar()));
-  this->addAction(statusbarAct); // add to make shortcut work if menubar is hidden
+  m_statusbarAct = new QAction(tr("show Statusbar"), this);
+  m_statusbarAct->setShortcut(QKeySequence(Qt::Key_S));
+  m_statusbarAct->setCheckable(true);
+  m_statusbarAct->setChecked(true);
+  connect(m_statusbarAct, SIGNAL(triggered()), this, SLOT(statusbar()));
+  this->addAction(m_statusbarAct); // add to make shortcut work if menubar is hidden
 
-  fullscreenAct = new QAction(QIcon(":/images/fullscreenIcon.png"), tr("show fullscreen"), this);
-  fullscreenAct->setShortcut(QKeySequence(Qt::Key_F));
-  fullscreenAct->setCheckable(true);
-  fullscreenAct->setChecked(false);
-  connect(fullscreenAct, SIGNAL(triggered()), this, SLOT(fullscreen()));
-  this->addAction(fullscreenAct); // add to make shortcut work if menubar is hidden
+  m_fullscreenAct = new QAction(QIcon(":/images/fullscreenIcon.png"), tr("show fullscreen"), this);
+  m_fullscreenAct->setShortcut(QKeySequence(Qt::Key_F));
+  m_fullscreenAct->setCheckable(true);
+  m_fullscreenAct->setChecked(false);
+  connect(m_fullscreenAct, SIGNAL(triggered()), this, SLOT(fullscreen()));
+  this->addAction(m_fullscreenAct); // add to make shortcut work if menubar is hidden
 
-  maximizeAct = new QAction(tr("Maximize"), this);
-  maximizeAct->setShortcut(QKeySequence(Qt::Key_M));
-  connect(maximizeAct, SIGNAL(triggered()), this, SLOT(maximize()));
-  this->addAction(maximizeAct);
+  m_maximizeAct = new QAction(tr("Maximize"), this);
+  m_maximizeAct->setShortcut(QKeySequence(Qt::Key_M));
+  connect(m_maximizeAct, SIGNAL(triggered()), this, SLOT(maximize()));
+  this->addAction(m_maximizeAct);
 
   // colorActions
-  blackAct = new QAction(QIcon(":/images/blackIcon.png"), tr("black"), this);
-  blackAct->setShortcut(QKeySequence(Qt::Key_Q));
-  blackAct->setStatusTip(tr("black"));
-  blackAct->setCheckable(true);
-  blackAct->setChecked(true);
-  connect(blackAct, SIGNAL(triggered()), this, SLOT(black()));
-  this->addAction(blackAct); // add to make shortcut work if menubar is hidden
+  m_blackAct = new QAction(QIcon(":/images/blackIcon.png"), tr("black"), this);
+  m_blackAct->setShortcut(QKeySequence(Qt::Key_Q));
+  m_blackAct->setStatusTip(tr("black"));
+  m_blackAct->setCheckable(true);
+  m_blackAct->setChecked(true);
+  connect(m_blackAct, SIGNAL(triggered()), this, SLOT(black()));
+  this->addAction(m_blackAct); // add to make shortcut work if menubar is hidden
 
-  redAct = new QAction(QIcon(":/images/redIcon.png"), tr("red"), this);
-  redAct->setShortcut(QKeySequence(Qt::Key_W));
-  redAct->setStatusTip(tr("red"));
-  redAct->setCheckable(true);
-  connect(redAct, SIGNAL(triggered()), this, SLOT(red()));
-  this->addAction(redAct); // add to make shortcut work if menubar is hidden
+  m_redAct = new QAction(QIcon(":/images/redIcon.png"), tr("red"), this);
+  m_redAct->setShortcut(QKeySequence(Qt::Key_W));
+  m_redAct->setStatusTip(tr("red"));
+  m_redAct->setCheckable(true);
+  connect(m_redAct, SIGNAL(triggered()), this, SLOT(red()));
+  this->addAction(m_redAct); // add to make shortcut work if menubar is hidden
 
-  greenAct = new QAction(QIcon(":/images/greenIcon.png"), tr("green"), this);
-  greenAct->setShortcut(QKeySequence(Qt::Key_E));
-  greenAct->setStatusTip(tr("green"));
-  greenAct->setCheckable(true);
-  connect(greenAct, SIGNAL(triggered()), this, SLOT(green()));
-  this->addAction(greenAct); // add to make shortcut work if menubar is hidden
+  m_greenAct = new QAction(QIcon(":/images/greenIcon.png"), tr("green"), this);
+  m_greenAct->setShortcut(QKeySequence(Qt::Key_E));
+  m_greenAct->setStatusTip(tr("green"));
+  m_greenAct->setCheckable(true);
+  connect(m_greenAct, SIGNAL(triggered()), this, SLOT(green()));
+  this->addAction(m_greenAct); // add to make shortcut work if menubar is hidden
 
-  blueAct = new QAction(QIcon(":/images/blueIcon.png"), tr("blue"), this);
-  blueAct->setShortcut(QKeySequence(Qt::Key_R));
-  blueAct->setStatusTip(tr("blue"));
-  blueAct->setCheckable(true);
-  connect(blueAct, SIGNAL(triggered()), this, SLOT(blue()));
-  this->addAction(blueAct); // add to make shortcut work if menubar is hidden
+  m_blueAct = new QAction(QIcon(":/images/blueIcon.png"), tr("blue"), this);
+  m_blueAct->setShortcut(QKeySequence(Qt::Key_R));
+  m_blueAct->setStatusTip(tr("blue"));
+  m_blueAct->setCheckable(true);
+  connect(m_blueAct, SIGNAL(triggered()), this, SLOT(blue()));
+  this->addAction(m_blueAct); // add to make shortcut work if menubar is hidden
 
-  grayAct = new QAction(QIcon(":/images/grayIcon.png"), tr("gray"), this);
-  grayAct->setStatusTip(tr("gray"));
-  grayAct->setCheckable(true);
-  connect(grayAct, SIGNAL(triggered()), this, SLOT(gray()));
+  m_grayAct = new QAction(QIcon(":/images/grayIcon.png"), tr("gray"), this);
+  m_grayAct->setStatusTip(tr("gray"));
+  m_grayAct->setCheckable(true);
+  connect(m_grayAct, SIGNAL(triggered()), this, SLOT(gray()));
 
-  lightblueAct = new QAction(QIcon(":/images/lightblueIcon.png"), tr("lightblue"), this);
-  lightblueAct->setStatusTip(tr("lightblue"));
-  lightblueAct->setCheckable(true);
-  connect(lightblueAct, SIGNAL(triggered()), this, SLOT(lightblue()));
+  m_lightblueAct = new QAction(QIcon(":/images/lightblueIcon.png"), tr("lightblue"), this);
+  m_lightblueAct->setStatusTip(tr("lightblue"));
+  m_lightblueAct->setCheckable(true);
+  connect(m_lightblueAct, SIGNAL(triggered()), this, SLOT(lightblue()));
 
-  lightgreenAct = new QAction(QIcon(":/images/lightgreenIcon.png"), tr("lightgreen"), this);
-  lightgreenAct->setStatusTip(tr("lightgreen"));
-  lightgreenAct->setCheckable(true);
-  connect(lightgreenAct, SIGNAL(triggered()), this, SLOT(lightgreen()));
+  m_lightgreenAct = new QAction(QIcon(":/images/lightgreenIcon.png"), tr("lightgreen"), this);
+  m_lightgreenAct->setStatusTip(tr("lightgreen"));
+  m_lightgreenAct->setCheckable(true);
+  connect(m_lightgreenAct, SIGNAL(triggered()), this, SLOT(lightgreen()));
 
-  magentaAct = new QAction(QIcon(":/images/magentaIcon.png"), tr("magenta"), this);
-  magentaAct->setStatusTip(tr("magenta"));
-  magentaAct->setCheckable(true);
-  connect(magentaAct, SIGNAL(triggered()), this, SLOT(magenta()));
+  m_magentaAct = new QAction(QIcon(":/images/magentaIcon.png"), tr("magenta"), this);
+  m_magentaAct->setStatusTip(tr("magenta"));
+  m_magentaAct->setCheckable(true);
+  connect(m_magentaAct, SIGNAL(triggered()), this, SLOT(magenta()));
 
-  orangeAct = new QAction(QIcon(":/images/orangeIcon.png"), tr("orange"), this);
-  orangeAct->setStatusTip(tr("orange"));
-  orangeAct->setCheckable(true);
-  connect(orangeAct, SIGNAL(triggered()), this, SLOT(orange()));
+  m_orangeAct = new QAction(QIcon(":/images/orangeIcon.png"), tr("orange"), this);
+  m_orangeAct->setStatusTip(tr("orange"));
+  m_orangeAct->setCheckable(true);
+  connect(m_orangeAct, SIGNAL(triggered()), this, SLOT(orange()));
 
-  yellowAct = new QAction(QIcon(":/images/yellowIcon.png"), tr("yellow"), this);
-  yellowAct->setStatusTip(tr("yellow"));
-  yellowAct->setCheckable(true);
-  connect(yellowAct, SIGNAL(triggered()), this, SLOT(yellow()));
+  m_yellowAct = new QAction(QIcon(":/images/yellowIcon.png"), tr("yellow"), this);
+  m_yellowAct->setStatusTip(tr("yellow"));
+  m_yellowAct->setCheckable(true);
+  connect(m_yellowAct, SIGNAL(triggered()), this, SLOT(yellow()));
 
-  whiteAct = new QAction(QIcon(":/images/whiteIcon.png"), tr("white"), this);
-  whiteAct->setStatusTip(tr("white"));
-  whiteAct->setCheckable(true);
-  connect(whiteAct, SIGNAL(triggered()), this, SLOT(white()));
+  m_whiteAct = new QAction(QIcon(":/images/whiteIcon.png"), tr("white"), this);
+  m_whiteAct->setStatusTip(tr("white"));
+  m_whiteAct->setCheckable(true);
+  connect(m_whiteAct, SIGNAL(triggered()), this, SLOT(white()));
 
-  rotateAct = new QAction(tr("Rotate"), this);
-  rotateAct->setStatusTip("Rotate Selection");
-  rotateAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_R));
-  connect(rotateAct, SIGNAL(triggered()), this, SLOT(rotate()));
-  this->addAction(rotateAct); // add to make shortcut work if menubar is hidden
+  m_rotateAct = new QAction(tr("Rotate"), this);
+  m_rotateAct->setStatusTip("Rotate Selection");
+  m_rotateAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_R));
+  connect(m_rotateAct, SIGNAL(triggered()), this, SLOT(rotate()));
+  this->addAction(m_rotateAct); // add to make shortcut work if menubar is hidden
 
-  helpAct = new QAction(tr("&Help"), this);
-  helpAct->setShortcut(QKeySequence(Qt::Key_F1));
-  connect(helpAct, SIGNAL(triggered()), this, SLOT(help()));
+  m_helpAct = new QAction(tr("&Help"), this);
+  m_helpAct->setShortcut(QKeySequence(Qt::Key_F1));
+  connect(m_helpAct, SIGNAL(triggered()), this, SLOT(help()));
 
-  aboutAct = new QAction(tr("&About"), this);
-  connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
+  m_aboutAct = new QAction(tr("&About"), this);
+  connect(m_aboutAct, SIGNAL(triggered()), this, SLOT(about()));
 
-  aboutQtAct = new QAction(tr("About &Qt"), this);
-  connect(aboutQtAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
+  m_aboutQtAct = new QAction(tr("About &Qt"), this);
+  connect(m_aboutQtAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 
   QObject::connect(scrollArea->verticalScrollBar(), SIGNAL(valueChanged(int)), this, SLOT(verticalScrolling()));
 }
 
 void MainWindow::createMenus()
 {
-  fileMenu = menuBar()->addMenu(tr("&File"));
-  fileMenu->addAction(newWindowAct);
-  fileMenu->addAction(cloneWindowAct);
-  fileMenu->addAction(closeWindowAct);
-  fileMenu->addSeparator();
-  fileMenu->addAction(newFileAct);
-  fileMenu->addAction(openFileAct);
-  fileMenu->addAction(saveFileAct);
-  fileMenu->addAction(saveFileAsAct);
-  fileMenu->addAction(exportPDFAct);
-  fileMenu->addAction(importXOJAct);
-  fileMenu->addAction(exportXOJAct);
-  fileMenu->addSeparator();
-  fileMenu->addAction(exitAct);
+  m_fileMenu = menuBar()->addMenu(tr("&File"));
+  m_fileMenu->addAction(m_newWindowAct);
+  m_fileMenu->addAction(m_cloneWindowAct);
+  m_fileMenu->addAction(m_closeWindowAct);
+  m_fileMenu->addSeparator();
+  m_fileMenu->addAction(m_newFileAct);
+  m_fileMenu->addAction(m_openFileAct);
+  m_fileMenu->addAction(m_saveFileAct);
+  m_fileMenu->addAction(m_saveFileAsAct);
+  m_fileMenu->addAction(m_exportPDFAct);
+  m_fileMenu->addAction(m_importXOJAct);
+  m_fileMenu->addAction(m_exportXOJAct);
+  m_fileMenu->addSeparator();
+  m_fileMenu->addAction(m_exitAct);
 
-  editMenu = menuBar()->addMenu(tr("&Edit"));
-  editMenu->addAction(undoAct);
-  editMenu->addAction(redoAct);
-  editMenu->addSeparator();
-  editMenu->addAction(cutAct);
-  editMenu->addAction(copyAct);
-  editMenu->addAction(pasteAct);
-  editMenu->addSeparator();
-  editMenu->addAction(selectAllAct);
-  editMenu->addSeparator();
-  editMenu->addAction(rotateAct);
+  m_editMenu = menuBar()->addMenu(tr("&Edit"));
+  m_editMenu->addAction(m_undoAct);
+  m_editMenu->addAction(m_redoAct);
+  m_editMenu->addSeparator();
+  m_editMenu->addAction(m_cutAct);
+  m_editMenu->addAction(m_copyAct);
+  m_editMenu->addAction(m_pasteAct);
+  m_editMenu->addSeparator();
+  m_editMenu->addAction(m_selectAllAct);
+  m_editMenu->addSeparator();
+  m_editMenu->addAction(m_rotateAct);
 
-  pageMenu = menuBar()->addMenu(tr("&Page"));
-  pageMenu->addAction(pageAddBeforeAct);
-  pageMenu->addAction(pageAddAfterAct);
-  pageMenu->addAction(pageAddBeginningAct);
-  pageMenu->addAction(pageAddEndAct);
-  pageMenu->addSeparator();
-  pageMenu->addAction(pageRemoveAct);
-  pageMenu->addSeparator();
-  pageMenu->addAction(pageSettingsAct);
+  m_pageMenu = menuBar()->addMenu(tr("&Page"));
+  m_pageMenu->addAction(m_pageAddBeforeAct);
+  m_pageMenu->addAction(m_pageAddAfterAct);
+  m_pageMenu->addAction(m_pageAddBeginningAct);
+  m_pageMenu->addAction(m_pageAddEndAct);
+  m_pageMenu->addSeparator();
+  m_pageMenu->addAction(m_pageRemoveAct);
+  m_pageMenu->addSeparator();
+  m_pageMenu->addAction(m_pageSettingsAct);
 
-  toolsMenu = menuBar()->addMenu(tr("&Tools"));
-  toolsMenu->addAction(penAct);
-  toolsMenu->addAction(rulerAct);
-  toolsMenu->addAction(circleAct);
-  toolsMenu->addAction(eraserAct);
-  toolsMenu->addAction(selectAct);
-  toolsMenu->addAction(handAct);
-  toolsMenu->addSeparator();
+  m_toolsMenu = menuBar()->addMenu(tr("&Tools"));
+  m_toolsMenu->addAction(m_penAct);
+  m_toolsMenu->addAction(m_rulerAct);
+  m_toolsMenu->addAction(m_circleAct);
+  m_toolsMenu->addAction(m_eraserAct);
+  m_toolsMenu->addAction(m_selectAct);
+  m_toolsMenu->addAction(m_handAct);
+  m_toolsMenu->addSeparator();
 
-  penWidthMenu = toolsMenu->addMenu(tr("Pen Width"));
-  penWidthMenu->addAction(veryFinePenWidthAct);
-  penWidthMenu->addAction(finePenWidthAct);
-  penWidthMenu->addAction(mediumPenWidthAct);
-  penWidthMenu->addAction(thickPenWidthAct);
-  penWidthMenu->addAction(veryThickPenWidthAct);
+  m_penWidthMenu = m_toolsMenu->addMenu(tr("Pen Width"));
+  m_penWidthMenu->addAction(m_veryFinePenWidthAct);
+  m_penWidthMenu->addAction(m_finePenWidthAct);
+  m_penWidthMenu->addAction(m_mediumPenWidthAct);
+  m_penWidthMenu->addAction(m_thickPenWidthAct);
+  m_penWidthMenu->addAction(m_veryThickPenWidthAct);
 
   //    toolsMenu->addSeparator();
 
-  patternMenu = toolsMenu->addMenu(tr("Line Pattern"));
-  patternMenu->addAction(solidPatternAct);
-  patternMenu->addAction(dashPatternAct);
-  patternMenu->addAction(dashDotPatternAct);
-  patternMenu->addAction(dotPatternAct);
+  m_patternMenu = m_toolsMenu->addMenu(tr("Line Pattern"));
+  m_patternMenu->addAction(m_solidPatternAct);
+  m_patternMenu->addAction(m_dashPatternAct);
+  m_patternMenu->addAction(m_dashDotPatternAct);
+  m_patternMenu->addAction(m_dotPatternAct);
 
-  viewMenu = menuBar()->addMenu(tr("&View"));
-  viewMenu->addAction(zoomInAct);
-  viewMenu->addAction(zoomOutAct);
-  viewMenu->addAction(zoomFitWidthAct);
-  viewMenu->addAction(zoomFitHeightAct);
-  viewMenu->addSeparator();
-  viewMenu->addAction(toolbarAct);
-  viewMenu->addAction(statusbarAct);
-  viewMenu->addAction(fullscreenAct);
-  viewMenu->addSeparator();
-  viewMenu->addAction(saveMyStateAct);
-  viewMenu->addAction(loadMyStateAct);
+  m_viewMenu = menuBar()->addMenu(tr("&View"));
+  m_viewMenu->addAction(m_zoomInAct);
+  m_viewMenu->addAction(m_zoomOutAct);
+  m_viewMenu->addAction(m_zoomFitWidthAct);
+  m_viewMenu->addAction(m_zoomFitHeightAct);
+  m_viewMenu->addSeparator();
+  m_viewMenu->addAction(m_toolbarAct);
+  m_viewMenu->addAction(m_statusbarAct);
+  m_viewMenu->addAction(m_fullscreenAct);
+  m_viewMenu->addSeparator();
+  m_viewMenu->addAction(m_saveMyStateAct);
+  m_viewMenu->addAction(m_loadMyStateAct);
 
-  helpMenu = menuBar()->addMenu(tr("&Help"));
-  helpMenu->addAction(helpAct);
-  helpMenu->addAction(aboutAct);
-  helpMenu->addAction(aboutQtAct);
+  m_helpMenu = menuBar()->addMenu(tr("&Help"));
+  m_helpMenu->addAction(m_helpAct);
+  m_helpMenu->addAction(m_aboutAct);
+  m_helpMenu->addAction(m_aboutQtAct);
 }
 
 void MainWindow::createToolBars()
@@ -591,93 +591,93 @@ void MainWindow::createToolBars()
     iconSize = QSize(24, 24);
   }
 
-  fileToolBar = addToolBar(tr("File"));
-  fileToolBar->setObjectName("fileToolBar");
+  m_fileToolBar = addToolBar(tr("File"));
+  m_fileToolBar->setObjectName("fileToolBar");
   if (QSysInfo::productType().compare("android") == 0)
   {
-    mainMenuButton = new QToolButton();
-    mainMenuButton->setText("Menu");
-    mainMenuButton->setPopupMode(QToolButton::InstantPopup);
-    mainMenu = new QMenu("Menu");
-    mainMenu->addMenu(fileMenu);
-    mainMenu->addMenu(editMenu);
-    mainMenu->addMenu(pageMenu);
-    mainMenu->addMenu(toolsMenu);
-    mainMenu->addMenu(viewMenu);
-    mainMenu->addMenu(helpMenu);
-    mainMenuButton->setMenu(mainMenu);
-    fileToolBar->addWidget(mainMenuButton);
+    m_mainMenuButton = new QToolButton();
+    m_mainMenuButton->setText("Menu");
+    m_mainMenuButton->setPopupMode(QToolButton::InstantPopup);
+    m_mainMenu = new QMenu("Menu");
+    m_mainMenu->addMenu(m_fileMenu);
+    m_mainMenu->addMenu(m_editMenu);
+    m_mainMenu->addMenu(m_pageMenu);
+    m_mainMenu->addMenu(m_toolsMenu);
+    m_mainMenu->addMenu(m_viewMenu);
+    m_mainMenu->addMenu(m_helpMenu);
+    m_mainMenuButton->setMenu(m_mainMenu);
+    m_fileToolBar->addWidget(m_mainMenuButton);
   }
-  fileToolBar->addAction(newFileAct);
-  fileToolBar->addAction(openFileAct);
-  fileToolBar->addAction(saveFileAct);
-  fileToolBar->addAction(exportPDFAct);
-  fileToolBar->setIconSize(iconSize);
+  m_fileToolBar->addAction(m_newFileAct);
+  m_fileToolBar->addAction(m_openFileAct);
+  m_fileToolBar->addAction(m_saveFileAct);
+  m_fileToolBar->addAction(m_exportPDFAct);
+  m_fileToolBar->setIconSize(iconSize);
 
-  editToolBar = addToolBar(tr("Edit"));
-  editToolBar->setObjectName("editToolBar");
-  editToolBar->addAction(cutAct);
-  editToolBar->addAction(copyAct);
-  editToolBar->addAction(pasteAct);
-  editToolBar->addSeparator();
-  editToolBar->addAction(undoAct);
-  editToolBar->addAction(redoAct);
-  editToolBar->setIconSize(iconSize);
+  m_editToolBar = addToolBar(tr("Edit"));
+  m_editToolBar->setObjectName("editToolBar");
+  m_editToolBar->addAction(m_cutAct);
+  m_editToolBar->addAction(m_copyAct);
+  m_editToolBar->addAction(m_pasteAct);
+  m_editToolBar->addSeparator();
+  m_editToolBar->addAction(m_undoAct);
+  m_editToolBar->addAction(m_redoAct);
+  m_editToolBar->setIconSize(iconSize);
 
-  viewToolBar = addToolBar(tr("View"));
-  viewToolBar->setObjectName("viewToolBar");
-  viewToolBar->addAction(pageFirstAct);
-  viewToolBar->addAction(pageUpAct);
-  viewToolBar->addAction(pageDownAct);
-  viewToolBar->addAction(pageLastAct);
-  viewToolBar->addSeparator();
-  viewToolBar->addAction(zoomOutAct);
-  viewToolBar->addAction(zoomFitWidthAct);
-  viewToolBar->addAction(zoomFitHeightAct);
-  viewToolBar->addAction(zoomInAct);
-  viewToolBar->addSeparator();
-  viewToolBar->addAction(fullscreenAct);
-  viewToolBar->setIconSize(iconSize);
+  m_viewToolBar = addToolBar(tr("View"));
+  m_viewToolBar->setObjectName("viewToolBar");
+  m_viewToolBar->addAction(m_pageFirstAct);
+  m_viewToolBar->addAction(m_pageUpAct);
+  m_viewToolBar->addAction(m_pageDownAct);
+  m_viewToolBar->addAction(m_pageLastAct);
+  m_viewToolBar->addSeparator();
+  m_viewToolBar->addAction(m_zoomOutAct);
+  m_viewToolBar->addAction(m_zoomFitWidthAct);
+  m_viewToolBar->addAction(m_zoomFitHeightAct);
+  m_viewToolBar->addAction(m_zoomInAct);
+  m_viewToolBar->addSeparator();
+  m_viewToolBar->addAction(m_fullscreenAct);
+  m_viewToolBar->setIconSize(iconSize);
 
   addToolBarBreak();
 
-  toolsToolBar = addToolBar(tr("Tools"));
-  toolsToolBar->setObjectName("toolsToolBar");
-  toolsToolBar->addAction(penAct);
-  toolsToolBar->addAction(rulerAct);
-  toolsToolBar->addAction(circleAct);
-  toolsToolBar->addAction(eraserAct);
-  toolsToolBar->addAction(selectAct);
-  toolsToolBar->addAction(handAct);
+  m_toolsToolBar = addToolBar(tr("Tools"));
+  m_toolsToolBar->setObjectName("toolsToolBar");
+  m_toolsToolBar->addAction(m_penAct);
+  m_toolsToolBar->addAction(m_rulerAct);
+  m_toolsToolBar->addAction(m_circleAct);
+  m_toolsToolBar->addAction(m_eraserAct);
+  m_toolsToolBar->addAction(m_selectAct);
+  m_toolsToolBar->addAction(m_handAct);
 
-  toolsToolBar->addSeparator();
+  m_toolsToolBar->addSeparator();
 
-  toolsToolBar->addAction(finePenWidthAct);
-  toolsToolBar->addAction(mediumPenWidthAct);
-  toolsToolBar->addAction(thickPenWidthAct);
+  m_toolsToolBar->addAction(m_finePenWidthAct);
+  m_toolsToolBar->addAction(m_mediumPenWidthAct);
+  m_toolsToolBar->addAction(m_thickPenWidthAct);
 
-  toolsToolBar->addSeparator();
+  m_toolsToolBar->addSeparator();
 
-  patternToolButton = new QToolButton();
-  patternToolButton->setMenu(patternMenu);
-  patternToolButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
-  patternToolButton->setPopupMode(QToolButton::InstantPopup);
-  toolsToolBar->addWidget(patternToolButton);
+  m_patternToolButton = new QToolButton();
+  m_patternToolButton->setMenu(m_patternMenu);
+  m_patternToolButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
+  m_patternToolButton->setPopupMode(QToolButton::InstantPopup);
+  m_toolsToolBar->addWidget(m_patternToolButton);
 
-  toolsToolBar->addSeparator();
+  m_toolsToolBar->addSeparator();
 
-  toolsToolBar->addAction(blackAct);
-  toolsToolBar->addAction(redAct);
-  toolsToolBar->addAction(greenAct);
-  toolsToolBar->addAction(blueAct);
-  toolsToolBar->addAction(grayAct);
-  toolsToolBar->addAction(lightblueAct);
-  toolsToolBar->addAction(lightgreenAct);
-  toolsToolBar->addAction(magentaAct);
-  toolsToolBar->addAction(orangeAct);
-  toolsToolBar->addAction(yellowAct);
-  toolsToolBar->addAction(whiteAct);
-  toolsToolBar->setIconSize(iconSize);
+  m_toolsToolBar->addAction(m_blackAct);
+  m_toolsToolBar->addAction(m_redAct);
+  m_toolsToolBar->addAction(m_greenAct);
+  m_toolsToolBar->addAction(m_blueAct);
+  m_toolsToolBar->addAction(m_grayAct);
+  m_toolsToolBar->addAction(m_lightblueAct);
+  m_toolsToolBar->addAction(m_lightgreenAct);
+  m_toolsToolBar->addAction(m_magentaAct);
+  m_toolsToolBar->addAction(m_orangeAct);
+  m_toolsToolBar->addAction(m_yellowAct);
+  m_toolsToolBar->addAction(m_whiteAct);
+  m_toolsToolBar->setIconSize(iconSize);
 }
 
 // slots
@@ -703,13 +703,13 @@ void MainWindow::openFile()
 
   QString dir;
 
-  if (mainWidget->currentDocument.path().isEmpty())
+  if (mainWidget->m_currentDocument.path().isEmpty())
   {
     dir = QDir::homePath();
   }
   else
   {
-    dir = mainWidget->currentDocument.path();
+    dir = mainWidget->m_currentDocument.path();
   }
 
   QString fileName = QFileDialog::getOpenFileName(this, tr("Open MOJ"), dir, tr("MrWriter Files (*.moj)"));
@@ -759,7 +759,7 @@ bool MainWindow::saveFileAs()
     return false;
   }
 
-  if (mainWidget->currentDocument.saveMOJ(fileName))
+  if (mainWidget->m_currentDocument.saveMOJ(fileName))
   {
     modified();
     setTitle();
@@ -775,15 +775,15 @@ bool MainWindow::saveFile()
 {
   QString dir;
   QString fileName;
-  if (mainWidget->currentDocument.docName().isEmpty())
+  if (mainWidget->m_currentDocument.docName().isEmpty())
   {
     fileName = askForFileName();
   }
   else
   {
-    dir = mainWidget->currentDocument.path();
+    dir = mainWidget->m_currentDocument.path();
     dir.append('/');
-    dir.append(mainWidget->currentDocument.docName());
+    dir.append(mainWidget->m_currentDocument.docName());
     dir.append(".moj");
     fileName = dir;
   }
@@ -793,7 +793,7 @@ bool MainWindow::saveFile()
     return false;
   }
 
-  if (mainWidget->currentDocument.saveMOJ(fileName))
+  if (mainWidget->m_currentDocument.saveMOJ(fileName))
   {
     modified();
     setTitle();
@@ -808,15 +808,15 @@ bool MainWindow::saveFile()
 void MainWindow::exportPDF()
 {
   QString fileName;
-  if (mainWidget->currentDocument.docName().isEmpty())
+  if (mainWidget->m_currentDocument.docName().isEmpty())
   {
     fileName = QDir::homePath();
   }
   else
   {
-    fileName = mainWidget->currentDocument.path();
+    fileName = mainWidget->m_currentDocument.path();
     fileName.append('/');
-    fileName.append(mainWidget->currentDocument.docName());
+    fileName.append(mainWidget->m_currentDocument.docName());
     fileName.append(".pdf");
   }
   fileName = QFileDialog::getSaveFileName(this, tr("Export PDF"), fileName, tr("Adobe PDF files (*.pdf)"));
@@ -826,7 +826,7 @@ void MainWindow::exportPDF()
     return;
   }
 
-  mainWidget->currentDocument.exportPDF(fileName);
+  mainWidget->m_currentDocument.exportPDF(fileName);
 }
 
 void MainWindow::importXOJ()
@@ -838,13 +838,13 @@ void MainWindow::importXOJ()
 
   QString dir;
 
-  if (mainWidget->currentDocument.path().isEmpty())
+  if (mainWidget->m_currentDocument.path().isEmpty())
   {
     dir = QDir::homePath();
   }
   else
   {
-    dir = mainWidget->currentDocument.path();
+    dir = mainWidget->m_currentDocument.path();
   }
 
   QString fileName = QFileDialog::getOpenFileName(this, tr("Import XOJ"), dir, tr("Xournal Files (*.xoj)"));
@@ -884,7 +884,7 @@ bool MainWindow::exportXOJ()
     return false;
   }
 
-  if (mainWidget->currentDocument.saveXOJ(fileName))
+  if (mainWidget->m_currentDocument.saveXOJ(fileName))
   {
     modified();
     setTitle();
@@ -954,7 +954,7 @@ void MainWindow::hand()
 
 void MainWindow::modified()
 {
-  setWindowModified(mainWidget->currentDocument.documentChanged());
+  setWindowModified(mainWidget->m_currentDocument.documentChanged());
 }
 
 void MainWindow::black()
@@ -1080,7 +1080,7 @@ void MainWindow::about()
 void MainWindow::toolbar()
 {
   bool vis;
-  if (toolbarAct->isChecked())
+  if (m_toolbarAct->isChecked())
   {
     vis = true;
   }
@@ -1088,17 +1088,17 @@ void MainWindow::toolbar()
   {
     vis = false;
   }
-  fileToolBar->setVisible(vis);
-  editToolBar->setVisible(vis);
-  viewToolBar->setVisible(vis);
-  toolsToolBar->setVisible(vis);
+  m_fileToolBar->setVisible(vis);
+  m_editToolBar->setVisible(vis);
+  m_viewToolBar->setVisible(vis);
+  m_toolsToolBar->setVisible(vis);
   updateGUI();
 }
 
 void MainWindow::statusbar()
 {
   bool vis;
-  if (statusbarAct->isChecked())
+  if (m_statusbarAct->isChecked())
   {
     vis = true;
   }
@@ -1112,7 +1112,7 @@ void MainWindow::statusbar()
 
 void MainWindow::fullscreen()
 {
-  if (fullscreenAct->isChecked())
+  if (m_fullscreenAct->isChecked())
   {
     showFullScreen();
     menuBar()->hide();
@@ -1133,24 +1133,24 @@ void MainWindow::verticalScrolling()
 
   pageNum = mainWidget->getCurrentPage();
 
-  if (pageNum == mainWidget->currentDocument.pages.size() - 1)
+  if (pageNum == mainWidget->m_currentDocument.pages.size() - 1)
   {
-    pageDownAct->setIcon(QIcon(":/images/pageDownPlusIcon.png"));
-    pageDownAct->setText(tr("Page Down (add Page)"));
-    pageDownAct->setStatusTip(tr("Page Down (add Page)"));
+    m_pageDownAct->setIcon(QIcon(":/images/pageDownPlusIcon.png"));
+    m_pageDownAct->setText(tr("Page Down (add Page)"));
+    m_pageDownAct->setStatusTip(tr("Page Down (add Page)"));
   }
   else
   {
-    pageDownAct->setIcon(QIcon(":/images/pageDownIcon.png"));
-    pageDownAct->setText(tr("Page Down"));
-    pageDownAct->setStatusTip(tr("Page Down"));
+    m_pageDownAct->setIcon(QIcon(":/images/pageDownIcon.png"));
+    m_pageDownAct->setText(tr("Page Down"));
+    m_pageDownAct->setStatusTip(tr("Page Down"));
   }
 
-  int Npages = mainWidget->currentDocument.pages.size();
+  int Npages = mainWidget->m_currentDocument.pages.size();
 
   QString statusMsg = QString("%1 / %2").arg(QString::number(pageNum + 1), QString::number(Npages));
 
-  pageStatus.setText(statusMsg);
+  m_pageStatus.setText(statusMsg);
 }
 
 void MainWindow::showEvent(QShowEvent *event)
@@ -1165,9 +1165,9 @@ void MainWindow::closeEvent(QCloseEvent *event)
   {
     event->accept();
     TabletApplication *myApp = static_cast<TabletApplication *>(qApp);
-    myApp->mainWindows.removeOne(this);
+    myApp->m_mainWindows.removeOne(this);
     saveMyGeometry();
-    if (myApp->mainWindows.isEmpty())
+    if (myApp->m_mainWindows.isEmpty())
     {
       QGuiApplication::exit(0); // fix for calling closeEvent twice, see https://bugreports.qt.io/browse/QTBUG-43344
     }
@@ -1180,7 +1180,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 bool MainWindow::maybeSave()
 {
-  if (mainWidget->currentDocument.documentChanged())
+  if (mainWidget->m_currentDocument.documentChanged())
   {
     QMessageBox::StandardButton ret;
     ret = QMessageBox::warning(this, tr("Application"), tr("The document has been modified.\n"
@@ -1198,71 +1198,71 @@ void MainWindow::updateGUI()
 {
   QColor currentColor = mainWidget->getCurrentColor();
 
-  blackAct->setChecked(currentColor == MrDoc::black);
-  blueAct->setChecked(currentColor == MrDoc::blue);
-  redAct->setChecked(currentColor == MrDoc::red);
-  greenAct->setChecked(currentColor == MrDoc::green);
-  grayAct->setChecked(currentColor == MrDoc::gray);
-  lightblueAct->setChecked(currentColor == MrDoc::lightblue);
-  lightgreenAct->setChecked(currentColor == MrDoc::lightgreen);
-  magentaAct->setChecked(currentColor == MrDoc::magenta);
-  orangeAct->setChecked(currentColor == MrDoc::orange);
-  yellowAct->setChecked(currentColor == MrDoc::yellow);
-  whiteAct->setChecked(currentColor == MrDoc::white);
+  m_blackAct->setChecked(currentColor == MrDoc::black);
+  m_blueAct->setChecked(currentColor == MrDoc::blue);
+  m_redAct->setChecked(currentColor == MrDoc::red);
+  m_greenAct->setChecked(currentColor == MrDoc::green);
+  m_grayAct->setChecked(currentColor == MrDoc::gray);
+  m_lightblueAct->setChecked(currentColor == MrDoc::lightblue);
+  m_lightgreenAct->setChecked(currentColor == MrDoc::lightgreen);
+  m_magentaAct->setChecked(currentColor == MrDoc::magenta);
+  m_orangeAct->setChecked(currentColor == MrDoc::orange);
+  m_yellowAct->setChecked(currentColor == MrDoc::yellow);
+  m_whiteAct->setChecked(currentColor == MrDoc::white);
 
   Widget::tool currentTool = mainWidget->getCurrentTool();
 
-  penAct->setChecked(currentTool == Widget::tool::PEN);
-  rulerAct->setChecked(currentTool == Widget::tool::RULER);
-  circleAct->setChecked(currentTool == Widget::tool::CIRCLE);
-  eraserAct->setChecked(currentTool == Widget::tool::ERASER);
-  selectAct->setChecked(currentTool == Widget::tool::SELECT);
-  handAct->setChecked(currentTool == Widget::tool::HAND);
+  m_penAct->setChecked(currentTool == Widget::tool::PEN);
+  m_rulerAct->setChecked(currentTool == Widget::tool::RULER);
+  m_circleAct->setChecked(currentTool == Widget::tool::CIRCLE);
+  m_eraserAct->setChecked(currentTool == Widget::tool::ERASER);
+  m_selectAct->setChecked(currentTool == Widget::tool::SELECT);
+  m_handAct->setChecked(currentTool == Widget::tool::HAND);
 
   qreal currentPenWidth = mainWidget->getCurrentPenWidth();
 
-  veryFinePenWidthAct->setChecked(currentPenWidth == Widget::veryFinePenWidth);
-  finePenWidthAct->setChecked(currentPenWidth == Widget::finePenWidth);
-  mediumPenWidthAct->setChecked(currentPenWidth == Widget::mediumPenWidth);
-  thickPenWidthAct->setChecked(currentPenWidth == Widget::thickPenWidth);
-  veryThickPenWidthAct->setChecked(currentPenWidth == Widget::veryThickPenWidth);
+  m_veryFinePenWidthAct->setChecked(currentPenWidth == Widget::m_veryFinePenWidth);
+  m_finePenWidthAct->setChecked(currentPenWidth == Widget::m_finePenWidth);
+  m_mediumPenWidthAct->setChecked(currentPenWidth == Widget::m_mediumPenWidth);
+  m_thickPenWidthAct->setChecked(currentPenWidth == Widget::m_thickPenWidth);
+  m_veryThickPenWidthAct->setChecked(currentPenWidth == Widget::m_veryThickPenWidth);
 
   QVector<qreal> currentPattern = mainWidget->getCurrentPattern();
 
-  solidPatternAct->setChecked(currentPattern == MrDoc::solidLinePattern);
-  dashPatternAct->setChecked(currentPattern == MrDoc::dashLinePattern);
-  dashDotPatternAct->setChecked(currentPattern == MrDoc::dashDotLinePattern);
-  dotPatternAct->setChecked(currentPattern == MrDoc::dotLinePattern);
+  m_solidPatternAct->setChecked(currentPattern == MrDoc::solidLinePattern);
+  m_dashPatternAct->setChecked(currentPattern == MrDoc::dashLinePattern);
+  m_dashDotPatternAct->setChecked(currentPattern == MrDoc::dashDotLinePattern);
+  m_dotPatternAct->setChecked(currentPattern == MrDoc::dotLinePattern);
 
   if (currentPattern == MrDoc::solidLinePattern)
-    patternToolButton->setIcon(QIcon(":/images/solidPatternIcon.png"));
+    m_patternToolButton->setIcon(QIcon(":/images/solidPatternIcon.png"));
   if (currentPattern == MrDoc::dashLinePattern)
-    patternToolButton->setIcon(QIcon(":/images/dashPatternIcon.png"));
+    m_patternToolButton->setIcon(QIcon(":/images/dashPatternIcon.png"));
   if (currentPattern == MrDoc::dashDotLinePattern)
-    patternToolButton->setIcon(QIcon(":/images/dashDotPatternIcon.png"));
+    m_patternToolButton->setIcon(QIcon(":/images/dashDotPatternIcon.png"));
   if (currentPattern == MrDoc::dotLinePattern)
-    patternToolButton->setIcon(QIcon(":/images/dotPatternIcon.png"));
+    m_patternToolButton->setIcon(QIcon(":/images/dotPatternIcon.png"));
 
-  fullscreenAct->setChecked(isFullScreen());
-  statusbarAct->setChecked(statusBar()->isVisible());
+  m_fullscreenAct->setChecked(isFullScreen());
+  m_statusbarAct->setChecked(statusBar()->isVisible());
 
   if (mainWidget->getCurrentState() == Widget::state::SELECTED)
   {
-    cutAct->setEnabled(true);
-    copyAct->setEnabled(true);
+    m_cutAct->setEnabled(true);
+    m_copyAct->setEnabled(true);
   }
   else
   {
-    cutAct->setDisabled(true);
-    copyAct->setDisabled(true);
+    m_cutAct->setDisabled(true);
+    m_copyAct->setDisabled(true);
   }
   //    toolbarAct->setChecked()
 
   QPixmap pixmap(16, 16);
-  pixmap.fill(mainWidget->currentColor);
-  colorStatus.setPixmap(pixmap);
+  pixmap.fill(mainWidget->m_currentColor);
+  m_colorStatus.setPixmap(pixmap);
 
-  penWidthStatus.setText(QString::number(mainWidget->currentPenWidth));
+  m_penWidthStatus.setText(QString::number(mainWidget->m_currentPenWidth));
 
   verticalScrolling();
   setTitle();
@@ -1278,20 +1278,20 @@ void MainWindow::rotate()
 void MainWindow::newWindow()
 {
   MainWindow *window = new MainWindow();
-  static_cast<TabletApplication *>(qApp)->mainWindows.append(window);
+  static_cast<TabletApplication *>(qApp)->m_mainWindows.append(window);
   window->show();
 }
 
 void MainWindow::cloneWindow()
 {
   MainWindow *window = new MainWindow();
-  window->mainWidget->currentDocument = mainWidget->currentDocument;
-  window->mainWidget->currentDocument.setDocName("");
-  window->mainWidget->pageBuffer = mainWidget->pageBuffer;
+  window->mainWidget->m_currentDocument = mainWidget->m_currentDocument;
+  window->mainWidget->m_currentDocument.setDocName("");
+  window->mainWidget->m_pageBuffer = mainWidget->m_pageBuffer;
   window->mainWidget->currentSelection = mainWidget->currentSelection;
   window->mainWidget->setCurrentState(mainWidget->getCurrentState());
   //  window->mainWidget->zoomTo(mainWidget->zoom);
-  window->mainWidget->zoom = mainWidget->zoom;
+  window->mainWidget->m_zoom = mainWidget->m_zoom;
 
   window->show();
 
@@ -1303,7 +1303,7 @@ void MainWindow::cloneWindow()
   window->mainWidget->update();
   window->mainWidget->updateGUI();
 
-  static_cast<TabletApplication *>(qApp)->mainWindows.append(window);
+  static_cast<TabletApplication *>(qApp)->m_mainWindows.append(window);
 }
 
 void MainWindow::maximize()
@@ -1313,30 +1313,30 @@ void MainWindow::maximize()
 
 bool MainWindow::loadXOJ(QString fileName)
 {
-  return mainWidget->currentDocument.loadXOJ(fileName);
+  return mainWidget->m_currentDocument.loadXOJ(fileName);
   updateGUI();
 }
 
 bool MainWindow::loadMOJ(QString fileName)
 {
-  return mainWidget->currentDocument.loadMOJ(fileName);
+  return mainWidget->m_currentDocument.loadMOJ(fileName);
   updateGUI();
 }
 
 void MainWindow::pageSettings()
 {
   int pageNum = mainWidget->getCurrentPage();
-  qreal width = mainWidget->currentDocument.pages[pageNum].width();
-  qreal height = mainWidget->currentDocument.pages[pageNum].height();
-  PageSettingsDialog *pageDialog = new PageSettingsDialog(QSizeF(width, height), mainWidget->currentDocument.pages[pageNum].backgroundColor(), this);
+  qreal width = mainWidget->m_currentDocument.pages[pageNum].width();
+  qreal height = mainWidget->m_currentDocument.pages[pageNum].height();
+  PageSettingsDialog *pageDialog = new PageSettingsDialog(QSizeF(width, height), mainWidget->m_currentDocument.pages[pageNum].backgroundColor(), this);
   pageDialog->setWindowModality(Qt::WindowModal);
   if (pageDialog->exec() == QDialog::Accepted)
   {
-    if (pageDialog->currentPageSize.isValid())
+    if (pageDialog->m_currentPageSize.isValid())
     {
       qDebug() << "valid";
-      ChangePageSettingsCommand *cpsCommand = new ChangePageSettingsCommand(mainWidget, pageNum, pageDialog->currentPageSize, pageDialog->backgroundColor);
-      mainWidget->undoStack.push(cpsCommand);
+      ChangePageSettingsCommand *cpsCommand = new ChangePageSettingsCommand(mainWidget, pageNum, pageDialog->m_currentPageSize, pageDialog->m_backgroundColor);
+      mainWidget->m_undoStack.push(cpsCommand);
     }
   }
   delete pageDialog;

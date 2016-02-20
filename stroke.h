@@ -25,11 +25,11 @@ public:
   QRectF boundingRect() const;
   QRectF boundingRectSansPenWidth() const;
 
-  QPolygonF points;
-  QVector<qreal> pressures;
-  QVector<qreal> pattern;
-  qreal penWidth;
-  QColor color;
+  QPolygonF m_points;
+  QVector<qreal> m_pressures;
+  QVector<qreal> m_pattern;
+  qreal m_penWidth;
+  QColor m_color;
 };
 }
 

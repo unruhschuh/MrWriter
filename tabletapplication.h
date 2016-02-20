@@ -15,9 +15,9 @@ public:
 
   bool isUsingTablet();
 
-  QVector<QMainWindow *> mainWindows;
+  QVector<QMainWindow *> m_mainWindows;
 
-  MrDoc::Selection clipboard;
+  MrDoc::Selection m_clipboard;
 
 public slots:
   void exit();
@@ -28,7 +28,7 @@ protected:
 private:
   //    bool event(QEvent *event) Q_DECL_OVERRIDE;
 
-  bool usingTablet = false;
+  bool m_usingTablet = false;
 };
 
 #endif // TABLETAPPLICATION_H

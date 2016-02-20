@@ -6,154 +6,154 @@
 #include <QDebug>
 #include <QVector>
 
-PageSettingsDialog::PageSettingsDialog(const QSizeF &newPageSize, const QColor &newBackgroundColor, QWidget *parent) : QDialog(parent)
+PageSettingsDialog::PageSettingsDialog(const QSizeF &pageSize, const QColor &backgroundColor, QWidget *parent) : QDialog(parent)
 {
-  backgroundColor = newBackgroundColor;
+  m_backgroundColor = backgroundColor;
 
-  standardPaperSizesComboBox = new QComboBox(this);
+  m_standardPaperSizesComboBox = new QComboBox(this);
 
-  myStandardPageSizes << QPageSize(QPageSize::A0).sizePoints() << QPageSize(QPageSize::A1).sizePoints() << QPageSize(QPageSize::A2).sizePoints()
+  m_myStandardPageSizes << QPageSize(QPageSize::A0).sizePoints() << QPageSize(QPageSize::A1).sizePoints() << QPageSize(QPageSize::A2).sizePoints()
                       << QPageSize(QPageSize::A3).sizePoints() << QPageSize(QPageSize::A4).sizePoints() << QPageSize(QPageSize::A5).sizePoints()
                       << QPageSize(QPageSize::A6).sizePoints() << QPageSize(QPageSize::Letter).sizePoints();
-  myStandardPageSizeNames << QPageSize(QPageSize::A0).name() << QPageSize(QPageSize::A1).name() << QPageSize(QPageSize::A2).name()
+  m_myStandardPageSizeNames << QPageSize(QPageSize::A0).name() << QPageSize(QPageSize::A1).name() << QPageSize(QPageSize::A2).name()
                           << QPageSize(QPageSize::A3).name() << QPageSize(QPageSize::A4).name() << QPageSize(QPageSize::A5).name()
                           << QPageSize(QPageSize::A6).name() << QPageSize(QPageSize::Letter).name();
-  int I = myStandardPageSizes.size();
+  int I = m_myStandardPageSizes.size();
   for (int i = 0; i < I; ++i)
   {
-    QSizeF tmpSize = myStandardPageSizes[i];
+    QSizeF tmpSize = m_myStandardPageSizes[i];
     tmpSize = QSizeF(tmpSize.height(), tmpSize.width());
-    QString tmpName = myStandardPageSizeNames[i];
+    QString tmpName = m_myStandardPageSizeNames[i];
     tmpName.prepend("landscape ");
-    myStandardPageSizes.append(tmpSize);
-    myStandardPageSizeNames.append(tmpName);
+    m_myStandardPageSizes.append(tmpSize);
+    m_myStandardPageSizeNames.append(tmpName);
   }
 
-  myStandardPageSizes.append(QSize(1, 1));
-  myStandardPageSizeNames.append(tr("Custom"));
+  m_myStandardPageSizes.append(QSize(1, 1));
+  m_myStandardPageSizeNames.append(tr("Custom"));
 
   int index;
-  for (index = 0; index < myStandardPageSizes.size(); ++index)
+  for (index = 0; index < m_myStandardPageSizes.size(); ++index)
   {
-    standardPaperSizesComboBox->addItem(myStandardPageSizeNames[index], index);
+    m_standardPaperSizesComboBox->addItem(m_myStandardPageSizeNames[index], index);
   }
-  connect(standardPaperSizesComboBox, SIGNAL(currentIndexChanged(QString)), this, SLOT(standardPaperSizesComboChanged()));
+  connect(m_standardPaperSizesComboBox, SIGNAL(currentIndexChanged(QString)), this, SLOT(standardPaperSizesComboChanged()));
 
   QDoubleValidator *validator = new QDoubleValidator;
   validator->setBottom(1.0);
 
-  widthLineEdit = new QLineEdit(this);
-  widthLineEdit->setValidator(validator);
-  connect(widthLineEdit, SIGNAL(textChanged(QString)), this, SLOT(textChanged()));
+  m_widthLineEdit = new QLineEdit(this);
+  m_widthLineEdit->setValidator(validator);
+  connect(m_widthLineEdit, SIGNAL(textChanged(QString)), this, SLOT(textChanged()));
 
-  heightLineEdit = new QLineEdit(this);
-  widthLineEdit->setValidator(validator);
-  connect(heightLineEdit, SIGNAL(textChanged(QString)), this, SLOT(textChanged()));
+  m_heightLineEdit = new QLineEdit(this);
+  m_widthLineEdit->setValidator(validator);
+  connect(m_heightLineEdit, SIGNAL(textChanged(QString)), this, SLOT(textChanged()));
 
-  swapWidthHeightButton = new QPushButton(tr("Swap width and height"), this);
-  connect(swapWidthHeightButton, SIGNAL(clicked()), this, SLOT(swapWidthHeight()));
+  m_swapWidthHeightButton = new QPushButton(tr("Swap width and height"), this);
+  connect(m_swapWidthHeightButton, SIGNAL(clicked()), this, SLOT(swapWidthHeight()));
 
-  colorButton = new ColorButton();
-  colorButton->setColor(backgroundColor);
-  connect(colorButton, SIGNAL(clicked()), this, SLOT(chooseBackgroundColor()));
+  m_colorButton = new ColorButton();
+  m_colorButton->setColor(m_backgroundColor);
+  connect(m_colorButton, SIGNAL(clicked()), this, SLOT(chooseBackgroundColor()));
 
-  okButton = new QPushButton(tr("OK"), this);
-  okButton->setDefault(true);
-  cancelButton = new QPushButton(tr("Cancel"), this);
+  m_okButton = new QPushButton(tr("OK"), this);
+  m_okButton->setDefault(true);
+  m_cancelButton = new QPushButton(tr("Cancel"), this);
 
-  scaleContentCheckBox = new QCheckBox(tr("Scale Content"), this);
-  scaleContentCheckBox->setChecked(false);
+  m_scaleContentCheckBox = new QCheckBox(tr("Scale Content"), this);
+  m_scaleContentCheckBox->setChecked(false);
 
-  applyToAllCheckBox = new QCheckBox(tr("Apply to all pages"), this);
-  applyToAllCheckBox->setChecked(false);
+  m_applyToAllCheckBox = new QCheckBox(tr("Apply to all pages"), this);
+  m_applyToAllCheckBox->setChecked(false);
 
   QFormLayout *formLayout = new QFormLayout;
-  formLayout->addRow(tr("Standard paper sizes:"), standardPaperSizesComboBox);
-  formLayout->addRow(tr("&Width (pt):"), widthLineEdit);
-  formLayout->addRow(tr("&Height (pt):"), heightLineEdit);
-  formLayout->addRow(tr("Orientation:"), swapWidthHeightButton);
-  formLayout->addRow(tr("Background Color:"), colorButton);
-  formLayout->addWidget(scaleContentCheckBox);
-  formLayout->addWidget(applyToAllCheckBox);
-  formLayout->addRow(okButton, cancelButton);
+  formLayout->addRow(tr("Standard paper sizes:"), m_standardPaperSizesComboBox);
+  formLayout->addRow(tr("&Width (pt):"), m_widthLineEdit);
+  formLayout->addRow(tr("&Height (pt):"), m_heightLineEdit);
+  formLayout->addRow(tr("Orientation:"), m_swapWidthHeightButton);
+  formLayout->addRow(tr("Background Color:"), m_colorButton);
+  formLayout->addWidget(m_scaleContentCheckBox);
+  formLayout->addWidget(m_applyToAllCheckBox);
+  formLayout->addRow(m_okButton, m_cancelButton);
 
   setLayout(formLayout);
 
   setWindowTitle(tr("Page Settings"));
 
-  widthLineEdit->setText(QString::number(newPageSize.width()));
-  heightLineEdit->setText(QString::number(newPageSize.height()));
+  m_widthLineEdit->setText(QString::number(pageSize.width()));
+  m_heightLineEdit->setText(QString::number(pageSize.height()));
 
-  connect(cancelButton, SIGNAL(clicked()), this, SLOT(reject()));
-  connect(okButton, SIGNAL(clicked()), this, SLOT(accept()));
+  connect(m_cancelButton, SIGNAL(clicked()), this, SLOT(reject()));
+  connect(m_okButton, SIGNAL(clicked()), this, SLOT(accept()));
 }
 
 void PageSettingsDialog::textChanged()
 {
-  qreal width = widthLineEdit->text().toDouble();
-  qreal height = heightLineEdit->text().toDouble();
-  currentPageSize = QSizeF(width, height);
+  qreal width = m_widthLineEdit->text().toDouble();
+  qreal height = m_heightLineEdit->text().toDouble();
+  m_currentPageSize = QSizeF(width, height);
 
   bool foundPageSize = false;
   int index = 0;
-  for (index = 0; index < myStandardPageSizes.size(); ++index)
+  for (index = 0; index < m_myStandardPageSizes.size(); ++index)
   {
-    if (width == myStandardPageSizes[index].width() && height == myStandardPageSizes[index].height())
+    if (width == m_myStandardPageSizes[index].width() && height == m_myStandardPageSizes[index].height())
     {
       foundPageSize = true;
       break;
     }
   }
-  standardPaperSizesComboBox->blockSignals(true);
+  m_standardPaperSizesComboBox->blockSignals(true);
   if (foundPageSize)
   {
-    standardPaperSizesComboBox->setCurrentIndex(index);
+    m_standardPaperSizesComboBox->setCurrentIndex(index);
   }
   else
   {
-    standardPaperSizesComboBox->setCurrentIndex(standardPaperSizesComboBox->count() - 1);
+    m_standardPaperSizesComboBox->setCurrentIndex(m_standardPaperSizesComboBox->count() - 1);
   }
-  standardPaperSizesComboBox->blockSignals(false);
+  m_standardPaperSizesComboBox->blockSignals(false);
 }
 
 void PageSettingsDialog::standardPaperSizesComboChanged()
 {
-  if (standardPaperSizesComboBox->currentIndex() != myStandardPageSizes.size() - 1)
+  if (m_standardPaperSizesComboBox->currentIndex() != m_myStandardPageSizes.size() - 1)
   {
-    widthLineEdit->blockSignals(true);
-    heightLineEdit->blockSignals(true);
-    QSizeF tmpPageSize = myStandardPageSizes[standardPaperSizesComboBox->currentIndex()];
-    widthLineEdit->setText(QString::number(tmpPageSize.width()));
-    heightLineEdit->setText(QString::number(tmpPageSize.height()));
-    widthLineEdit->blockSignals(false);
-    heightLineEdit->blockSignals(false);
+    m_widthLineEdit->blockSignals(true);
+    m_heightLineEdit->blockSignals(true);
+    QSizeF tmpPageSize = m_myStandardPageSizes[m_standardPaperSizesComboBox->currentIndex()];
+    m_widthLineEdit->setText(QString::number(tmpPageSize.width()));
+    m_heightLineEdit->setText(QString::number(tmpPageSize.height()));
+    m_widthLineEdit->blockSignals(false);
+    m_heightLineEdit->blockSignals(false);
 
-    currentPageSize = tmpPageSize;
+    m_currentPageSize = tmpPageSize;
   }
 }
 
 void PageSettingsDialog::chooseBackgroundColor()
 {
   QColorDialog colorDialog;
-  QColor newBackgroundColor = colorDialog.getColor(backgroundColor);
-  if (newBackgroundColor.isValid())
+  QColor backgroundColor = colorDialog.getColor(m_backgroundColor);
+  if (backgroundColor.isValid())
   {
-    backgroundColor = newBackgroundColor;
-    colorButton->setColor(backgroundColor);
+    m_backgroundColor = backgroundColor;
+    m_colorButton->setColor(m_backgroundColor);
   }
 }
 
 void PageSettingsDialog::swapWidthHeight()
 {
-  QString width = widthLineEdit->text();
-  QString height = heightLineEdit->text();
+  QString width = m_widthLineEdit->text();
+  QString height = m_heightLineEdit->text();
 
-  widthLineEdit->blockSignals(true);
+  m_widthLineEdit->blockSignals(true);
   //    heightLineEdit->blockSignals(true);
 
-  widthLineEdit->setText(height);
-  heightLineEdit->setText(width);
+  m_widthLineEdit->setText(height);
+  m_heightLineEdit->setText(width);
 
-  widthLineEdit->blockSignals(false);
+  m_widthLineEdit->blockSignals(false);
   //    heightLineEdit->blockSignals(false);
 }

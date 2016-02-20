@@ -80,7 +80,7 @@ bool Page::changePenWidth(int strokeNum, qreal penWidth)
   }
   else
   {
-    m_strokes[strokeNum].penWidth = penWidth;
+    m_strokes[strokeNum].m_penWidth = penWidth;
     m_dirtyRect = m_dirtyRect.united(m_strokes[strokeNum].boundingRect());
     return true;
   }
@@ -94,7 +94,7 @@ bool Page::changeStrokeColor(int strokeNum, QColor color)
   }
   else
   {
-    m_strokes[strokeNum].color = color;
+    m_strokes[strokeNum].m_color = color;
     m_dirtyRect = m_dirtyRect.united(m_strokes[strokeNum].boundingRect());
     return true;
   }
@@ -108,7 +108,7 @@ bool Page::changeStrokePattern(int strokeNum, QVector<qreal> pattern)
   }
   else
   {
-    m_strokes[strokeNum].pattern = pattern;
+    m_strokes[strokeNum].m_pattern = pattern;
     m_dirtyRect = m_dirtyRect.united(m_strokes[strokeNum].boundingRect());
     return true;
   }
@@ -127,9 +127,9 @@ QVector<QPair<Stroke, int>> Page::getStrokes(QPolygonF selectionPolygon)
   {
     const MrDoc::Stroke &stroke = m_strokes.at(i);
     bool containsStroke = true;
-    for (int j = 0; j < stroke.points.size(); ++j)
+    for (int j = 0; j < stroke.m_points.size(); ++j)
     {
-      if (!selectionPolygon.containsPoint(stroke.points.at(j), Qt::OddEvenFill))
+      if (!selectionPolygon.containsPoint(stroke.m_points.at(j), Qt::OddEvenFill))
       {
         containsStroke = false;
       }

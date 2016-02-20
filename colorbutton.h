@@ -24,8 +24,8 @@ signals:
 private slots:
 
 private:
-  QColor color;
-  bool leftButtonDown;
+  QColor m_color;
+  bool m_leftButtonDown;
 };
 
 #endif // COLORBUTTON_H

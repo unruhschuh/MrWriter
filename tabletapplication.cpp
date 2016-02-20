@@ -17,12 +17,12 @@ bool TabletApplication::event(QEvent *event)
 {
   if (event->type() == QEvent::TabletEnterProximity)
   {
-    usingTablet = true;
+    m_usingTablet = true;
     qInfo() << "Enter Proximity";
   }
   if (event->type() == QEvent::TabletLeaveProximity)
   {
-    usingTablet = false;
+    m_usingTablet = false;
     qInfo() << "Leave Proximity";
   }
 
@@ -43,7 +43,7 @@ bool TabletApplication::event(QEvent *event)
 
     if (success)
     {
-      mainWindows.append(newWindow);
+      m_mainWindows.append(newWindow);
       newWindow->show();
       newWindow->updateGUI();
     }
@@ -61,18 +61,18 @@ bool TabletApplication::event(QEvent *event)
 
 bool TabletApplication::isUsingTablet()
 {
-  return usingTablet;
+  return m_usingTablet;
 }
 
 void TabletApplication::exit()
 {
   qInfo() << "Exit";
 
-  qInfo() << mainWindows.length();
+  qInfo() << m_mainWindows.length();
 
-  while (mainWindows.length() > 0)
+  while (m_mainWindows.length() > 0)
   {
-    if (mainWindows.last()->close() == false)
+    if (m_mainWindows.last()->close() == false)
     {
       return;
     }

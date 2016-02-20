@@ -17,9 +17,9 @@ class PageSettingsDialog : public QDialog
 {
   Q_OBJECT
 public:
-  explicit PageSettingsDialog(const QSizeF &newPageSize, const QColor &newBackgroundColor, QWidget *parent = 0);
-  QSizeF currentPageSize;
-  QColor backgroundColor;
+  explicit PageSettingsDialog(const QSizeF &pageSize, const QColor &backgroundColor, QWidget *parent = 0);
+  QSizeF m_currentPageSize;
+  QColor m_backgroundColor;
 
 signals:
 
@@ -30,19 +30,19 @@ public slots:
   void swapWidthHeight();
 
 private:
-  QVector<QSizeF> myStandardPageSizes;
-  QVector<QString> myStandardPageSizeNames;
+  QVector<QSizeF> m_myStandardPageSizes;
+  QVector<QString> m_myStandardPageSizeNames;
 
-  QComboBox *standardPaperSizesComboBox;
-  QLineEdit *widthLineEdit;
-  QLineEdit *heightLineEdit;
-  QPushButton *swapWidthHeightButton;
-  ColorButton *colorButton;
-  QCheckBox *scaleContentCheckBox;
-  QCheckBox *applyToAllCheckBox;
+  QComboBox *m_standardPaperSizesComboBox;
+  QLineEdit *m_widthLineEdit;
+  QLineEdit *m_heightLineEdit;
+  QPushButton *m_swapWidthHeightButton;
+  ColorButton *m_colorButton;
+  QCheckBox *m_scaleContentCheckBox;
+  QCheckBox *m_applyToAllCheckBox;
 
-  QPushButton *okButton;
-  QPushButton *cancelButton;
+  QPushButton *m_okButton;
+  QPushButton *m_cancelButton;
 };
 
 #endif // PAGESETTINGSDIALOG_H

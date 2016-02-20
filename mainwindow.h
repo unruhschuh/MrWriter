@@ -102,115 +102,115 @@ private:
 
   QString askForFileName();
 
-  QLabel pageStatus;
-  QLabel penWidthStatus;
-  QLabel colorStatus;
+  QLabel m_pageStatus;
+  QLabel m_penWidthStatus;
+  QLabel m_colorStatus;
 
   // actions
-  QAction *newWindowAct;
-  QAction *cloneWindowAct;
-  QAction *closeWindowAct;
-  QAction *newFileAct;
-  QAction *openFileAct;
-  QAction *saveFileAct;
-  QAction *saveFileAsAct;
-  QAction *exportPDFAct;
-  QAction *exitAct;
+  QAction *m_newWindowAct;
+  QAction *m_cloneWindowAct;
+  QAction *m_closeWindowAct;
+  QAction *m_newFileAct;
+  QAction *m_openFileAct;
+  QAction *m_saveFileAct;
+  QAction *m_saveFileAsAct;
+  QAction *m_exportPDFAct;
+  QAction *m_exitAct;
 
-  QAction *importXOJAct;
-  QAction *exportXOJAct;
+  QAction *m_importXOJAct;
+  QAction *m_exportXOJAct;
 
-  QAction *undoAct;
-  QAction *redoAct;
+  QAction *m_undoAct;
+  QAction *m_redoAct;
 
-  QAction *selectAllAct;
-  QAction *copyAct;
-  QAction *pasteAct;
-  QAction *cutAct;
+  QAction *m_selectAllAct;
+  QAction *m_copyAct;
+  QAction *m_pasteAct;
+  QAction *m_cutAct;
 
-  QAction *zoomInAct;
-  QAction *zoomOutAct;
-  QAction *zoomFitWidthAct;
-  QAction *zoomFitHeightAct;
+  QAction *m_zoomInAct;
+  QAction *m_zoomOutAct;
+  QAction *m_zoomFitWidthAct;
+  QAction *m_zoomFitHeightAct;
 
-  QAction *pageFirstAct;
-  QAction *pageLastAct;
-  QAction *pageUpAct;
-  QAction *pageDownAct;
+  QAction *m_pageFirstAct;
+  QAction *m_pageLastAct;
+  QAction *m_pageUpAct;
+  QAction *m_pageDownAct;
 
-  QAction *pageAddEndAct;
-  QAction *pageAddBeginningAct;
-  QAction *pageAddBeforeAct;
-  QAction *pageAddAfterAct;
+  QAction *m_pageAddEndAct;
+  QAction *m_pageAddBeginningAct;
+  QAction *m_pageAddBeforeAct;
+  QAction *m_pageAddAfterAct;
 
-  QAction *pageRemoveAct;
+  QAction *m_pageRemoveAct;
 
-  QAction *pageSettingsAct;
+  QAction *m_pageSettingsAct;
 
-  QAction *penAct;
-  QAction *rulerAct;
-  QAction *circleAct;
-  QAction *eraserAct;
-  QAction *selectAct;
-  QAction *handAct;
+  QAction *m_penAct;
+  QAction *m_rulerAct;
+  QAction *m_circleAct;
+  QAction *m_eraserAct;
+  QAction *m_selectAct;
+  QAction *m_handAct;
 
-  QAction *solidPatternAct;
-  QAction *dashPatternAct;
-  QAction *dashDotPatternAct;
-  QAction *dotPatternAct;
+  QAction *m_solidPatternAct;
+  QAction *m_dashPatternAct;
+  QAction *m_dashDotPatternAct;
+  QAction *m_dotPatternAct;
 
-  QAction *rotateAct;
+  QAction *m_rotateAct;
 
-  QAction *veryFinePenWidthAct;
-  QAction *finePenWidthAct;
-  QAction *mediumPenWidthAct;
-  QAction *thickPenWidthAct;
-  QAction *veryThickPenWidthAct;
+  QAction *m_veryFinePenWidthAct;
+  QAction *m_finePenWidthAct;
+  QAction *m_mediumPenWidthAct;
+  QAction *m_thickPenWidthAct;
+  QAction *m_veryThickPenWidthAct;
 
-  QAction *toolbarAct;
-  QAction *statusbarAct;
-  QAction *fullscreenAct;
-  QAction *maximizeAct;
+  QAction *m_toolbarAct;
+  QAction *m_statusbarAct;
+  QAction *m_fullscreenAct;
+  QAction *m_maximizeAct;
 
   // color actions
-  QAction *blackAct;
-  QAction *blueAct;
-  QAction *redAct;
-  QAction *greenAct;
-  QAction *grayAct;
-  QAction *lightblueAct;
-  QAction *lightgreenAct;
-  QAction *magentaAct;
-  QAction *orangeAct;
-  QAction *yellowAct;
-  QAction *whiteAct;
+  QAction *m_blackAct;
+  QAction *m_blueAct;
+  QAction *m_redAct;
+  QAction *m_greenAct;
+  QAction *m_grayAct;
+  QAction *m_lightblueAct;
+  QAction *m_lightgreenAct;
+  QAction *m_magentaAct;
+  QAction *m_orangeAct;
+  QAction *m_yellowAct;
+  QAction *m_whiteAct;
 
-  QAction *helpAct;
-  QAction *aboutAct;
-  QAction *aboutQtAct;
+  QAction *m_helpAct;
+  QAction *m_aboutAct;
+  QAction *m_aboutQtAct;
 
-  QAction *saveMyStateAct;
-  QAction *loadMyStateAct;
+  QAction *m_saveMyStateAct;
+  QAction *m_loadMyStateAct;
 
-  QToolBar *fileToolBar;
-  QToolBar *editToolBar;
-  QToolBar *viewToolBar;
-  QToolBar *toolsToolBar;
+  QToolBar *m_fileToolBar;
+  QToolBar *m_editToolBar;
+  QToolBar *m_viewToolBar;
+  QToolBar *m_toolsToolBar;
 
-  QToolButton *patternToolButton;
+  QToolButton *m_patternToolButton;
 
-  QMenu *fileMenu;
-  QMenu *editMenu;
-  QMenu *pageMenu;
-  QMenu *toolsMenu;
-  QMenu *penWidthMenu;
-  QMenu *patternMenu;
-  QMenu *viewMenu;
-  QMenu *helpMenu;
+  QMenu *m_fileMenu;
+  QMenu *m_editMenu;
+  QMenu *m_pageMenu;
+  QMenu *m_toolsMenu;
+  QMenu *m_penWidthMenu;
+  QMenu *m_patternMenu;
+  QMenu *m_viewMenu;
+  QMenu *m_helpMenu;
 
   // for android
-  QToolButton *mainMenuButton;
-  QMenu *mainMenu;
+  QToolButton *m_mainMenuButton;
+  QMenu *m_mainMenu;
 };
 
 #endif // MAINWINDOW_H

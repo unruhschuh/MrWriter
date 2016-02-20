@@ -182,26 +182,26 @@ bool Document::loadXOJ(QString fileName)
       if (tool == "pen")
       {
         Stroke newStroke;
-        newStroke.pattern = MrDoc::solidLinePattern;
+        newStroke.m_pattern = MrDoc::solidLinePattern;
         QStringRef color = attributes.value("", "color");
-        newStroke.color = stringToColor(color.toString());
+        newStroke.m_color = stringToColor(color.toString());
         QStringRef strokeWidth = attributes.value("", "width");
         QStringList strokeWidthList = strokeWidth.toString().split(" ");
-        newStroke.penWidth = strokeWidthList.at(0).toDouble();
-        newStroke.pressures.append(newStroke.penWidth / strokeWidthList.at(0).toDouble());
+        newStroke.m_penWidth = strokeWidthList.at(0).toDouble();
+        newStroke.m_pressures.append(newStroke.m_penWidth / strokeWidthList.at(0).toDouble());
         for (int i = 1; i < strokeWidthList.size(); ++i)
         {
-          newStroke.pressures.append(2 * strokeWidthList.at(i).toDouble() / newStroke.penWidth - newStroke.pressures.at(i - 1));
+          newStroke.m_pressures.append(2 * strokeWidthList.at(i).toDouble() / newStroke.m_penWidth - newStroke.m_pressures.at(i - 1));
         }
         QString elementText = reader.readElementText();
         QStringList elementTextList = elementText.split(" ");
         for (int i = 0; i + 1 < elementTextList.size(); i = i + 2)
         {
-          newStroke.points.append(QPointF(elementTextList.at(i).toDouble(), elementTextList.at(i + 1).toDouble()));
+          newStroke.m_points.append(QPointF(elementTextList.at(i).toDouble(), elementTextList.at(i + 1).toDouble()));
         }
-        while (newStroke.points.size() > newStroke.pressures.size())
+        while (newStroke.m_points.size() > newStroke.m_pressures.size())
         {
-          newStroke.pressures.append(1.0);
+          newStroke.m_pressures.append(1.0);
         }
         pages.last().appendStroke(newStroke);
         strokeCount++;
@@ -270,23 +270,23 @@ bool Document::saveXOJ(QString fileName)
     {
       writer.writeStartElement("stroke");
       writer.writeAttribute(QXmlStreamAttribute("tool", "pen"));
-      writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(strokes.color.name(QColor::HexArgb))));
-      qreal width = strokes.penWidth;
+      writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(strokes.m_color.name(QColor::HexArgb))));
+      qreal width = strokes.m_penWidth;
       QString widthString;
       widthString.append(QString::number(width));
-      for (int k = 0; k < strokes.pressures.size() - 1; ++k)
+      for (int k = 0; k < strokes.m_pressures.size() - 1; ++k)
       {
-        qreal p0 = strokes.pressures[k];
-        qreal p1 = strokes.pressures[k + 1];
+        qreal p0 = strokes.m_pressures[k];
+        qreal p1 = strokes.m_pressures[k + 1];
         widthString.append(' ');
         widthString.append(QString::number(0.5 * (p0 + p1) * width));
       }
       writer.writeAttribute(QXmlStreamAttribute("width", widthString));
-      for (int k = 0; k < strokes.points.size(); ++k)
+      for (int k = 0; k < strokes.m_points.size(); ++k)
       {
-        writer.writeCharacters(QString::number(strokes.points[k].x()));
+        writer.writeCharacters(QString::number(strokes.m_points[k].x()));
         writer.writeCharacters(" ");
-        writer.writeCharacters(QString::number(strokes.points[k].y()));
+        writer.writeCharacters(QString::number(strokes.m_points[k].y()));
         writer.writeCharacters(" ");
       }
       writer.writeEndElement(); // closing "stroke"
@@ -396,37 +396,37 @@ bool Document::loadMOJ(QString fileName)
       if (tool == "pen")
       {
         Stroke newStroke;
-        newStroke.pattern = MrDoc::solidLinePattern;
+        newStroke.m_pattern = MrDoc::solidLinePattern;
         QStringRef color = attributes.value("", "color");
-        newStroke.color = stringToColor(color.toString());
+        newStroke.m_color = stringToColor(color.toString());
         QStringRef style = attributes.value("", "style");
         if (style.toString().compare("solid") == 0)
         {
-          newStroke.pattern = MrDoc::solidLinePattern;
+          newStroke.m_pattern = MrDoc::solidLinePattern;
         }
         else if (style.toString().compare("dash") == 0)
         {
-          newStroke.pattern = MrDoc::dashLinePattern;
+          newStroke.m_pattern = MrDoc::dashLinePattern;
         }
         else if (style.toString().compare("dashdot") == 0)
         {
-          newStroke.pattern = MrDoc::dashDotLinePattern;
+          newStroke.m_pattern = MrDoc::dashDotLinePattern;
         }
         else if (style.toString().compare("dot") == 0)
         {
-          newStroke.pattern = MrDoc::dotLinePattern;
+          newStroke.m_pattern = MrDoc::dotLinePattern;
         }
         else
         {
-          newStroke.pattern = MrDoc::solidLinePattern;
+          newStroke.m_pattern = MrDoc::solidLinePattern;
         }
         QStringRef strokeWidth = attributes.value("", "width");
-        newStroke.penWidth = strokeWidth.toDouble();
+        newStroke.m_penWidth = strokeWidth.toDouble();
         QString elementText = reader.readElementText();
         QStringList elementTextList = elementText.trimmed().split(" ");
         for (int i = 0; i + 1 < elementTextList.size(); i = i + 2)
         {
-          newStroke.points.append(QPointF(elementTextList.at(i).toDouble(), elementTextList.at(i + 1).toDouble()));
+          newStroke.m_points.append(QPointF(elementTextList.at(i).toDouble(), elementTextList.at(i + 1).toDouble()));
         }
         QStringRef pressures = attributes.value("pressures");
         QStringList pressuresList = pressures.toString().trimmed().split(" ");
@@ -434,14 +434,14 @@ bool Document::loadMOJ(QString fileName)
         {
           if (pressuresList.length() == 0)
           {
-            newStroke.pressures.append(1.0);
+            newStroke.m_pressures.append(1.0);
           }
           else
           {
-            newStroke.pressures.append(pressuresList.at(i).toDouble());
+            newStroke.m_pressures.append(pressuresList.at(i).toDouble());
           }
         }
-        if (newStroke.pressures.size() != newStroke.points.size())
+        if (newStroke.m_pressures.size() != newStroke.m_points.size())
         {
           return false;
         }
@@ -516,21 +516,21 @@ bool Document::saveMOJ(QString fileName)
     {
       writer.writeStartElement("stroke");
       writer.writeAttribute(QXmlStreamAttribute("tool", "pen"));
-      writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(strokes.color.name(QColor::HexArgb))));
+      writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(strokes.m_color.name(QColor::HexArgb))));
       QString patternString;
-      if (strokes.pattern == MrDoc::solidLinePattern)
+      if (strokes.m_pattern == MrDoc::solidLinePattern)
       {
         patternString = "solid";
       }
-      else if (strokes.pattern == MrDoc::dashLinePattern)
+      else if (strokes.m_pattern == MrDoc::dashLinePattern)
       {
         patternString = "dash";
       }
-      else if (strokes.pattern == MrDoc::dashDotLinePattern)
+      else if (strokes.m_pattern == MrDoc::dashDotLinePattern)
       {
         patternString = "dashdot";
       }
-      else if (strokes.pattern == MrDoc::dotLinePattern)
+      else if (strokes.m_pattern == MrDoc::dotLinePattern)
       {
         patternString = "dot";
       }
@@ -539,20 +539,20 @@ bool Document::saveMOJ(QString fileName)
         patternString = "solid";
       }
       writer.writeAttribute(QXmlStreamAttribute("style", patternString));
-      qreal width = strokes.penWidth;
+      qreal width = strokes.m_penWidth;
       writer.writeAttribute(QXmlStreamAttribute("width", QString::number(width)));
       QString pressures;
-      for (int k = 0; k < strokes.pressures.length(); ++k)
+      for (int k = 0; k < strokes.m_pressures.length(); ++k)
       {
-        pressures.append(QString::number(strokes.pressures[k])).append(" ");
+        pressures.append(QString::number(strokes.m_pressures[k])).append(" ");
       }
       writer.writeAttribute((QXmlStreamAttribute("pressures", pressures.trimmed())));
       QString points;
-      for (int k = 0; k < strokes.points.size(); ++k)
+      for (int k = 0; k < strokes.m_points.size(); ++k)
       {
-        points.append(QString::number(strokes.points[k].x()));
+        points.append(QString::number(strokes.m_points[k].x()));
         points.append(" ");
-        points.append(QString::number(strokes.points[k].y()));
+        points.append(QString::number(strokes.m_points[k].y()));
         points.append(" ");
       }
       writer.writeCharacters(points.trimmed());

@@ -243,14 +243,14 @@ void Selection::transform(QTransform transform, int pageNum)
 
   for (int i = 0; i < m_strokes.size(); ++i)
   {
-    m_strokes[i].points = transform.map(m_strokes[i].points);
+    m_strokes[i].m_points = transform.map(m_strokes[i].m_points);
     /*
     'if (!transform.isRotating())' doesn't work, since rotation of 180 and 360 degrees is treated as a scaling transformation. Same goes for
     'if (transform.isScaling())'
     */
     if (transform.determinant() != 1)
     {
-      m_strokes[i].penWidth = m_strokes[i].penWidth * s;
+      m_strokes[i].m_penWidth = m_strokes[i].m_penWidth * s;
     }
   }
   if (transform.determinant() != 1)

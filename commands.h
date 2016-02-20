@@ -9,33 +9,33 @@
 class AddStrokeCommand : public QUndoCommand
 {
 public:
-  AddStrokeCommand(Widget *newWidget, int newPageNum, const MrDoc::Stroke &newStroke, int newStrokeNum = -1, bool newUpdate = true,
-                   bool newUpdateSuccessive = true, QUndoCommand *parent = 0);
+  AddStrokeCommand(Widget *widget, int pageNum, const MrDoc::Stroke &stroke, int strokeNum = -1, bool update = true,
+                   bool updateSuccessive = true, QUndoCommand *parent = 0);
   void undo() Q_DECL_OVERRIDE;
   void redo() Q_DECL_OVERRIDE;
 
 private:
-  Widget *widget;
-  MrDoc::Stroke stroke;
-  int strokeNum;
-  int pageNum;
-  bool update;
-  bool updateSuccessive;
+  Widget *m_widget;
+  MrDoc::Stroke m_stroke;
+  int m_strokeNum;
+  int m_pageNum;
+  bool m_update;
+  bool m_updateSuccessive;
 };
 
 class RemoveStrokeCommand : public QUndoCommand
 {
 public:
-  RemoveStrokeCommand(Widget *newWidget, int newPageNum, int newStrokeNum, bool newUpdate = true, QUndoCommand *parent = 0);
+  RemoveStrokeCommand(Widget *widget, int pageNum, int strokeNum, bool update = true, QUndoCommand *parent = 0);
   void undo() Q_DECL_OVERRIDE;
   void redo() Q_DECL_OVERRIDE;
 
 private:
-  Widget *widget;
-  MrDoc::Stroke stroke;
-  int strokeNum;
-  int pageNum;
-  bool update;
+  Widget *m_widget;
+  MrDoc::Stroke m_stroke;
+  int m_strokeNum;
+  int m_pageNum;
+  bool m_update;
 };
 
 class CreateSelectionCommand : public QUndoCommand
@@ -56,20 +56,20 @@ private:
 class ReleaseSelectionCommand : public QUndoCommand
 {
 public:
-  ReleaseSelectionCommand(Widget *newWidget, int newPageNum, QUndoCommand *parent = 0);
+  ReleaseSelectionCommand(Widget *widget, int pageNum, QUndoCommand *parent = 0);
   void undo() Q_DECL_OVERRIDE;
   void redo() Q_DECL_OVERRIDE;
 
 private:
-  Widget *widget;
-  MrDoc::Selection selection;
-  int pageNum;
+  Widget *m_widget;
+  MrDoc::Selection m_selection;
+  int m_pageNum;
 };
 
 class TransformSelectionCommand : public QUndoCommand
 {
 public:
-  TransformSelectionCommand(Widget *newWidget, int newPageNum, QTransform newTransform, QUndoCommand *parent = 0);
+  TransformSelectionCommand(Widget *widget, int pageNum, QTransform transform, QUndoCommand *parent = 0);
   void undo() Q_DECL_OVERRIDE;
   void redo() Q_DECL_OVERRIDE;
   int id() const Q_DECL_OVERRIDE
@@ -79,10 +79,10 @@ public:
   bool mergeWith(const QUndoCommand *other) Q_DECL_OVERRIDE;
 
 private:
-  Widget *widget;
-  MrDoc::Selection selection;
-  QTransform transform;
-  int pageNum;
+  Widget *m_widget;
+  MrDoc::Selection m_selection;
+  QTransform m_transform;
+  int m_pageNum;
 };
 
 class ChangeColorOfSelectionCommand : public QUndoCommand
@@ -114,83 +114,83 @@ private:
 class ChangePenWidthOfSelectionCommand : public QUndoCommand
 {
 public:
-  ChangePenWidthOfSelectionCommand(Widget *newWidget, qreal penWidth, QUndoCommand *parent = 0);
+  ChangePenWidthOfSelectionCommand(Widget *widget, qreal penWidth, QUndoCommand *parent = 0);
   void undo() Q_DECL_OVERRIDE;
   void redo() Q_DECL_OVERRIDE;
 
 private:
-  Widget *widget;
-  MrDoc::Selection selection;
+  Widget *m_widget;
+  MrDoc::Selection m_selection;
   qreal m_penWidth;
 };
 
 class AddPageCommand : public QUndoCommand
 {
 public:
-  AddPageCommand(Widget *newWidget, int newPageNum, QUndoCommand *parent = 0);
+  AddPageCommand(Widget *widget, int pageNum, QUndoCommand *parent = 0);
   void undo() Q_DECL_OVERRIDE;
   void redo() Q_DECL_OVERRIDE;
 
 private:
-  Widget *widget;
-  MrDoc::Page page;
-  int pageNum;
+  Widget *m_widget;
+  MrDoc::Page m_page;
+  int m_pageNum;
 };
 
 class RemovePageCommand : public QUndoCommand
 {
 public:
-  RemovePageCommand(Widget *newWidget, int newPageNum, QUndoCommand *parent = 0);
+  RemovePageCommand(Widget *widget, int pageNum, QUndoCommand *parent = 0);
   void undo() Q_DECL_OVERRIDE;
   void redo() Q_DECL_OVERRIDE;
 
 private:
-  Widget *widget;
-  MrDoc::Page page;
-  int pageNum;
+  Widget *m_widget;
+  MrDoc::Page m_page;
+  int m_pageNum;
 };
 
 class PasteCommand : public QUndoCommand
 {
 public:
-  PasteCommand(Widget *newWidget, MrDoc::Selection newSelection, QUndoCommand *parent = 0);
+  PasteCommand(Widget *widget, MrDoc::Selection selection, QUndoCommand *parent = 0);
   void undo() Q_DECL_OVERRIDE;
   void redo() Q_DECL_OVERRIDE;
 
 private:
-  Widget *widget;
-  MrDoc::Selection pasteSelection;
-  MrDoc::Selection previousSelection;
-  Widget::state previousState;
+  Widget *m_widget;
+  MrDoc::Selection m_pasteSelection;
+  MrDoc::Selection m_previousSelection;
+  Widget::state m_previousState;
 };
 
 class CutCommand : public QUndoCommand
 {
 public:
-  CutCommand(Widget *newWidget, QUndoCommand *parent = 0);
+  CutCommand(Widget *widget, QUndoCommand *parent = 0);
   void undo() Q_DECL_OVERRIDE;
   void redo() Q_DECL_OVERRIDE;
 
 private:
-  Widget *widget;
-  MrDoc::Selection previousSelection;
-  Widget::state previousState;
+  Widget *m_widget;
+  MrDoc::Selection m_previousSelection;
+  Widget::state m_previousState;
 };
 
 class ChangePageSettingsCommand : public QUndoCommand
 {
 public:
-  ChangePageSettingsCommand(Widget *newWidget, int newPageNum, QSizeF newSize, QColor newBackgroundColor, QUndoCommand *parent = 0);
+  ChangePageSettingsCommand(Widget *widget, int pageNum, QSizeF size, QColor backgroundColor, QUndoCommand *parent = 0);
   void undo() Q_DECL_OVERRIDE;
   void redo() Q_DECL_OVERRIDE;
 
 private:
-  Widget *widget;
-  int pageNum;
-  QSizeF prevSize;
-  QSizeF size;
-  QColor prevBackgroundColor;
-  QColor backgroundColor;
+  Widget *m_widget;
+  int m_pageNum;
+  QSizeF m_prevSize;
+  QSizeF m_size;
+  QColor m_prevBackgroundColor;
+  QColor m_backgroundColor;
 };
 
 #endif

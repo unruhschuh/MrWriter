@@ -50,23 +50,23 @@ public:
     ROTATING_SELECTION
   };
 
-  static constexpr qreal veryFinePenWidth = 0.42;
-  static constexpr qreal finePenWidth = 0.85;
-  static constexpr qreal mediumPenWidth = 1.41;
-  static constexpr qreal thickPenWidth = 2.26;
-  static constexpr qreal veryThickPenWidth = 5.67;
+  static constexpr qreal m_veryFinePenWidth = 0.42;
+  static constexpr qreal m_finePenWidth = 0.85;
+  static constexpr qreal m_mediumPenWidth = 1.41;
+  static constexpr qreal m_thickPenWidth = 2.26;
+  static constexpr qreal m_veryThickPenWidth = 5.67;
 
   void setCurrentTool(tool toolID);
   tool getCurrentTool()
   {
-    return currentTool;
+    return m_currentTool;
   }
 
   void setCurrentPenWidth(qreal penWidth);
 
   qreal getCurrentPenWidth()
   {
-    return currentPenWidth;
+    return m_currentPenWidth;
   }
 
   void mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::MouseButtons buttons, Qt::KeyboardModifiers keyboardModifiers,
@@ -107,13 +107,13 @@ public:
 
   void rotateSelection(qreal angle);
 
-  MrDoc::Document currentDocument;
-  QVector<QPixmap> pageBuffer;
-  QVector<QImage> pageImageBuffer;
-  QMutex pageImageBufferMutex;
+  MrDoc::Document m_currentDocument;
+  QVector<QPixmap> m_pageBuffer;
+  QVector<QImage> m_pageImageBuffer;
+  QMutex m_pageImageBufferMutex;
 
-  QColor currentColor;
-  qreal currentPenWidth;
+  QColor m_currentColor;
+  qreal m_currentPenWidth;
 
   qreal m_currentAngle;
 
@@ -121,54 +121,54 @@ public:
   QVector<qreal> getCurrentPattern();
 
   MrDoc::Selection currentSelection;
-  MrDoc::Selection &clipboard = static_cast<TabletApplication *>(qApp)->clipboard;
+  MrDoc::Selection &clipboard = static_cast<TabletApplication *>(qApp)->m_clipboard;
 
-  int selectingOnPage;
+  int m_selectingOnPage;
 
-  QScrollArea *scrollArea;
+  QScrollArea *m_scrollArea;
 
-  QUndoStack undoStack;
+  QUndoStack m_undoStack;
 
-  qreal zoom;
+  qreal m_zoom;
 
 private:
-  QTime timer;
+  QTime m_timer;
 
-  QTimer *updateTimer;
-  QTimer *updateDirtyTimer;
+  QTimer *m_updateTimer;
+  QTimer *m_updateDirtyTimer;
 
-  qreal count;
+  qreal m_count;
 
   void scrollDocumentToPageNum(int pageNum);
 
-  QVector<qreal> currentPattern = MrDoc::solidLinePattern;
+  QVector<qreal> m_currentPattern = MrDoc::solidLinePattern;
 
-  QCursor penCursor;
-  QCursor circleCursor;
-  QCursor rulerCursor;
-  QCursor eraserCursor;
+  QCursor m_penCursor;
+  QCursor m_circleCursor;
+  QCursor m_rulerCursor;
+  QCursor m_eraserCursor;
 
-  MrDoc::Stroke currentStroke;
-  QRect currentUpdateRect;
+  MrDoc::Stroke m_currentStroke;
+  QRect m_currentUpdateRect;
 
-  state currentState;
+  state m_currentState;
 
-  bool penDown = false;
-  int drawingOnPage;
+  bool m_penDown = false;
+  int m_drawingOnPage;
 
-  tool currentTool;
-  tool previousTool;
-  bool realEraser;
+  tool m_currentTool;
+  tool m_previousTool;
+  bool m_realEraser;
 
-  qreal currentDashOffset;
+  qreal m_currentDashOffset;
 
-  qreal minWidthMultiplier = 0.0;
-  qreal maxWidthMultiplier = 1.25;
+  qreal m_minWidthMultiplier = 0.0;
+  qreal m_maxWidthMultiplier = 1.25;
 
-  QPointF currentCOSPos;
-  QPointF firstMousePos;
-  QPointF previousMousePos;
-  QPointF previousPagePos;
+  QPointF m_currentCOSPos;
+  QPointF m_firstMousePos;
+  QPointF m_previousMousePos;
+  QPointF m_previousPagePos;
   MrDoc::Selection::GrabZone m_grabZone = MrDoc::Selection::GrabZone::None;
 
   void startDrawing(QPointF mousePos, qreal pressure);
