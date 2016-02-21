@@ -7,6 +7,7 @@
 #include <QVector2D>
 
 #include "mrdoc.h"
+#include "point.h"
 
 namespace MrDoc
 {
@@ -15,7 +16,7 @@ namespace MrDoc
  * @brief The Stroke struct
  * @todo turn this into a class. make sure, points and pressures are of the same length using a setter
  */
-struct Stroke
+class Stroke
 {
 public:
   Stroke();
@@ -24,6 +25,13 @@ public:
 
   QRectF boundingRect() const;
   QRectF boundingRectSansPenWidth() const;
+
+  /*
+  void addPoint(MrDoc::Point);
+  void pattern(QVector<qreal>);
+  */
+
+//private:
 
   QPolygonF m_points;
   QVector<qreal> m_pressures;
