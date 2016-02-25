@@ -758,12 +758,12 @@ void Widget::startRuling(QPointF mousePos)
   QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
 
   MrDoc::Stroke newStroke;
-  newStroke.m_pattern = m_currentPattern;
-  newStroke.m_points.append(pagePos);
-  newStroke.m_pressures.append(1);
-  newStroke.m_penWidth = m_currentPenWidth;
-  newStroke.m_color = m_currentColor;
+  newStroke.setPattern(m_currentPattern);
+  newStroke.setPenWidth(m_currentPenWidth);
+  newStroke.setColor(m_currentColor);
   m_currentStroke = newStroke;
+  m_currentStroke.addPoint(MrDoc::Point(pagePos, 1.0));
+
   m_currentState = state::RULING;
 
   m_previousMousePos = mousePos;
@@ -775,22 +775,12 @@ void Widget::continueRuling(QPointF mousePos)
 {
   QPointF pagePos = getPagePosFromMousePos(mousePos, m_drawingOnPage);
   QPointF previousPagePos = getPagePosFromMousePos(m_previousMousePos, m_drawingOnPage);
+  QPointF firstPagePos = getPagePosFromMousePos(m_firstMousePos, m_drawingOnPage);
 
-  QPointF firstPagePos = m_currentStroke.m_points.at(0);
+  m_currentStroke.clearPoints();
 
-  QPointF oldPagePos = pagePos;
-
-  m_currentDashOffset = 0.0;
-
-  if (m_currentStroke.m_points.length() > 1)
-  {
-    oldPagePos = m_currentStroke.m_points.at(1);
-    m_currentStroke.m_points.removeAt(1);
-    m_currentStroke.m_pressures.removeAt(1);
-  }
-
-  m_currentStroke.m_points.append(pagePos);
-  m_currentStroke.m_pressures.append(1);
+  m_currentStroke.addPoint(MrDoc::Point(firstPagePos, 1.0));
+  m_currentStroke.addPoint(MrDoc::Point(pagePos, 1.0));
 
   QRect clipRect(m_zoom * firstPagePos.toPoint(), m_zoom * pagePos.toPoint());
   QRect oldClipRect(m_zoom * firstPagePos.toPoint(), m_zoom * previousPagePos.toPoint());
@@ -813,16 +803,8 @@ void Widget::continueRuling(QPointF mousePos)
 
 void Widget::stopRuling(QPointF mousePos)
 {
-  QPointF pagePos = getPagePosFromMousePos(mousePos, m_drawingOnPage);
 
-  if (m_currentStroke.m_points.length() > 1)
-  {
-    m_currentStroke.m_points.removeAt(1);
-    m_currentStroke.m_pressures.removeAt(1);
-  }
-
-  m_currentStroke.m_points.append(pagePos);
-  m_currentStroke.m_pressures.append(1);
+  continueRuling(mousePos);
 
   AddStrokeCommand *addCommand = new AddStrokeCommand(this, m_drawingOnPage, m_currentStroke);
   m_undoStack.push(addCommand);
@@ -838,14 +820,15 @@ void Widget::startCircling(QPointF mousePos)
   emit modified();
 
   int pageNum = getPageFromMousePos(mousePos);
+  QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
 
   MrDoc::Stroke newStroke;
-  //    newStroke.points.append(pagePos);
-  //    newStroke.pressures.append(1);
-  newStroke.m_pattern = m_currentPattern;
-  newStroke.m_penWidth = m_currentPenWidth;
-  newStroke.m_color = m_currentColor;
+  newStroke.setPattern(m_currentPattern);
+  newStroke.setPenWidth(m_currentPenWidth);
+  newStroke.setColor(m_currentColor);
   m_currentStroke = newStroke;
+  m_currentStroke.addPoint(MrDoc::Point(pagePos, 1.0));
+
   m_currentState = state::CIRCLING;
 
   m_previousMousePos = mousePos;
@@ -862,8 +845,7 @@ void Widget::continueCircling(QPointF mousePos)
 
   MrDoc::Stroke oldStroke = m_currentStroke;
 
-  m_currentStroke.m_points.clear();
-  m_currentStroke.m_pressures.clear();
+  m_currentStroke.clearPoints();
 
   qreal radius = QLineF(firstPagePos, pagePos).length();
   qreal phi0 = QLineF(firstPagePos, pagePos).angle() * M_PI / 180.0;
@@ -874,15 +856,14 @@ void Widget::continueCircling(QPointF mousePos)
     qreal phi = phi0 + i * (2.0 * M_PI / (N - 1));
     qreal x = firstPagePos.x() + radius * cos(phi);
     qreal y = firstPagePos.y() - radius * sin(phi);
-    m_currentStroke.m_points.append(QPointF(x, y));
-    m_currentStroke.m_pressures.append(1.0);
+    m_currentStroke.addPoint(MrDoc::Point(QPointF(x, y), 1.0));
   }
 
   QTransform scaleTrans;
   scaleTrans = scaleTrans.scale(m_zoom, m_zoom);
 
-  QRect clipRect = scaleTrans.mapRect(m_currentStroke.m_points.boundingRect()).toRect();
-  QRect oldClipRect = scaleTrans.mapRect(oldStroke.m_points.boundingRect()).toRect();
+  QRect clipRect = scaleTrans.mapRect(m_currentStroke.boundingRect()).toRect();
+  QRect oldClipRect = scaleTrans.mapRect(oldStroke.boundingRect()).toRect();
   clipRect = clipRect.normalized().united(oldClipRect.normalized());
   int clipRad = m_zoom * m_currentPenWidth / 2 + 2;
   clipRect = clipRect.normalized().adjusted(-clipRad, -clipRad, clipRad, clipRad);

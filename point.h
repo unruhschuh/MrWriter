@@ -10,53 +10,54 @@ class Point
 public:
   Point()
   {
-    point(QPointF(0.0, 0.0));
-    pressure(1.0);
+    setPoint(QPointF(0.0, 0.0));
+    setPressure(1.0);
   }
 
   Point(QPointF const &pnt)
   {
-    point(pnt);
-    pressure(1.0);
+    setPoint(pnt);
+    setPressure(1.0);
   }
 
   Point(qreal x, qreal y)
   {
-    point(x, y);
+    setPoint(x, y);
   }
 
   Point(QPointF const &pnt, qreal prsr)
   {
-    point(pnt);
-    pressure(prsr);
+    setPoint(pnt);
+    setPressure(prsr);
   }
 
   Point(qreal x, qreal y, qreal p)
   {
-    point(x, y);
-    pressure(p);
+    setPoint(x, y);
+    setPressure(p);
   }
 
-  QPointF const &point()
+  QPointF const &getPoint() const
   {
     return m_point;
   }
-  qreal pressure()
+
+  qreal getPressure() const
   {
     return m_pressure;
   }
 
-  void point(QPointF const &pnt)
+  void setPoint(QPointF const &pnt)
   {
     m_point = pnt;
   }
 
-  void point(qreal x, qreal y)
+  void setPoint(qreal x, qreal y)
   {
     m_point = QPointF(x, y);
   }
 
-  void pressure(qreal pressure)
+  void setPressure(qreal pressure)
   {
     if (pressure > 0)
     {
