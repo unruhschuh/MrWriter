@@ -903,13 +903,11 @@ void Widget::startDrawing(QPointF mousePos, qreal pressure)
   m_currentDashOffset = 0.0;
 
   MrDoc::Stroke newStroke;
-  newStroke.m_pattern = m_currentPattern;
-  newStroke.m_points.append(pagePos);
-  newStroke.m_pressures.append(pressure);
-  newStroke.m_penWidth = m_currentPenWidth;
-  newStroke.m_color = m_currentColor;
+  newStroke.setPattern(m_currentPattern);
+  newStroke.setPenWidth(m_currentPenWidth);
+  newStroke.setColor(m_currentColor);
   m_currentStroke = newStroke;
-  //    drawing = true;
+  m_currentStroke.addPoint(MrDoc::Point(pagePos, pressure));
   m_currentState = state::DRAWING;
 
   m_previousMousePos = mousePos;
@@ -920,8 +918,7 @@ void Widget::continueDrawing(QPointF mousePos, qreal pressure)
 {
   QPointF pagePos = getPagePosFromMousePos(mousePos, m_drawingOnPage);
 
-  m_currentStroke.m_points.append(pagePos);
-  m_currentStroke.m_pressures.append(pressure);
+  m_currentStroke.addPoint(MrDoc::Point(pagePos, pressure));
   drawOnBuffer(true);
 
   QRect updateRect(m_previousMousePos.toPoint(), mousePos.toPoint());
@@ -937,11 +934,7 @@ void Widget::stopDrawing(QPointF mousePos, qreal pressure)
 {
   m_updateTimer->stop();
 
-  QPointF pagePos = getPagePosFromMousePos(mousePos, m_drawingOnPage);
-
-  m_currentStroke.m_points.append(pagePos);
-  m_currentStroke.m_pressures.append(pressure);
-  drawOnBuffer();
+  continueDrawing(mousePos, pressure);
 
   AddStrokeCommand *addCommand = new AddStrokeCommand(this, m_drawingOnPage, m_currentStroke, -1, false, true);
   m_undoStack.push(addCommand);
@@ -987,7 +980,7 @@ void Widget::erase(QPointF mousePos, bool invertEraser)
     for (int i = strokes.size() - 1; i >= 0; --i)
     {
       MrDoc::Stroke stroke = strokes.at(i);
-      if (rectE.intersects(stroke.m_points.boundingRect()) || !stroke.m_points.boundingRect().isValid()) // this is done for speed
+      if (rectE.intersects(stroke.boundingRectSansPenWidth()) || !stroke.boundingRectSansPenWidth().isValid())
       {
         for (int j = 0; j < stroke.m_points.length() - 1; ++j)
         {
@@ -1063,7 +1056,7 @@ void Widget::erase(QPointF mousePos, bool invertEraser)
   for (int i = 0; i < strokes.size(); ++i)
   {
     const MrDoc::Stroke stroke = strokes.at(i);
-    if (rectE.intersects(stroke.m_points.boundingRect()) || !stroke.m_points.boundingRect().isValid()) // this is done for speed
+    if (rectE.intersects(stroke.boundingRectSansPenWidth()) || !stroke.boundingRectSansPenWidth().isValid()) // this is done for speed
     {
       bool foundStrokeToDelete = false;
       for (int j = 0; j < stroke.m_points.length(); ++j)

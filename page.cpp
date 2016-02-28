@@ -126,15 +126,7 @@ QVector<QPair<Stroke, int>> Page::getStrokes(QPolygonF selectionPolygon)
   for (int i = m_strokes.size() - 1; i >= 0; --i)
   {
     const MrDoc::Stroke &stroke = m_strokes.at(i);
-    bool containsStroke = true;
-    for (int j = 0; j < stroke.m_points.size(); ++j)
-    {
-      if (!selectionPolygon.containsPoint(stroke.m_points.at(j), Qt::OddEvenFill))
-      {
-        containsStroke = false;
-      }
-    }
-    if (containsStroke)
+    if (stroke.containedInPolygon(selectionPolygon, Qt::OddEvenFill))
     {
       // add selected strokes and positions to return vector
       strokesAndPositions.append(QPair<Stroke, int>(stroke, i));
