@@ -79,4 +79,29 @@ QRectF Stroke::boundingRectSansPenWidth() const
   }
   return bRect;
 }
+
+bool Stroke::containedInPolygon(QPolygonF const &polygon, Qt::FillRule fillRule) const
+{
+  // check if all points are inside the polygon
+  bool allPointsInsidePolygon = !std::any_of(m_points.begin(), m_points.end(), [&polygon, fillRule](QPointF const &point)
+                                             {
+                                               return !polygon.containsPoint(point, fillRule);
+                                             });
+  // check if the stroke intersects the polygon
+  bool allLinesInsidePolygon = true;
+  for (auto pointIt = m_points.cbegin(); pointIt != m_points.cend() - 1; ++pointIt)
+  {
+    for (auto polyIt = polygon.cbegin(); polyIt != polygon.cend() - 1; ++polyIt)
+    {
+      QLineF pointLine           = QLineF(*pointIt, *(pointIt + 1));
+      QLineF polyLine            = QLineF(*polyIt, *(polyIt + 1));
+      QPointF *intersectionPoint = nullptr;
+      if (pointLine.intersect(polyLine, intersectionPoint) == QLineF::BoundedIntersection)
+      {
+        allLinesInsidePolygon = false;
+      }
+    }
+  }
+  return allPointsInsidePolygon && allLinesInsidePolygon;
+}
 }

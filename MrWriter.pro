@@ -25,7 +25,8 @@ HEADERS  += version.h \
     colorbutton.h \
     stroke.h \
     mrdoc.h \
-    point.h
+    point.h \
+    mrdoc_free_functions.h
 
 #VERSION_MAJOR = MY_MAJOR_VERSION
 #VERSION_MINOR = MY_MINOR_VERSION

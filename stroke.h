@@ -29,16 +29,37 @@ public:
     setColor(color);
   }
 
+  /**
+   * @brief Stroke
+   * @param pattern
+   * @param penWidth
+   * @param color
+   * @param points
+   * @param pressures
+   *
+   * @todo error handling
+   */
+  Stroke(QVector<qreal> pattern, qreal penWidth, QColor color, QPolygonF const &points, QVector<qreal> const &pressures)
+  {
+    if (points.size() != pressures.size())
+    {
+      throw 42;
+    }
+    Stroke(pattern, penWidth, color);
+    m_points    = points;
+    m_pressures = pressures;
+  }
+
   //    enum class dashPattern { SolidLine, DashLine, DashDotLine, DotLine };
   void paint(QPainter &painter, qreal zoom, bool last = false);
 
   QRectF boundingRect() const;
   QRectF boundingRectSansPenWidth() const;
 
-  void addPoint(MrDoc::Point const &point)
+  void addPoint(QPointF point, qreal pressure)
   {
-    m_points.append(point.getPoint());
-    m_pressures.append(point.getPressure());
+    m_points.append(point);
+    m_pressures.append(pressure);
   }
 
   void clearPoints()
@@ -80,32 +101,11 @@ public:
    * @return
    * @todo should become a free function as soon as there are more objects besides strokes
    */
-  bool containedInPolygon(QPolygonF const &polygon, Qt::FillRule fillRule) const
-  {
-    // check if all points are inside the polygon
-    bool allPointsInsidePolygon = !std::any_of(m_points.begin(), m_points.end(), [&polygon, fillRule](QPointF const &point)
-                                               {
-                                                 return !polygon.containsPoint(point, fillRule);
-                                               });
-    // check if the stroke intersects the polygon
-    bool allLinesInsidePolygon = true;
-    for (auto pointIt = m_points.cbegin(); pointIt != m_points.cend() - 1; ++pointIt)
-    {
-      for (auto polyIt = polygon.cbegin(); polyIt != polygon.cend() - 1; ++polyIt)
-      {
-        QLineF pointLine           = QLineF(*pointIt, *(pointIt + 1));
-        QLineF polyLine            = QLineF(*polyIt, *(polyIt + 1));
-        QPointF *intersectionPoint = nullptr;
-        if (pointLine.intersect(polyLine, intersectionPoint) == QLineF::BoundedIntersection)
-        {
-          allLinesInsidePolygon = false;
-        }
-      }
-    }
-    return allPointsInsidePolygon && allLinesInsidePolygon;
-  }
+  bool containedInPolygon(QPolygonF const &polygon, Qt::FillRule fillRule) const;
 
 private:
+  friend QVector<MrDoc::Stroke> splitStroke(MrDoc::Stroke origStroke, QLineF line, QLineF::IntersectType intersectType);
+
 public:
   QPolygonF m_points;
   QVector<qreal> m_pressures;
