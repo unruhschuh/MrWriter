@@ -63,6 +63,7 @@ private slots:
   void maximize();
 
   void pageSettings();
+  void penSettings();
 
   void black();
   void blue();
@@ -146,6 +147,7 @@ private:
   QAction *pageRemoveAct;
 
   QAction *pageSettingsAct;
+  QAction *penSettingsAct;
 
   QAction *penAct;
   QAction *rulerAct;

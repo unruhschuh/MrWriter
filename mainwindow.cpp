@@ -18,12 +18,14 @@
 #include <QBoxLayout>
 
 #include <iostream>
+#include <memory>
 
 #include "widget.h"
 #include "mrdoc.h"
 #include "version.h"
 #include "mainwindow.h"
 #include "pagesettingsdialog.h"
+#include "pensettingsdialog.h"
 #include "commands.h"
 #include "tabletapplication.h"
 
@@ -278,6 +280,10 @@ void MainWindow::createActions()
   pageSettingsAct = new QAction(tr("Page Settings"), this);
   pageSettingsAct->setStatusTip(tr("Page Settings"));
   connect(pageSettingsAct, SIGNAL(triggered()), this, SLOT(pageSettings()));
+
+  penSettingsAct = new QAction(tr("Pen Settings"), this);
+  penSettingsAct->setStatusTip(tr("Pen Settings"));
+  connect(penSettingsAct, SIGNAL(triggered()), this, SLOT(penSettings()));
 
   saveMyStateAct = new QAction(tr("Save window state"), this);
   saveMyStateAct->setStatusTip(tr("Save window state"));
@@ -559,6 +565,8 @@ void MainWindow::createMenus()
   patternMenu->addAction(dashPatternAct);
   patternMenu->addAction(dashDotPatternAct);
   patternMenu->addAction(dotPatternAct);
+
+  toolsMenu->addAction(penSettingsAct);
 
   viewMenu = menuBar()->addMenu(tr("&View"));
   viewMenu->addAction(zoomInAct);
@@ -1340,6 +1348,17 @@ void MainWindow::pageSettings()
     }
   }
   delete pageDialog;
+}
+
+void MainWindow::penSettings()
+{
+  auto penDialog = std::unique_ptr<PenSettingsDialog>(new PenSettingsDialog(this));
+  qDebug() << "pen dialog is: " << penDialog.get();
+  penDialog->setWindowModality(Qt::WindowModal);
+  if (penDialog->exec() == QDialog::Accepted)
+  {
+    qDebug() << "valid";
+  }
 }
 
 void MainWindow::saveMyState()
