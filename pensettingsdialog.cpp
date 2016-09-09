@@ -1,8 +1,6 @@
 #include "pensettingsdialog.h"
 
-#include <QFormLayout>
-#include <QPageSize>
-#include <QColorDialog>
+
 #include <QDebug>
 #include <QVector>
 
@@ -12,7 +10,20 @@ PenSettingsDialog::PenSettingsDialog(QWidget *parent) : QDialog(parent)
     okButton->setDefault(true);
     cancelButton = new QPushButton(tr("Cancel"), this);
 
-    QFormLayout *formLayout = new QFormLayout;
+    pencilStyleButton = new QRadioButton(tr("Pencil"), this);
+    QPixmap penPixmap(":/images/penCursor3.png");
+    QPixmap penPixmapMask(":/images/penCursor3Mask.png");
+    penPixmap.setMask(QBitmap(penPixmapMask));
+    pencilStyleButton->setIcon(QIcon(penPixmap));
+
+    dotStyleButton = new QRadioButton(tr("Dot"), this);
+    dotStyleButton->setIcon(QIcon(":/images/veryFinePenWidthIcon.png"));
+
+    cursorStyleLabel = new QLabel(tr("Pick Cursor Style:"));
+
+    formLayout = new QFormLayout;
+    formLayout->addRow(cursorStyleLabel);
+    formLayout->addRow(pencilStyleButton, dotStyleButton);
     formLayout->addRow(okButton, cancelButton);
 
     setLayout(formLayout);

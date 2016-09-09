@@ -2,14 +2,17 @@
 #define PENSETTINGSDIALOG_H
 
 #include <QDialog>
-#include <QComboBox>
 #include <QLineEdit>
 #include <QPushButton>
-#include <QCheckBox>
+#include <QRadioButton>
+#include <QPixmap>
+#include <QBitmap>
+#include <QFormLayout>
+#include <QPointer>
 
 #include <QString>
-#include <QPageSize>
 #include <QColor>
+
 
 #include "colorbutton.h"
 
@@ -20,8 +23,15 @@ public:
   explicit PenSettingsDialog(QWidget *parent = 0);
 
 private:
-  QPushButton *okButton;
-  QPushButton *cancelButton;
+  QPointer<QPushButton> okButton;
+  QPointer<QPushButton> cancelButton;
+
+  QPointer<QFormLayout> formLayout;
+
+  QPointer<QRadioButton> pencilStyleButton;
+  QPointer<QRadioButton> dotStyleButton;
+
+  QPointer<QLabel> cursorStyleLabel;
 };
 
 #endif // PENSETTINGSDIALOG_H
