@@ -1629,6 +1629,18 @@ void Widget::setCurrentTool(tool toolID)
   }
 }
 
+void Widget::setPenCursor(const QString& resourceName)
+{
+  if (currentState == state::IDLE || currentState == state::SELECTED)
+  {
+    // setup cursor
+    QPixmap penCursorBitmap = QPixmap(resourceName);
+    penCursorBitmap.setMask(penCursorBitmap.mask());
+    penCursor = QCursor(penCursorBitmap, -1, -1);
+    setCursor(penCursor);
+  }
+}
+
 void Widget::setDocument(const MrDoc::Document &newDocument)
 {
   currentDocument = newDocument;
@@ -1810,6 +1822,20 @@ void Widget::veryThick()
   emit updateGUI();
 }
 
+void Widget::setPencilCursorIcon()
+{
+  currentPenCursor = Widget::cursor::PENCIL;
+  setPenCursor(":/images/penCursor3.png");
+  emit updateGUI();
+}
+
+void Widget::setDotCursorIcon()
+{
+  currentPenCursor = Widget::cursor::DOT;
+  setPenCursor(":/images/dotCursor.png");
+  emit updateGUI();
+}
+
 void Widget::rotateSelection(qreal angle)
 {
   QTransform rotateTrans;
@@ -1873,4 +1899,18 @@ void Widget::setCurrentPenWidth(qreal penWidth)
     currentSelection.updateBuffer(zoom);
     update();
   }
+}
+
+void Widget::setCurrentPenCursor(Widget::cursor cursorType)
+{
+    switch (cursorType) {
+    case Widget::cursor::PENCIL:
+        setPencilCursorIcon();
+        break;
+    case Widget::cursor::DOT:
+        setDotCursorIcon();
+        break;
+    default:
+        break;
+    }
 }

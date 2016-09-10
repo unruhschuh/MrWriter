@@ -63,7 +63,6 @@ private slots:
   void maximize();
 
   void pageSettings();
-  void penSettings();
 
   void black();
   void blue();
@@ -147,7 +146,6 @@ private:
   QAction *pageRemoveAct;
 
   QAction *pageSettingsAct;
-  QAction *penSettingsAct;
 
   QAction *penAct;
   QAction *rulerAct;
@@ -168,6 +166,9 @@ private:
   QAction *mediumPenWidthAct;
   QAction *thickPenWidthAct;
   QAction *veryThickPenWidthAct;
+
+  QAction *pencilIconAct;
+  QAction *dotIconAct;
 
   QAction *toolbarAct;
   QAction *statusbarAct;
@@ -209,6 +210,7 @@ private:
   QMenu *patternMenu;
   QMenu *viewMenu;
   QMenu *helpMenu;
+  QMenu *penIconMenu;
 
   // for android
   QToolButton *mainMenuButton;

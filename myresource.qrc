@@ -65,5 +65,6 @@
         <file>images/rulerCursor.png</file>
         <file>images/rulerCursorMask.png</file>
         <file>documentation/MrWriterDoc.html</file>
+        <file>images/dotCursor.png</file>
     </qresource>
 </RCC>

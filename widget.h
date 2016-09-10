@@ -49,6 +49,11 @@ public:
     RESIZING_SELECTION,
     ROTATING_SELECTION
   };
+  enum class cursor
+  {
+    PENCIL,
+    DOT
+  };
 
   static constexpr qreal veryFinePenWidth = 0.42;
   static constexpr qreal finePenWidth = 0.85;
@@ -57,7 +62,9 @@ public:
   static constexpr qreal veryThickPenWidth = 5.67;
 
   void setCurrentTool(tool toolID);
-  tool getCurrentTool()
+  void setPenCursor(const QString &resourceName);
+
+  inline tool getCurrentTool()
   {
     return currentTool;
   }
@@ -67,6 +74,13 @@ public:
   qreal getCurrentPenWidth()
   {
     return currentPenWidth;
+  }
+
+  void setCurrentPenCursor(Widget::cursor cursorType);
+
+  Widget::cursor getCurrentPenCursor()
+  {
+    return currentPenCursor;
   }
 
   void mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::MouseButtons buttons, Qt::KeyboardModifiers keyboardModifiers,
@@ -114,6 +128,8 @@ public:
 
   QColor currentColor;
   qreal currentPenWidth;
+
+  Widget::cursor currentPenCursor;
 
   qreal m_currentAngle;
 
@@ -230,6 +246,9 @@ private slots:
   void medium();
   void thick();
   void veryThick();
+
+  void setPencilCursorIcon();
+  void setDotCursorIcon();
 
   void solidPattern();
   void dashPattern();

@@ -24,8 +24,7 @@ HEADERS  += version.h \
     pagesettingsdialog.h \
     colorbutton.h \
     stroke.h \
-    mrdoc.h \
-    pensettingsdialog.h
+    mrdoc.h
 
 #VERSION_MAJOR = MY_MAJOR_VERSION
 #VERSION_MINOR = MY_MINOR_VERSION
@@ -41,8 +40,7 @@ SOURCES += main.cpp\
     tabletapplication.cpp \
     pagesettingsdialog.cpp \
     colorbutton.cpp \
-    stroke.cpp \
-    pensettingsdialog.cpp
+    stroke.cpp
 
 HEADERS  += mainwindow.h \
     widget.h \

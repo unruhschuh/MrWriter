@@ -25,7 +25,6 @@
 #include "version.h"
 #include "mainwindow.h"
 #include "pagesettingsdialog.h"
-#include "pensettingsdialog.h"
 #include "commands.h"
 #include "tabletapplication.h"
 
@@ -281,10 +280,6 @@ void MainWindow::createActions()
   pageSettingsAct->setStatusTip(tr("Page Settings"));
   connect(pageSettingsAct, SIGNAL(triggered()), this, SLOT(pageSettings()));
 
-  penSettingsAct = new QAction(tr("Pen Settings"), this);
-  penSettingsAct->setStatusTip(tr("Pen Settings"));
-  connect(penSettingsAct, SIGNAL(triggered()), this, SLOT(penSettings()));
-
   saveMyStateAct = new QAction(tr("Save window state"), this);
   saveMyStateAct->setStatusTip(tr("Save window state"));
   connect(saveMyStateAct, SIGNAL(triggered()), this, SLOT(saveMyState()));
@@ -300,6 +295,7 @@ void MainWindow::createActions()
   penAct->setChecked(true);
   connect(penAct, SIGNAL(triggered()), this, SLOT(pen()));
   this->addAction(penAct); // add to make shortcut work if menubar is hidden
+
 
   rulerAct = new QAction(QIcon(":/images/rulerIcon.png"), tr("Ruler"), this);
   rulerAct->setStatusTip(tr("Ruler Tool"));
@@ -392,6 +388,18 @@ void MainWindow::createActions()
   veryThickPenWidthAct->setCheckable(true);
   veryThickPenWidthAct->setChecked(false);
   connect(veryThickPenWidthAct, SIGNAL(triggered()), mainWidget, SLOT(veryThick()));
+
+  pencilIconAct = new QAction(QIcon(":/images/penCursor3.png"), tr("Pencil Cursor"), this);
+  pencilIconAct->setStatusTip(tr("Pencil Cursor"));
+  pencilIconAct->setCheckable(true);
+  pencilIconAct->setChecked(false);
+  connect(pencilIconAct, SIGNAL(triggered()), mainWidget, SLOT(setPencilCursorIcon()));
+
+  dotIconAct = new QAction(QIcon(":/images/dotCursor.png"), tr("Dot Cursor"), this);
+  dotIconAct->setStatusTip(tr("Dot Cursor"));
+  dotIconAct->setCheckable(true);
+  dotIconAct->setChecked(false);
+  connect(dotIconAct, SIGNAL(triggered()), mainWidget, SLOT(setDotCursorIcon()));
 
   toolbarAct = new QAction(tr("show Toolbar"), this);
   toolbarAct->setShortcut(QKeySequence(Qt::Key_T));
@@ -566,7 +574,10 @@ void MainWindow::createMenus()
   patternMenu->addAction(dashDotPatternAct);
   patternMenu->addAction(dotPatternAct);
 
-  toolsMenu->addAction(penSettingsAct);
+  toolsMenu->addSeparator();
+  penIconMenu = toolsMenu->addMenu(tr("Pen Cursor"));
+  penIconMenu->addAction(pencilIconAct);
+  penIconMenu->addAction(dotIconAct);
 
   viewMenu = menuBar()->addMenu(tr("&View"));
   viewMenu->addAction(zoomInAct);
@@ -1163,12 +1174,21 @@ void MainWindow::verticalScrolling()
 
 void MainWindow::showEvent(QShowEvent *event)
 {
+  qDebug() << "show event";
   QMainWindow::showEvent(event);
   mainWidget->zoomFitWidth();
+
+  QSettings settings;
+  Widget::cursor storedValue = static_cast<Widget::cursor>(
+              settings.value("cursorIcon").toInt());
+  mainWidget->setCurrentPenCursor(storedValue);
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
+  QSettings settings;
+  settings.setValue("cursorIcon",
+                    static_cast<int>(mainWidget->getCurrentPenCursor()));
   if (maybeSave())
   {
     event->accept();
@@ -1234,6 +1254,10 @@ void MainWindow::updateGUI()
   mediumPenWidthAct->setChecked(currentPenWidth == Widget::mediumPenWidth);
   thickPenWidthAct->setChecked(currentPenWidth == Widget::thickPenWidth);
   veryThickPenWidthAct->setChecked(currentPenWidth == Widget::veryThickPenWidth);
+
+  Widget::cursor currentCursorIcon = mainWidget->getCurrentPenCursor();
+  pencilIconAct->setChecked(currentCursorIcon == Widget::cursor::PENCIL);
+  dotIconAct->setChecked(currentCursorIcon == Widget::cursor::DOT);
 
   QVector<qreal> currentPattern = mainWidget->getCurrentPattern();
 
@@ -1348,17 +1372,6 @@ void MainWindow::pageSettings()
     }
   }
   delete pageDialog;
-}
-
-void MainWindow::penSettings()
-{
-  auto penDialog = std::unique_ptr<PenSettingsDialog>(new PenSettingsDialog(this));
-  qDebug() << "pen dialog is: " << penDialog.get();
-  penDialog->setWindowModality(Qt::WindowModal);
-  if (penDialog->exec() == QDialog::Accepted)
-  {
-    qDebug() << "valid";
-  }
 }
 
 void MainWindow::saveMyState()
