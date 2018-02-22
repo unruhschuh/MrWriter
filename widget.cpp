@@ -184,11 +184,11 @@ void Widget::updateAllDirtyBuffers()
 
 void Widget::drawOnBuffer(bool last)
 {
-  QPainter painter;
-  painter.begin(&pageBuffer[drawingOnPage]);
-  painter.setRenderHint(QPainter::Antialiasing, true);
+    QPainter painter;
+    painter.begin(&pageBuffer[drawingOnPage]);
+    painter.setRenderHint(QPainter::Antialiasing, true);
 
-  currentStroke.paint(painter, zoom, last);
+    currentStroke.paint(painter, zoom, last);
 }
 
 QRect Widget::getWidgetGeometry()
@@ -565,6 +565,18 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
 
         previousMousePos = mousePos;
       }
+    }
+    //Test for finger is moving the sheet
+    if (eventType == QEvent::TouchUpdate){
+        int dx = 1 * (mousePos.x() - previousMousePos.x());
+        int dy = 1 * (mousePos.y() - previousMousePos.y());
+
+        scrollArea->horizontalScrollBar()->setValue(scrollArea->horizontalScrollBar()->value() - dx);
+        scrollArea->verticalScrollBar()->setValue(scrollArea->verticalScrollBar()->value() - dy);
+
+        mousePos -= QPointF(dx, dy);
+
+        previousMousePos = mousePos;
     }
     if (eventType == QEvent::MouseButtonRelease)
     {

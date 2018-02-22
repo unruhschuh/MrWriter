@@ -71,162 +71,173 @@ pages[pageNum+1].height()));
 
 void Document::exportPDF(QString fileName)
 {
-  //    QPdfWriter pdfWriter("/Users/tom/Desktop/qpdfwriter.pdf");
-  //    QPdfWriter pdfWriter(fileName);
+    //    QPdfWriter pdfWriter("/Users/tom/Desktop/qpdfwriter.pdf");
+    //    QPdfWriter pdfWriter(fileName);
 
-  QPrinter pdfWriter(QPrinter::HighResolution);
-  pdfWriter.setOutputFormat(QPrinter::PdfFormat);
-  pdfWriter.setOutputFileName(fileName);
-  //    pdfWriter.setMargins();
+    QPrinter pdfWriter(QPrinter::HighResolution);
+    pdfWriter.setOutputFormat(QPrinter::PdfFormat);
+    pdfWriter.setOutputFileName(fileName);
+    //    pdfWriter.setMargins();
 
-  pdfWriter.setPageSize(QPageSize(QSizeF(pages[0].width(), pages[0].height()), QPageSize::Point));
-  pdfWriter.setPageMargins(QMarginsF(0, 0, 0, 0));
-  qreal zoomW = ((qreal)pdfWriter.pageRect().width()) / ((qreal)pdfWriter.paperRect().width());
-  qreal zoomH = ((qreal)pdfWriter.pageRect().height()) / ((qreal)pdfWriter.paperRect().height());
-  qreal zoom = zoomW;
-  if (zoomH < zoomW)
-    zoom = zoomH;
-  pdfWriter.setResolution(72);
-  pdfWriter.pageLayout().setUnits(QPageLayout::Point);
-  QPainter painter;
+    pdfWriter.setPageSize(QPageSize(QSizeF(pages[0].width(), pages[0].height()), QPageSize::Point));
+    pdfWriter.setPageMargins(QMarginsF(0, 0, 0, 0));
+    qreal zoomW = ((qreal)pdfWriter.pageRect().width()) / ((qreal)pdfWriter.paperRect().width());
+    qreal zoomH = ((qreal)pdfWriter.pageRect().height()) / ((qreal)pdfWriter.paperRect().height());
+    qreal zoom = zoomW;
+    if (zoomH < zoomW)
+        zoom = zoomH;
+    pdfWriter.setResolution(72);
+    pdfWriter.pageLayout().setUnits(QPageLayout::Point);
+    QPainter painter;
 
-  //    std::cout << "PDF " << pdfWriter.colorCount() << std::endl;
+    //    std::cout << "PDF " << pdfWriter.colorCount() << std::endl;
 
-  painter.begin(&pdfWriter);
-  painter.setRenderHint(QPainter::Antialiasing, true);
-  for (int pageNum = 0; pageNum < pages.size(); ++pageNum)
-  {
-    if (pages[pageNum].backgroundColor() != QColor("white"))
+    painter.begin(&pdfWriter);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    for (int pageNum = 0; pageNum < pages.size(); ++pageNum)
     {
-      QRectF pageRect = pdfWriter.pageRect(QPrinter::Point);
-      pageRect.translate(-pageRect.topLeft());
-      painter.fillRect(pageRect, pages[pageNum].backgroundColor());
-    }
-    pages[pageNum].paint(painter, zoom, QRect(0, 0, 0, 0));
+        if (pages[pageNum].backgroundColor() != QColor("white"))
+        {
+            QRectF pageRect = pdfWriter.pageRect(QPrinter::Point);
+            pageRect.translate(-pageRect.topLeft());
+            painter.fillRect(pageRect, pages[pageNum].backgroundColor());
+        }
+        pages[pageNum].paint(painter, zoom, QRect(0, 0, 0, 0));
 
-    if (pageNum + 1 < pages.size())
-    {
-      pdfWriter.setPageSize(QPageSize(QSize(pages[pageNum + 1].width(), pages[pageNum + 1].height())));
-      pdfWriter.newPage();
+        if (pageNum + 1 < pages.size())
+        {
+            pdfWriter.setPageSize(QPageSize(QSize(pages[pageNum + 1].width(), pages[pageNum + 1].height())));
+            pdfWriter.newPage();
+        }
     }
-  }
-  painter.end();
+    painter.end();
 }
 
 bool Document::loadXOJ(QString fileName)
 {
-  QFile file(fileName);
-  if (!file.open(QIODevice::ReadOnly))
-  {
-    return false;
-  }
-
-  QXmlStreamReader reader;
-
-  // check if it is a gzipped xoj
-  QByteArray s = file.read(2);
-  if (s.size() == 2)
-  {
-    if (s.at(0) == static_cast<char>(0x1f) && s.at(1) == static_cast<char>(0x8b))
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly))
     {
-      // this is a gzipped file
-      file.reset();
-      QByteArray compressedData = file.readAll();
-      QByteArray uncompressedData;
-      if (!QCompressor::gzipDecompress(compressedData, uncompressedData))
-      {
         return false;
-      }
-      reader.addData(uncompressedData);
+    }
+
+    QXmlStreamReader reader;
+
+    // check if it is a gzipped xoj
+    QByteArray s = file.read(2);
+    if (s.size() == 2)
+    {
+        if (s.at(0) == static_cast<char>(0x1f) && s.at(1) == static_cast<char>(0x8b))
+        {
+            // this is a gzipped file
+            file.reset();
+            QByteArray compressedData = file.readAll();
+            QByteArray uncompressedData;
+            if (!QCompressor::gzipDecompress(compressedData, uncompressedData))
+            {
+                return false;
+            }
+            reader.addData(uncompressedData);
+        }
+        else
+        {
+            file.reset();
+            reader.setDevice(&file);
+        }
     }
     else
     {
-      file.reset();
-      reader.setDevice(&file);
+        return false;
     }
-  }
-  else
-  {
-    return false;
-  }
 
-  pages.clear();
+    pages.clear();
 
-  int strokeCount = 0;
+    int strokeCount = 0;
 
-  while (!reader.atEnd())
-  {
-    reader.readNext();
-    if (reader.name() == "page" && reader.tokenType() == QXmlStreamReader::StartElement)
+    while (!reader.atEnd())
     {
-      QXmlStreamAttributes attributes = reader.attributes();
-      QStringRef width = attributes.value("", "width");
-      QStringRef height = attributes.value("", "height");
-      Page newPage;
-      newPage.setWidth(width.toDouble());
-      newPage.setHeight(height.toDouble());
+        reader.readNext();
+        if (reader.name() == "page" && reader.tokenType() == QXmlStreamReader::StartElement)
+        {
+            QXmlStreamAttributes attributes = reader.attributes();
+            QStringRef width = attributes.value("", "width");
+            QStringRef height = attributes.value("", "height");
+            Page newPage;
+            newPage.setWidth(width.toDouble());
+            newPage.setHeight(height.toDouble());
 
-      pages.append(newPage);
+            pages.append(newPage);
+        }
+        if (reader.name() == "background" && reader.tokenType() == QXmlStreamReader::StartElement)
+        {
+            QXmlStreamAttributes attributes = reader.attributes();
+            QStringRef type = attributes.value("", "type");
+            if(type == "pdf"){
+                QStringRef pdfPath = attributes.value("", "filename");
+                if(!pdfPath.isEmpty()){
+                    m_pdfPath = pdfPath.toString();
+                }
+                QStringRef pdfPageNumStr = attributes.value("", "pageno");
+                int pdfPageNum = pdfPageNumStr.toInt();
+                pages.last().setPdf(m_pdfPath, pdfPageNum-1);
+                continue;
+            }
+            QStringRef color = attributes.value("", "color");
+            QColor newColor = stringToColor(color.toString());
+            pages.last().setBackgroundColor(newColor);
+        }
+        if (reader.name() == "stroke" && reader.tokenType() == QXmlStreamReader::StartElement)
+        {
+            QXmlStreamAttributes attributes = reader.attributes();
+            QStringRef tool = attributes.value("", "tool");
+            if (tool == "pen")
+            {
+                Stroke newStroke;
+                newStroke.pattern = MrDoc::solidLinePattern;
+                QStringRef color = attributes.value("", "color");
+                newStroke.color = stringToColor(color.toString());
+                QStringRef strokeWidth = attributes.value("", "width");
+                QStringList strokeWidthList = strokeWidth.toString().split(" ");
+                newStroke.penWidth = strokeWidthList.at(0).toDouble();
+                newStroke.pressures.append(newStroke.penWidth / strokeWidthList.at(0).toDouble());
+                for (int i = 1; i < strokeWidthList.size(); ++i)
+                {
+                    newStroke.pressures.append(2 * strokeWidthList.at(i).toDouble() / newStroke.penWidth - newStroke.pressures.at(i - 1));
+                }
+                QString elementText = reader.readElementText();
+                QStringList elementTextList = elementText.split(" ");
+                for (int i = 0; i + 1 < elementTextList.size(); i = i + 2)
+                {
+                    newStroke.points.append(QPointF(elementTextList.at(i).toDouble(), elementTextList.at(i + 1).toDouble()));
+                }
+                while (newStroke.points.size() > newStroke.pressures.size())
+                {
+                    newStroke.pressures.append(1.0);
+                }
+                pages.last().appendStroke(newStroke);
+                strokeCount++;
+                qDebug() << strokeCount;
+            }
+        }
     }
-    if (reader.name() == "background" && reader.tokenType() == QXmlStreamReader::StartElement)
+
+    //    QFileInfo fileInfo(file);
+    file.close();
+
+    for (auto &page : pages)
     {
-      QXmlStreamAttributes attributes = reader.attributes();
-      QStringRef color = attributes.value("", "color");
-      QColor newColor = stringToColor(color.toString());
-      pages.last().setBackgroundColor(newColor);
+        page.clearDirtyRect();
     }
-    if (reader.name() == "stroke" && reader.tokenType() == QXmlStreamReader::StartElement)
+
+    if (reader.hasError())
     {
-      QXmlStreamAttributes attributes = reader.attributes();
-      QStringRef tool = attributes.value("", "tool");
-      if (tool == "pen")
-      {
-        Stroke newStroke;
-        newStroke.pattern = MrDoc::solidLinePattern;
-        QStringRef color = attributes.value("", "color");
-        newStroke.color = stringToColor(color.toString());
-        QStringRef strokeWidth = attributes.value("", "width");
-        QStringList strokeWidthList = strokeWidth.toString().split(" ");
-        newStroke.penWidth = strokeWidthList.at(0).toDouble();
-        newStroke.pressures.append(newStroke.penWidth / strokeWidthList.at(0).toDouble());
-        for (int i = 1; i < strokeWidthList.size(); ++i)
-        {
-          newStroke.pressures.append(2 * strokeWidthList.at(i).toDouble() / newStroke.penWidth - newStroke.pressures.at(i - 1));
-        }
-        QString elementText = reader.readElementText();
-        QStringList elementTextList = elementText.split(" ");
-        for (int i = 0; i + 1 < elementTextList.size(); i = i + 2)
-        {
-          newStroke.points.append(QPointF(elementTextList.at(i).toDouble(), elementTextList.at(i + 1).toDouble()));
-        }
-        while (newStroke.points.size() > newStroke.pressures.size())
-        {
-          newStroke.pressures.append(1.0);
-        }
-        pages.last().appendStroke(newStroke);
-        strokeCount++;
-        qDebug() << strokeCount;
-      }
+        return false;
     }
-  }
-
-  //    QFileInfo fileInfo(file);
-  file.close();
-
-  for (auto &page : pages)
-  {
-    page.clearDirtyRect();
-  }
-
-  if (reader.hasError())
-  {
-    return false;
-  }
-  else
-  {
-    setDocumentChanged(true);
-    return true;
-  }
+    else
+    {
+        setDocumentChanged(true);
+        return true;
+    }
 }
 
 bool Document::saveXOJ(QString fileName)
@@ -254,15 +265,30 @@ bool Document::saveXOJ(QString fileName)
   writer.writeCharacters("Xournal document - see http://math.mit.edu/~auroux/software/xournal/");
   writer.writeEndElement();
 
+  bool pdfFileNameSet = false;
+
   for (int i = 0; i < pages.size(); ++i)
   {
     writer.writeStartElement("page");
     writer.writeAttribute(QXmlStreamAttribute("width", QString::number(pages[i].width())));
     writer.writeAttribute(QXmlStreamAttribute("height", QString::number(pages[i].height())));
     writer.writeEmptyElement("background");
-    writer.writeAttribute(QXmlStreamAttribute("type", "solid"));
-    writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(pages[i].backgroundColor().name(QColor::HexArgb))));
-    writer.writeAttribute(QXmlStreamAttribute("style", "plain"));
+
+    if(pages[i].isPdf()){
+        writer.writeAttribute(QXmlStreamAttribute("type", "pdf"));
+        if(!pdfFileNameSet){
+            writer.writeAttribute(QXmlStreamAttribute("domain", "absolute"));
+            writer.writeAttribute(QXmlStreamAttribute("filename", m_pdfPath));
+            pdfFileNameSet = true;
+        }
+        writer.writeAttribute(QXmlStreamAttribute("pageno", QString::number(pages[i].pageNum()+1)));
+    }
+    else{
+        writer.writeAttribute(QXmlStreamAttribute("type", "solid"));
+        writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(pages[i].backgroundColor().name(QColor::HexArgb))));
+        writer.writeAttribute(QXmlStreamAttribute("style", "plain"));
+    }
+
     writer.writeStartElement("layer");
 
     //    for (int j = 0; j < pages[i].m_strokes.size(); ++j)

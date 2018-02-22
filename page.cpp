@@ -7,12 +7,12 @@ namespace MrDoc
 
 Page::Page()
 {
-  // set up standard page (Letter, white background)
-  setWidth(595.0);
-  setHeight(842.0);
-  //    setWidth(600.0);
-  //    setHeight(800.0);
-  setBackgroundColor(QColor(255, 255, 255));
+    // set up standard page (Letter, white background)
+    setWidth(595.0);
+    setHeight(842.0);
+    //    setWidth(600.0);
+    //    setHeight(800.0);
+    setBackgroundColor(QColor(255, 255, 255));
 }
 
 qreal Page::height() const
@@ -43,13 +43,14 @@ void Page::setWidth(qreal width)
 
 void Page::paint(QPainter &painter, qreal zoom, QRectF region)
 {
-  for (Stroke &stroke : m_strokes)
-  {
-    if (region.isNull() || stroke.boundingRect().intersects(region))
+    painter.drawImage(0,0, m_pdf.scaled(m_width*zoom, m_height*zoom, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    for (Stroke &stroke : m_strokes)
     {
-      stroke.paint(painter, zoom);
+        if (region.isNull() || stroke.boundingRect().intersects(region))
+        {
+            stroke.paint(painter, zoom);
+        }
     }
-  }
 }
 
 void Page::setBackgroundColor(QColor backgroundColor)
@@ -199,5 +200,24 @@ void Page::appendStrokes(const QVector<Stroke> &strokes)
   {
     appendStroke(stroke);
   }
+}
+
+void Page::setPdf(const QString& path, int pageNum){
+    Poppler::Document* doc = Poppler::Document::load(path);
+    if (!doc || doc->isLocked()){
+        qDebug() << "Couldn't load PDF";
+    }
+    else{
+        Poppler::Page* page = doc->page(pageNum);
+        if(page == 0){
+            qDebug() << "Couldn't load PDF page";
+        }
+        else{
+            m_pdf = page->renderToImage(72.0*10, 72.0*10, 0,0,int(m_width*10), int(m_height*10));
+            pageno = pageNum;
+            delete page;
+        }
+    }
+    delete doc;
 }
 }

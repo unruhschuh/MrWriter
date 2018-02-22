@@ -58,6 +58,8 @@ FORMS    +=
 RESOURCES += \
     myresource.qrc
 
+INCLUDEPATH  += /usr/include/poppler/qt5
+LIBS         += -L/usr/lib -lpoppler-qt5
 LIBS += -lz
 
 ICON = MyIcon.icns

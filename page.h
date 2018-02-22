@@ -2,6 +2,9 @@
 #define PAGE_H
 
 #include "stroke.h"
+#include <poppler-qt5.h>
+#include <QDebug>
+#include <QImage>
 
 namespace MrDoc
 {
@@ -9,7 +12,7 @@ namespace MrDoc
 class Page
 {
 public:
-  Page();
+    Page();
 
   qreal width() const;
   qreal height() const;
@@ -41,6 +44,9 @@ public:
   void appendStrokes(const QVector<Stroke> &strokes);
   void prependStroke(const Stroke &stroke);
 
+  void setPdf(const QString& path, int pageNum);
+  //void setPdfPath(const QString path);
+
   //    virtual void paint(QPainter &painter, qreal zoom);
   /**
    * @brief paint
@@ -52,8 +58,19 @@ public:
 
   //    QVector<Stroke> strokes;
 
+  bool isPdf(){
+      return !m_pdf.isNull();
+  }
+
+  int pageNum(){
+      return pageno;
+  }
+
 protected:
   QVector<Stroke> m_strokes;
+  //Poppler::Page* m_pdf = Poppler::Document::load("/home/alexander/Softwareentwicklung 1/Blatt 13/lhv13.pdf")->page(0);
+  QImage m_pdf;
+  int pageno; //pageNumber
 
 private:
   QColor m_backgroundColor;

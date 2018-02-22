@@ -45,6 +45,7 @@ private:
 
   QString m_docName;
   QString m_path;
+  QString m_pdfPath;
 };
 }
 
