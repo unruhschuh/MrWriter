@@ -566,7 +566,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
         previousMousePos = mousePos;
       }
     }
-    //Test for finger is moving the sheet
+    /*//Test for finger is moving the sheet
     if (eventType == QEvent::TouchUpdate){
         int dx = 1 * (mousePos.x() - previousMousePos.x());
         int dy = 1 * (mousePos.y() - previousMousePos.y());
@@ -577,7 +577,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
         mousePos -= QPointF(dx, dy);
 
         previousMousePos = mousePos;
-    }
+    }*/
     if (eventType == QEvent::MouseButtonRelease)
     {
       setPreviousTool();
