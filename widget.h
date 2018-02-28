@@ -11,6 +11,8 @@
 #include <QTabletEvent>
 #include <QUndoStack>
 #include <QScrollArea>
+#include <QSizeGrip>
+#include <QGridLayout>
 #include <QMutex>
 
 #include <QTime>
@@ -19,6 +21,7 @@
 #include "tabletapplication.h"
 #include "mrdoc.h"
 #include "document.h"
+#include "textbox.h"
 
 class Widget : public QWidget
 // class Widget : public QOpenGLWidget
@@ -35,7 +38,8 @@ public:
     CIRCLE,
     ERASER,
     SELECT,
-    HAND
+    HAND,
+    TEXT
   };
   enum class state
   {
@@ -43,6 +47,7 @@ public:
     DRAWING,
     RULING,
     CIRCLING,
+    WRITING,
     SELECTING,
     SELECTED,
     MOVING_SELECTION,
@@ -106,6 +111,8 @@ public:
   void zoomFitHeight();
 
   void rotateSelection(qreal angle);
+
+  void closeTextBox();
 
   MrDoc::Document currentDocument;
   QVector<QPixmap> pageBuffer;
@@ -171,6 +178,10 @@ private:
   QPointF previousPagePos;
   MrDoc::Selection::GrabZone m_grabZone = MrDoc::Selection::GrabZone::None;
 
+  TextBox* textBox;
+  bool textBoxOpen = false;
+  bool textChanged = false;
+
   void startDrawing(QPointF mousePos, qreal pressure);
   void continueDrawing(QPointF mousePos, qreal pressure);
   void stopDrawing(QPointF mousePos, qreal pressure);
@@ -203,6 +214,7 @@ private:
   void erase(QPointF mousePos, bool invertEraser = false);
 
 private slots:
+  void updatePageAfterText(int i);
   void updateAllDirtyBuffers();
 
   void undo();
@@ -245,6 +257,7 @@ signals:
   void eraser();
   void select();
   void hand();
+  void setText(bool);
 
   void updateGUI();
 
@@ -257,6 +270,8 @@ protected:
   void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
 
   void tabletEvent(QTabletEvent *event) Q_DECL_OVERRIDE;
+
+  void keyPressEvent(QKeyEvent* event) override;
 
 signals:
 

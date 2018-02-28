@@ -54,6 +54,7 @@ private slots:
   void eraser();
   void select();
   void hand();
+  void text();
 
   void modified();
 
@@ -160,6 +161,8 @@ private:
   QAction *dotPatternAct;
 
   QAction *rotateAct;
+
+  QAction *textAct;
 
   QAction *veryFinePenWidthAct;
   QAction *finePenWidthAct;

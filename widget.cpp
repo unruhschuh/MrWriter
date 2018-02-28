@@ -23,9 +23,19 @@
 #include <QPainter>
 #include <QRectF>
 
-Widget::Widget(QWidget *parent) : QWidget(parent)
+Widget::Widget(QWidget *parent)
+    : QWidget(parent)
 // Widget::Widget(QWidget *parent) : QOpenGLWidget(parent)
 {
+    textBox = new TextBox(this);
+    connect(this, &Widget::setText, textBox, &TextBox::applyText);
+    connect(textBox, &TextBox::updatePage, this, &Widget::updatePageAfterText);
+    textBox->setWordWrapMode(QTextOption::WordWrap);
+    textBox->setWindowFlags(Qt::SubWindow);
+    QSizeGrip* sizeGrip = new QSizeGrip(textBox);
+    QGridLayout* layout = new QGridLayout(textBox);
+    layout->addWidget(sizeGrip, 0,0,1,1, Qt::AlignBottom|Qt::AlignRight);
+    textBox->hide();
   QSettings settings;
   //    qDebug() << settings.applicationVersion();
 
@@ -182,6 +192,11 @@ void Widget::updateAllDirtyBuffers()
   update();
 }
 
+void Widget::updatePageAfterText(int i){
+    updateBuffer(i);
+    emit modified();
+}
+
 void Widget::drawOnBuffer(bool last)
 {
     QPainter painter;
@@ -258,6 +273,7 @@ void Widget::paintEvent(QPaintEvent *event)
 
     painter.translate(QPointF(0.0, rectSource.height()/devicePixelRatio() + PAGE_GAP));
   }
+
 }
 
 void Widget::updateWhileDrawing()
@@ -619,6 +635,41 @@ void Widget::tabletEvent(QTabletEvent *event)
 
 void Widget::mousePressEvent(QMouseEvent *event)
 {
+    if(currentTool == tool::TEXT){
+        QPointF point = getPagePosFromMousePos(event->pos(), getCurrentPage());
+        int textIndex = currentDocument.pages[getCurrentPage()].textIndexFromMouseClick(point.x(), point.y());
+        if(textBoxOpen){
+            closeTextBox();
+        }
+        else if(textIndex != -1){ //clicked on text
+            textBox->setPage(&(currentDocument.pages[getCurrentPage()]));
+            textBox->setPageNum(getCurrentPage());
+            textBox->setTextIndex(textIndex);
+            textBox->setGeometry(currentDocument.pages[getCurrentPage()].textRectByIndex(textIndex).toAlignedRect().adjusted(0,0,50,50));
+            textBox->setText(currentDocument.pages[getCurrentPage()].textByIndex(textIndex));
+            //qDebug() << "Text clicked";
+            textBox->setPrevText(textBox->toPlainText());
+            textBox->setPrevColor(currentDocument.pages[getCurrentPage()].textColorByIndex(textIndex));
+            textBox->setPrevFont(currentDocument.pages[getCurrentPage()].textFontByIndex(textIndex));
+            textBox->show();
+            textBoxOpen = true;
+            textChanged = true;
+            setCurrentColor(currentDocument.pages[getCurrentPage()].textColorByIndex(textIndex));
+        }
+        else if(textIndex == -1){ //clicked not on text
+            textBox->setGeometry(event->x(), event->y(), 250,100);
+            textBox->setPageNum(getCurrentPage());
+            textBox->setPage(&(currentDocument.pages[getCurrentPage()]));
+            textBox->setTextIndex(-1);
+            textBox->setTextX(point.x());
+            textBox->setTextY(point.y());
+            textBox->setTextColor(getCurrentColor());
+            textBox->setTextFont(QFont("Sans", 12));
+            textBox->show();
+            textBoxOpen = true;
+        }
+        setCurrentState(state::WRITING);
+    }
   bool usingTablet = static_cast<TabletApplication *>(qApp)->isUsingTablet();
 
   if (!usingTablet)
@@ -667,6 +718,46 @@ void Widget::mouseReleaseEvent(QMouseEvent *event)
     }
   }
   penDown = false;
+}
+
+void Widget::keyPressEvent(QKeyEvent *event){
+    if(textBoxOpen){
+        if(event->key() == Qt::Key_Escape){
+            closeTextBox();
+        }
+        else{
+            QWidget::keyPressEvent(event);
+        }
+    }
+    else{
+        QWidget::keyPressEvent(event);
+    }
+}
+
+void Widget::closeTextBox(){
+    if(textBoxOpen){
+        textBox->setTextColor(getCurrentColor());
+        if(textChanged){
+            ChangeTextCommand* changeTextCommand = new ChangeTextCommand(textBox->getPage(), textBox->getTextIndex(), textBox->getPrevColor(),
+                                                                         getCurrentColor(), textBox->getPrevFont(), textBox->getFont(),
+                                                                         textBox->getPrevText(), textBox->toPlainText());
+            undoStack.push(changeTextCommand);
+            //update();
+            textChanged = false;
+            emit setText(true); //onlyHide
+        }
+        else{
+            TextCommand* textCommand = new TextCommand(textBox->getPage(), QRectF(textBox->getTextX(), textBox->getTextY(), 0, 0), getCurrentColor(), textBox->getFont(), textBox->toPlainText());
+            undoStack.push(textCommand);
+            emit setText(true); //onlyHide, because the textSetting is done by textCommand
+        }
+        //emit setText(false); //text get's really set
+        //updateBuffer(getCurrentPage());
+        textBoxOpen = false;
+        currentDocument.setDocumentChanged(true);
+        //emit modified();
+    }
+    setCurrentState(state::IDLE);
 }
 
 void Widget::setPreviousTool()
@@ -1638,6 +1729,8 @@ void Widget::setCurrentTool(tool toolID)
       setCursor(Qt::CrossCursor);
     if (toolID == tool::HAND)
       setCursor(Qt::OpenHandCursor);
+    if (toolID == tool::TEXT)
+        setCursor(Qt::ArrowCursor);
   }
 }
 
@@ -1785,6 +1878,7 @@ void Widget::setCurrentColor(QColor newColor)
     currentSelection.updateBuffer(zoom);
     update();
   }
+  emit updateGUI();
 }
 
 QColor Widget::getCurrentColor()

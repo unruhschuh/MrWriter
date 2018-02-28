@@ -484,6 +484,12 @@ void MainWindow::createActions()
   connect(rotateAct, SIGNAL(triggered()), this, SLOT(rotate()));
   this->addAction(rotateAct); // add to make shortcut work if menubar is hidden
 
+  textAct = new QAction(tr("Text"), this);
+  textAct->setStatusTip(tr("Insert text"));
+  textAct->setCheckable(true);
+  textAct->setChecked(false);
+  connect(textAct, &QAction::triggered, this, &MainWindow::text);
+
   helpAct = new QAction(tr("&Help"), this);
   helpAct->setShortcut(QKeySequence(Qt::Key_F1));
   connect(helpAct, SIGNAL(triggered()), this, SLOT(help()));
@@ -649,6 +655,7 @@ void MainWindow::createToolBars()
   toolsToolBar->addAction(eraserAct);
   toolsToolBar->addAction(selectAct);
   toolsToolBar->addAction(handAct);
+  toolsToolBar->addAction(textAct);
 
   toolsToolBar->addSeparator();
 
@@ -952,6 +959,11 @@ void MainWindow::hand()
   updateGUI();
 }
 
+void MainWindow::text(){
+    mainWidget->setCurrentTool(Widget::tool::TEXT);
+    updateGUI();
+}
+
 void MainWindow::modified()
 {
   setWindowModified(mainWidget->currentDocument.documentChanged());
@@ -1218,6 +1230,7 @@ void MainWindow::updateGUI()
   eraserAct->setChecked(currentTool == Widget::tool::ERASER);
   selectAct->setChecked(currentTool == Widget::tool::SELECT);
   handAct->setChecked(currentTool == Widget::tool::HAND);
+  textAct->setChecked(currentTool == Widget::tool::TEXT);
 
   qreal currentPenWidth = mainWidget->getCurrentPenWidth();
 
@@ -1266,6 +1279,9 @@ void MainWindow::updateGUI()
 
   verticalScrolling();
   setTitle();
+  if(currentTool != Widget::tool::TEXT){
+      mainWidget->closeTextBox();
+  }
 }
 
 void MainWindow::rotate()

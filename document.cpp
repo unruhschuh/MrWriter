@@ -186,6 +186,21 @@ bool Document::loadXOJ(QString fileName)
             QColor newColor = stringToColor(color.toString());
             pages.last().setBackgroundColor(newColor);
         }
+        if (reader.name() == "text" && reader.tokenType() == QXmlStreamReader::StartElement){
+            QXmlStreamAttributes attributes = reader.attributes();
+            QStringRef fontString = attributes.value("", "font");
+            QFont font = QFont(fontString.toString());
+            QStringRef sizeString = attributes.value("", "size");
+            font.setPointSize(sizeString.toFloat());
+            QStringRef xString = attributes.value("", "x");
+            QStringRef yString = attributes.value("", "y");
+            QStringRef colorString = attributes.value("", "color");
+            QColor color = stringToColor(colorString.toString());
+            QString text = reader.readElementText();
+            //QPointF point(xString.toFloat(), yString.toFloat());
+            QRectF rect(xString.toDouble(), yString.toDouble(), 0, 0);
+            pages.last().appendText(rect, font, color, text);
+        }
         if (reader.name() == "stroke" && reader.tokenType() == QXmlStreamReader::StartElement)
         {
             QXmlStreamAttributes attributes = reader.attributes();
@@ -291,6 +306,16 @@ bool Document::saveXOJ(QString fileName)
 
     writer.writeStartElement("layer");
 
+    for (auto t : pages[i].texts()){
+        writer.writeStartElement("text");
+        writer.writeAttribute(QXmlStreamAttribute("font", std::get<1>(t).key()));
+        writer.writeAttribute(QXmlStreamAttribute("size", QString::number(std::get<1>(t).pointSize())));
+        writer.writeAttribute(QXmlStreamAttribute("x", QString::number(std::get<0>(t).x())));
+        writer.writeAttribute(QXmlStreamAttribute("y", QString::number(std::get<0>(t).y())));
+        writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(std::get<2>(t).name(QColor::HexArgb))));
+        writer.writeCharacters(std::get<3>(t));
+        writer.writeEndElement();
+    }
     //    for (int j = 0; j < pages[i].m_strokes.size(); ++j)
     for (auto strokes : pages[i].strokes())
     {

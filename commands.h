@@ -193,4 +193,34 @@ private:
   QColor backgroundColor;
 };
 
+class ChangeTextCommand : public QUndoCommand{
+public:
+    ChangeTextCommand(MrDoc::Page* page, int textIndex, const QColor& prevColor, const QColor& color, const QFont& prevFont, const QFont& font, const QString& prevText, const QString& text, QUndoCommand *parent = nullptr);
+    void undo() override;
+    void redo() override;
+private:
+    MrDoc::Page* m_page;
+    int m_textIndex;
+    QString m_prevText;
+    QString m_text;
+    QColor m_prevColor;
+    QColor m_color;
+    QFont m_prevFont;
+    QFont m_font;
+};
+
+class TextCommand : public QUndoCommand{
+public:
+    TextCommand(MrDoc::Page* page, const QRectF &rect, const QColor& color, const QFont& font, const QString& text, QUndoCommand* parent = nullptr);
+    void undo() override;
+    void redo() override;
+private:
+    MrDoc::Page* m_page;
+    int m_textIndex;
+    QRectF m_rect;
+    QColor m_color;
+    QFont m_font;
+    QString m_text;
+};
+
 #endif

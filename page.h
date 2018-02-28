@@ -5,6 +5,7 @@
 #include <poppler-qt5.h>
 #include <QDebug>
 #include <QImage>
+#include <QTextEdit>
 
 namespace MrDoc
 {
@@ -30,7 +31,17 @@ public:
   bool changeStrokeColor(int strokeNum, QColor color);
   bool changeStrokePattern(int strokeNum, QVector<qreal> pattern);
 
+  int textIndexFromMouseClick(int x, int y);
+  const QString& textByIndex(int i);
+  int appendText(const QRectF& rect, const QFont& font, const QColor& color, const QString& text);
+  void setText(int index, const QColor &color, const QString& text);
+
+  const QRectF& textRectByIndex(int i);
+  const QColor& textColorByIndex(int i);
+  const QFont& textFontByIndex(int i);
+
   const QVector<Stroke> &strokes();
+  const QVector<std::tuple<QRectF, QFont, QColor, QString> > &texts();
 
   QVector<QPair<Stroke, int>> getStrokes(QPolygonF selectionPolygon);
   QVector<QPair<Stroke, int>> removeStrokes(QPolygonF selectionPolygon);
@@ -68,9 +79,10 @@ public:
 
 protected:
   QVector<Stroke> m_strokes;
-  //Poppler::Page* m_pdf = Poppler::Document::load("/home/alexander/Softwareentwicklung 1/Blatt 13/lhv13.pdf")->page(0);
   QImage m_pdf;
   int pageno; //pageNumber
+
+  QVector<std::tuple<QRectF, QFont, QColor, QString>> m_texts;
 
 private:
   QColor m_backgroundColor;
@@ -79,6 +91,8 @@ private:
   qreal m_height; // post script units
 
   QRectF m_dirtyRect;
+
+  bool rectIsPoint = true; //in m_texts
 };
 }
 

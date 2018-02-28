@@ -449,3 +449,41 @@ void ChangePageSettingsCommand::redo()
   widget->updateBuffer(pageNum);
   widget->setGeometry(widget->getWidgetGeometry());
 }
+
+ChangeTextCommand::ChangeTextCommand(MrDoc::Page* page, int textIndex, const QColor &prevColor, const QColor &color, const QFont &prevFont, const QFont &font, const QString& prevText, const QString& text, QUndoCommand* parent)
+    : QUndoCommand(parent),
+      m_page {page},
+      m_textIndex {textIndex},
+      m_prevText {prevText},
+      m_text {text},
+      m_prevColor {prevColor},
+      m_color {color},
+      m_prevFont {prevFont},
+      m_font {font} {
+
+}
+
+void ChangeTextCommand::undo(){
+    m_page->setText(m_textIndex, m_prevColor, m_prevText);
+}
+
+void ChangeTextCommand::redo(){
+    m_page->setText(m_textIndex, m_color, m_text);
+}
+
+TextCommand::TextCommand(MrDoc::Page *page, const QRectF& rect, const QColor &color, const QFont &font, const QString &text, QUndoCommand *parent)
+    : QUndoCommand(parent),
+      m_page {page},
+      m_rect {rect},
+      m_color {color},
+      m_font {font},
+      m_text {text} {
+}
+
+void TextCommand::undo(){
+    m_page->setText(m_textIndex, m_color, QString("")); //has the effect of removing it
+}
+
+void TextCommand::redo(){
+    m_textIndex = m_page->appendText(m_rect, m_font, m_color, m_text);
+}
