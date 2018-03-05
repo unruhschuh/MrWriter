@@ -87,7 +87,6 @@ public:
    */
   void updateAllPageBuffers();
   void updateNecessaryPagesBuffer();
-  void updateImageBuffer(int buffNum);
   void updateBuffer(int i);
   void updateBufferRegion(int buffNum, QRectF const &clipRect);
   void drawOnBuffer(bool last = false);
@@ -121,8 +120,6 @@ public:
   void closeTextBox();
 
   MrDoc::Document currentDocument;
-  QVector<QPixmap> pageBuffer;
-  QVector<QImage> pageImageBuffer;
   QMutex pageImageBufferMutex;
 
   QVector<std::shared_ptr<QPixmap>> pageBufferPtr;
@@ -152,7 +149,6 @@ private:
   QMutex basePixmapMutex;
   int previousValueRendered = 0;
   int previousValueMaybeRendered = 0;
-  QMutex renderAllPageMutex;
   QTimer* scrollTimer;
 
   QTime timer;

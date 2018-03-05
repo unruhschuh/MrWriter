@@ -94,63 +94,7 @@ Widget::Widget(QWidget *parent)
 
 void Widget::updateAllPageBuffers()
 {
-  /*QVector<QFuture<void>> future;
-  pageImageBuffer.clear();
-
-  for (int buffNum = 0; buffNum < currentDocument.pages.size(); ++buffNum)
-  {
-    pageImageBuffer.append(QImage());
-  }
-
-  for (int buffNum = 0; buffNum < currentDocument.pages.size(); ++buffNum)
-  {
-    future.append(QtConcurrent::run(this, &Widget::updateImageBuffer, buffNum));
-  }
-
-  pageBuffer.clear();
-  for (int buffNum = 0; buffNum < currentDocument.pages.size(); ++buffNum)
-  {
-    future[buffNum].waitForFinished();
-    pageBuffer.append(QPixmap::fromImage(pageImageBuffer.at(buffNum)));
-
-    // safe some memory
-    pageImageBufferMutex.lock();
-    pageImageBuffer[buffNum] = QImage();
-    pageImageBufferMutex.unlock();
-  }
-  pageImageBuffer.clear();*/
-
-  //new
-  /*QVector<QFuture<void>> future;
-  pageBuffer.clear();
-
-  for (int buffNum = 0; buffNum < currentDocument.pages.size(); ++buffNum)
-  {
-    pageBuffer.append(QPixmap());
-  }
-
-  for (int buffNum = 0; buffNum < currentDocument.pages.size(); ++buffNum)
-  {
-    future.append(QtConcurrent::run(this, &Widget::updateBuffer, buffNum));
-  }
-
-  for (int buffNum = 0; buffNum < currentDocument.pages.size(); ++buffNum)
-  {
-    future[buffNum].waitForFinished();
-    //pageBuffer.append(QPixmap::fromImage(pageImageBuffer.at(buffNum)));
-
-    // safe some memory
-    //pageImageBufferMutex.lock();
-    //pageImageBuffer[buffNum] = QImage();
-    //pageImageBufferMutex.unlock();
-  }
-  //pageImageBuffer.clear();
-
-  */
-
     if(prevZoom != zoom || pageBufferPtr.size() != currentDocument.pages.size() || pageBufferPtr.isEmpty()){
-        qDebug() << "All Pages";
-        qDebug() << prevZoom << "vs" << zoom;
 
         QVector<QFuture<void>> future;
         pageBufferPtr.clear();
@@ -174,20 +118,9 @@ void Widget::updateAllPageBuffers()
     else{
         updateNecessaryPagesBuffer();
     }
-
-
-  /*pageBufferPtr.clear();
-  for (int buffNum = 0; buffNum < currentDocument.pages.size(); ++buffNum)
-  {
-    pageBufferPtr.append(std::make_shared<QPixmap>());
-  }
-  for(int buffNum = 0; buffNum < currentDocument.pages.size(); ++buffNum){
-      updateBuffer(buffNum);
-  }*/
 }
 
 void Widget::updateNecessaryPagesBuffer(){
-    qDebug() << "Only Necessary";
     QVector<QFuture<void>> future;
 
     int startingPage = std::max(0, getCurrentPage()-6);
@@ -203,53 +136,8 @@ void Widget::updateNecessaryPagesBuffer(){
     }
 }
 
-void Widget::updateImageBuffer(int buffNum)
-{
-    qDebug() << "updateImageBuffer";
-  MrDoc::Page const &page = currentDocument.pages.at(buffNum);
-  int pixelWidth = zoom * page.width() * devicePixelRatio();
-  int pixelHeight = zoom * page.height() * devicePixelRatio();
-  QImage image(pixelWidth, pixelHeight, QImage::Format_ARGB32_Premultiplied);
-  image.setDevicePixelRatio(devicePixelRatio());
-
-  image.fill(page.backgroundColor());
-
-  QPainter painter;
-  painter.begin(&image);
-  painter.setRenderHint(QPainter::Antialiasing, true);
-
-  if(abs(buffNum-getCurrentPage()) < 5)
-    currentDocument.pages[buffNum].paint(painter, zoom);
-
-  painter.end();
-
-  pageImageBufferMutex.lock();
-  pageImageBuffer.replace(buffNum, image);
-  pageImageBufferMutex.unlock();
-}
-
 void Widget::updateBuffer(int buffNum)
 {
-    //qDebug() << "updateBuffer";
-
-  /*MrDoc::Page const &page = currentDocument.pages.at(buffNum);
-  int pixelWidth = zoom * page.width() * devicePixelRatio();
-  int pixelHeight = zoom * page.height() * devicePixelRatio();
-  QPixmap pixmap(pixelWidth, pixelHeight);
-  pixmap.setDevicePixelRatio(devicePixelRatio());
-
-  pixmap.fill(page.backgroundColor());
-
-  QPainter painter;
-  painter.begin(&pixmap);
-  painter.setRenderHint(QPainter::Antialiasing, true);
-
-  currentDocument.pages[buffNum].paint(painter, zoom);
-
-  painter.end();
-
-  pageBuffer.replace(buffNum, pixmap);*/
-
   MrDoc::Page const &page = currentDocument.pages.at(buffNum);
   int pixelWidth = zoom * page.width() * devicePixelRatio();
   int pixelHeight = zoom * page.height() * devicePixelRatio();
@@ -289,21 +177,6 @@ void Widget::updateBuffer(int buffNum)
 
 void Widget::updateBufferRegion(int buffNum, QRectF const &clipRect)
 {
-    //qDebug() << "updateBufferRegion";
-  /*QPainter painter;
-  painter.begin(&pageBuffer[buffNum]);
-  painter.setRenderHint(QPainter::Antialiasing, true);
-  painter.setClipRect(clipRect);
-  painter.setClipping(true);
-
-  painter.fillRect(clipRect, currentDocument.pages.at(buffNum).backgroundColor());
-  //    painter.fillRect(clipRect, Qt::red);
-
-  QRectF paintRect = QRectF(clipRect.topLeft() / zoom, clipRect.bottomRight() / zoom);
-  currentDocument.pages[buffNum].paint(painter, zoom, paintRect);
-
-  painter.end();*/
-
   QPainter painter;
   painter.begin(pageBufferPtr[buffNum].get());
   painter.setRenderHint(QPainter::Antialiasing, true);
@@ -340,18 +213,12 @@ void Widget::updatePageAfterText(int i){
 
 void Widget::updatePageAfterScrolling(int value){
     if(abs(value-previousValueRendered) > scrollArea->verticalScrollBar()->maximum()/currentDocument.pages.size()){
-        //qDebug() << "updatePageAfterScrolling" << value;
-        //QFuture<void> future(QtConcurrent::run(this, &Widget::updateAllPageBuffers));
-        //updateAllPageBuffers();
         scrollTimer->start(15);
         previousValueMaybeRendered = value;
     }
-    //scrollTimer->start(10*zoom);
 }
 
 void Widget::updatePageAfterScrollTimer(){
-    qDebug() << "scrollTimer: " << scrollArea->verticalScrollBar()->isSliderDown();
-    qDebug() << getCurrentPage();
     if(!scrollArea->verticalScrollBar()->isSliderDown()){
         updateAllPageBuffers();
         scrollTimer->stop();
@@ -362,12 +229,6 @@ void Widget::updatePageAfterScrollTimer(){
 
 void Widget::drawOnBuffer(bool last)
 {
-    /*QPainter painter;
-    painter.begin(&pageBuffer[drawingOnPage]);
-    painter.setRenderHint(QPainter::Antialiasing, true);
-
-    currentStroke.paint(painter, zoom, last);*/
-
     QPainter painter;
     painter.begin(pageBufferPtr[drawingOnPage].get());
     painter.setRenderHint(QPainter::Antialiasing, true);
@@ -825,7 +686,9 @@ void Widget::mousePressEvent(QMouseEvent *event)
             textBox->setPage(&(currentDocument.pages[getCurrentPage()]));
             textBox->setPageNum(getCurrentPage());
             textBox->setTextIndex(textIndex);
-            textBox->setGeometry(currentDocument.pages[getCurrentPage()].textRectByIndex(textIndex).toAlignedRect().adjusted(0,0,50,50));
+            //textBox->setGeometry(currentDocument.pages[getCurrentPage()].textRectByIndex(textIndex).toAlignedRect().adjusted(0,0,50,50));
+            QRect textRect = currentDocument.pages[getCurrentPage()].textRectByIndex(textIndex).toAlignedRect().adjusted(0,0,50,50);
+            textBox->setGeometry(event->x(), event->y(), textRect.width(), textRect.height());
             textBox->setText(currentDocument.pages[getCurrentPage()].textByIndex(textIndex));
             //qDebug() << "Text clicked";
             textBox->setPrevText(textBox->toPlainText());
@@ -1630,9 +1493,6 @@ int Widget::getCurrentPage()
 }
 
 int Widget::getVisiblePages(){
-    //qDebug() << "Page Height: " << currentDocument.pages.at(getCurrentPage()).height();
-    //qDebug() << "parentWidget()->size().height(): " << parentWidget()->size().height();
-    //qDebug() << "Zoom: " << zoom;
     int visiblePages = currentDocument.pages.at(getCurrentPage()).height()/parentWidget()->size().height()/zoom + 1;
     return visiblePages;
 }
@@ -1930,7 +1790,7 @@ void Widget::setDocument(const MrDoc::Document &newDocument)
   currentDocument = newDocument;
   undoStack.clear();
   pageBufferPtr.clear();
-  prevZoom = -1.0;  //this is a workaround, that all pages get rendered and updateNecessaryPagesBuffer is not called
+  prevZoom = -1.0;  //this is a workaround, so that all pages get rendered and updateNecessaryPagesBuffer is not called
   zoom = 0.0; // otherwise zoomTo() doesn't do anything if zoom == newZoom
   zoomFitWidth();
   pageFirst();
