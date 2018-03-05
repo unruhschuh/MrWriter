@@ -2,6 +2,8 @@
 #define DOCUMENT_H
 
 #include "page.h"
+#include <poppler-qt5.h>
+#include <memory>
 
 #include <QVector>
 
@@ -12,7 +14,9 @@ class Document
 {
 public:
   Document();
-  Document(const Document &doc);
+  /*Document(const Document &doc);
+
+  Document& operator= (const Document& doc);*/
 
   void exportPDF(QString fileName);
 
@@ -46,6 +50,8 @@ private:
   QString m_docName;
   QString m_path;
   QString m_pdfPath;
+
+  std::shared_ptr<Poppler::Document> m_pdfDoc;
 };
 }
 

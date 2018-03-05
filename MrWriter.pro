@@ -74,7 +74,7 @@ DISTFILES += \
     Info.plist \
     COPYING
 
-CONFIG += c++11
+CONFIG += c++17
 
 #QMAKE_CXXFLAGS_RELEASE -= -O
 #QMAKE_CXXFLAGS_RELEASE -= -O1

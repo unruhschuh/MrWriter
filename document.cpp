@@ -31,13 +31,29 @@ Document::Document()
   setDocumentChanged(false);
 }
 
-Document::Document(const Document &doc)
+/*Document::Document(const Document &doc)
 {
   for (int i = 0; i < doc.pages.size(); ++i)
   {
     pages.append(doc.pages.at(i));
   }
+  m_documentChanged = doc.m_documentChanged;
+  m_docName = doc.m_docName;
+  m_pdfPath = doc.m_pdfPath;
+  m_pdfDoc.reset(Poppler::Document::load(m_pdfPath));
 }
+
+Document& Document::operator=(const Document& doc){
+    pages.clear();
+    for(int i = 0; i < doc.pages.size(); ++i){
+        pages.append(doc.pages.at(i));
+    }
+    m_documentChanged = doc.m_documentChanged;
+    m_docName = doc.m_docName;
+    m_pdfPath = doc.m_pdfPath;
+    m_pdfDoc.reset(Poppler::Document::load(m_pdfPath));
+    return *this;
+}*/
 
 void Document::paintPage(int pageNum, QPainter &painter, qreal zoom)
 {
@@ -176,10 +192,15 @@ bool Document::loadXOJ(QString fileName)
                 QStringRef pdfPath = attributes.value("", "filename");
                 if(!pdfPath.isEmpty()){
                     m_pdfPath = pdfPath.toString();
+                    m_pdfDoc.reset(Poppler::Document::load(m_pdfPath));
+                    m_pdfDoc->setRenderHint(Poppler::Document::Antialiasing);
+                    m_pdfDoc->setRenderHint(Poppler::Document::TextAntialiasing);
                 }
                 QStringRef pdfPageNumStr = attributes.value("", "pageno");
                 int pdfPageNum = pdfPageNumStr.toInt();
-                pages.last().setPdf(m_pdfPath, pdfPageNum-1);
+                Poppler::Page* page = m_pdfDoc->page(pdfPageNum-1);
+                pages.last().setPdf(page, pdfPageNum-1);
+
                 continue;
             }
             QStringRef color = attributes.value("", "color");

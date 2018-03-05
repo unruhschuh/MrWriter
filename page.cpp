@@ -5,7 +5,7 @@
 namespace MrDoc
 {
 
-Page::Page()
+Page::Page(/*const Page &page*/)
 {
     // set up standard page (Letter, white background)
     setWidth(595.0);
@@ -43,9 +43,30 @@ void Page::setWidth(qreal width)
 
 void Page::paint(QPainter &painter, qreal zoom, QRectF region)
 {
-    if(!m_pdf.isNull()){
-        painter.drawImage(0,0, m_pdf.scaled(m_width*zoom, m_height*zoom, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    if(m_pdfPointer != nullptr){
+        //double eZoom = zoom*(exp(-zoom)+2) > 10 ? 10 : zoom*(exp(-zoom)+2);
+        //auto img = m_pdfPointer->renderToImage(72.0*eZoom, 72.0*eZoom, 0,0,int(m_width*eZoom), int(m_height*eZoom));
+        //QImage image = m_pdfPointer->renderToImage(72.0*eZoom, 72.0*eZoom, 0,0,int(m_width*eZoom), int(m_height*eZoom));
+        //painter.drawImage(0,0, image.scaled(m_width*zoom, m_height*zoom, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+
+        QImage image = m_pdfPointer->renderToImage(72.0*zoom, 72.0*zoom, 0,0, int(m_width*zoom), int(m_height*zoom));
+        painter.drawImage(0,0, image);
+        /*if(region.isNull()){
+            qDebug() << "region is null";
+            QImage image = m_pdfPointer->renderToImage(72.0*eZoom, 72.0*eZoom, 0,0,int(m_width*eZoom), int(m_height*eZoom));
+            painter.drawImage(0,0, image.scaled(m_width*zoom, m_height*zoom, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+        }
+        else{
+            qDebug() << "region";
+            //QImage image = m_pdfPointer->renderToImage(72.0*eZoom, 72.0*eZoom, region.x(), region.y(), region.width(), region.height());
+            QImage image = m_pdfPointer->renderToImage(72.0*eZoom, 72.0*eZoom, 0,0,int(m_width*eZoom), int(m_height*eZoom));
+            QRectF source(0.0, 0.0, 200, 800);
+            painter.drawImage(region, image.scaled(region.width()*zoom, region.height()*zoom, Qt::KeepAspectRatio, Qt::SmoothTransformation), source);
+        }*/
     }
+    /*if(!m_pdf.isNull()){
+        painter.drawImage(0,0, m_pdf.scaled(m_width*zoom, m_height*zoom, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    }*/
     if(rectIsPoint){
         for(int i = 0; i < m_texts.length(); ++i){
             QFont font = std::get<1>(m_texts[i]);
@@ -277,8 +298,8 @@ int Page::appendText(const QRectF &rect, const QFont &font, const QColor &color,
     return m_texts.size()-1;
 }
 
-void Page::setPdf(const QString& path, int pageNum){
-    Poppler::Document* doc = Poppler::Document::load(path);
+void Page::setPdf(Poppler::Page* page, int pageNum){
+    /*Poppler::Document* doc = Poppler::Document::load(path);
     if (!doc || doc->isLocked()){
         qDebug() << "Couldn't load PDF";
     }
@@ -288,11 +309,15 @@ void Page::setPdf(const QString& path, int pageNum){
             qDebug() << "Couldn't load PDF page";
         }
         else{
-            m_pdf = page->renderToImage(72.0*10, 72.0*10, 0,0,int(m_width*10), int(m_height*10));
+            //m_pdf = page->renderToImage(72.0*10, 72.0*10, 0,0,int(m_width*10), int(m_height*10));
+            m_pdfPointer.reset(page); //= std::make_shared<Poppler::Page>(page);
             pageno = pageNum;
-            delete page;
+            //delete page;
         }
-    }
-    delete doc;
+    }*/
+    //delete doc;
+    m_pdfPointer.reset(page);
+    pageno = pageNum;
 }
+
 }

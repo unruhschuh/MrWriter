@@ -6,6 +6,9 @@
 #include <QDebug>
 #include <QImage>
 #include <QTextEdit>
+#include <memory>
+#include <algorithm>
+#include <math.h>
 
 namespace MrDoc
 {
@@ -55,7 +58,7 @@ public:
   void appendStrokes(const QVector<Stroke> &strokes);
   void prependStroke(const Stroke &stroke);
 
-  void setPdf(const QString& path, int pageNum);
+  void setPdf(Poppler::Page *page, int pageNum);
   //void setPdfPath(const QString path);
 
   //    virtual void paint(QPainter &painter, qreal zoom);
@@ -69,8 +72,8 @@ public:
 
   //    QVector<Stroke> strokes;
 
-  bool isPdf(){
-      return !m_pdf.isNull();
+  bool isPdf() const{
+      return m_pdfPointer != nullptr;
   }
 
   int pageNum(){
@@ -80,6 +83,7 @@ public:
 protected:
   QVector<Stroke> m_strokes;
   QImage m_pdf;
+  std::shared_ptr<Poppler::Page> m_pdfPointer = std::shared_ptr<Poppler::Page>(nullptr);
   int pageno; //pageNumber
 
   QVector<std::tuple<QRectF, QFont, QColor, QString>> m_texts;

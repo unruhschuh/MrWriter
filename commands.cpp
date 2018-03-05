@@ -310,7 +310,9 @@ AddPageCommand::AddPageCommand(Widget *newWidget, int newPageNum, QUndoCommand *
 void AddPageCommand::undo()
 {
   widget->currentDocument.pages.removeAt(pageNum);
-  widget->pageBuffer.removeAt(pageNum);
+  //widget->pageBuffer.removeAt(pageNum);
+  widget->pageBufferPtr.removeAt(pageNum);
+  widget->updateAllPageBuffers();
   widget->update();
 }
 
@@ -329,8 +331,10 @@ void AddPageCommand::redo()
   page.setBackgroundColor(widget->currentDocument.pages[pageNumForSettings].backgroundColor());
 
   widget->currentDocument.pages.insert(pageNum, page);
-  widget->pageBuffer.insert(pageNum, QPixmap());
-  widget->updateBuffer(pageNum);
+  //widget->pageBuffer.insert(pageNum, QPixmap());
+  widget->pageBufferPtr.insert(pageNum, std::make_shared<QPixmap>());
+  widget->updateAllPageBuffers();
+  //widget->updateBuffer(pageNum);
   widget->update();
 }
 
@@ -349,15 +353,19 @@ RemovePageCommand::RemovePageCommand(Widget *newWidget, int newPageNum, QUndoCom
 void RemovePageCommand::undo()
 {
   widget->currentDocument.pages.insert(pageNum, page);
-  widget->pageBuffer.insert(pageNum, QPixmap());
-  widget->updateBuffer(pageNum);
+  //widget->pageBuffer.insert(pageNum, QPixmap());
+  widget->pageBufferPtr.insert(pageNum, std::make_shared<QPixmap>());
+  widget->updateAllPageBuffers();
+  //widget->updateBuffer(pageNum);
   widget->update();
 }
 
 void RemovePageCommand::redo()
 {
   widget->currentDocument.pages.removeAt(pageNum);
-  widget->pageBuffer.removeAt(pageNum);
+  //widget->pageBuffer.removeAt(pageNum);
+  widget->pageBufferPtr.removeAt(pageNum);
+  widget->updateAllPageBuffers();
   widget->update();
 }
 
@@ -450,6 +458,10 @@ void ChangePageSettingsCommand::redo()
   widget->setGeometry(widget->getWidgetGeometry());
 }
 
+/* **********************************************
+ * Text Change Command
+ */
+
 ChangeTextCommand::ChangeTextCommand(MrDoc::Page* page, int textIndex, const QColor &prevColor, const QColor &color, const QFont &prevFont, const QFont &font, const QString& prevText, const QString& text, QUndoCommand* parent)
     : QUndoCommand(parent),
       m_page {page},
@@ -470,6 +482,10 @@ void ChangeTextCommand::undo(){
 void ChangeTextCommand::redo(){
     m_page->setText(m_textIndex, m_color, m_text);
 }
+
+/* *************************************************
+ * Text Insertion Command
+ */
 
 TextCommand::TextCommand(MrDoc::Page *page, const QRectF& rect, const QColor &color, const QFont &font, const QString &text, QUndoCommand *parent)
     : QUndoCommand(parent),

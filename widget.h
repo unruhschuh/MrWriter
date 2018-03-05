@@ -13,7 +13,11 @@
 #include <QScrollArea>
 #include <QSizeGrip>
 #include <QGridLayout>
+#include <QtConcurrent>
 #include <QMutex>
+#include <memory>
+#include <algorithm>
+#include <math.h>
 
 #include <QTime>
 #include <QTimer>
@@ -82,6 +86,7 @@ public:
    * @todo use std::unique_lock
    */
   void updateAllPageBuffers();
+  void updateNecessaryPagesBuffer();
   void updateImageBuffer(int buffNum);
   void updateBuffer(int i);
   void updateBufferRegion(int buffNum, QRectF const &clipRect);
@@ -91,6 +96,7 @@ public:
   QPointF getAbsolutePagePosFromMousePos(QPointF mousePos);
   QRect getWidgetGeometry();
   int getCurrentPage();
+  int getVisiblePages();
 
   void setCurrentState(state newState);
   state getCurrentState();
@@ -119,6 +125,8 @@ public:
   QVector<QImage> pageImageBuffer;
   QMutex pageImageBufferMutex;
 
+  QVector<std::shared_ptr<QPixmap>> pageBufferPtr;
+
   QColor currentColor;
   qreal currentPenWidth;
 
@@ -137,8 +145,16 @@ public:
   QUndoStack undoStack;
 
   qreal zoom;
+  qreal prevZoom;
 
 private:
+  std::shared_ptr<QPixmap> basePixmap = std::make_shared<QPixmap>();
+  QMutex basePixmapMutex;
+  int previousValueRendered = 0;
+  int previousValueMaybeRendered = 0;
+  QMutex renderAllPageMutex;
+  QTimer* scrollTimer;
+
   QTime timer;
 
   QTimer *updateTimer;
@@ -215,7 +231,9 @@ private:
 
 private slots:
   void updatePageAfterText(int i);
+  void updatePageAfterScrolling(int value);
   void updateAllDirtyBuffers();
+  void updatePageAfterScrollTimer();
 
   void undo();
   void redo();
