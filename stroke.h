@@ -5,6 +5,8 @@
 #include <QPainter>
 #include <QVector>
 #include <QVector2D>
+#include <QPixmap>
+#include <QDebug>
 
 #include "mrdoc.h"
 
@@ -20,7 +22,7 @@ struct Stroke
 public:
   Stroke();
   //    enum class dashPattern { SolidLine, DashLine, DashDotLine, DotLine };
-  void paint(QPainter &painter, qreal zoom, bool last = false);
+  void paint(QPainter &painter, QRectF &&rect, qreal zoom, bool last = false);
 
   QRectF boundingRect() const;
   QRectF boundingRectSansPenWidth() const;
@@ -30,6 +32,7 @@ public:
   QVector<qreal> pattern;
   qreal penWidth;
   QColor color;
+  QPixmap tmpPixmap =QPixmap(1,1);
 };
 }
 

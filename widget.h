@@ -38,6 +38,7 @@ public:
   {
     NONE,
     PEN,
+    HIGHLIGHTER,
     RULER,
     CIRCLE,
     ERASER,

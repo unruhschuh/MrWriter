@@ -49,6 +49,7 @@ private slots:
   void zoomFitHeight();
 
   void pen();
+  void highlighter();
   void ruler();
   void circle();
   void eraser();
@@ -149,6 +150,7 @@ private:
   QAction *pageSettingsAct;
 
   QAction *penAct;
+  QAction *highlighterAct;
   QAction *rulerAct;
   QAction *circleAct;
   QAction *eraserAct;

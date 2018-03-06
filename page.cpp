@@ -43,6 +43,7 @@ void Page::setWidth(qreal width)
 
 void Page::paint(QPainter &painter, qreal zoom, QRectF region)
 {
+    painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
     if(m_pdfPointer != nullptr){
         //double eZoom = zoom*(exp(-zoom)+2) > 10 ? 10 : zoom*(exp(-zoom)+2);
         //auto img = m_pdfPointer->renderToImage(72.0*eZoom, 72.0*eZoom, 0,0,int(m_width*eZoom), int(m_height*eZoom));
@@ -90,13 +91,16 @@ void Page::paint(QPainter &painter, qreal zoom, QRectF region)
             painter.drawText(std::get<0>(t).x()*zoom, std::get<0>(t).y()*zoom, m_width, m_height, Qt::TextWordWrap, std::get<3>(t));
         }
     }
+    //painter.setCompositionMode(QPainter::CompositionMode_Exclusion);
     for (Stroke &stroke : m_strokes)
     {
         if (region.isNull() || stroke.boundingRect().intersects(region))
         {
-            stroke.paint(painter, zoom);
+            qDebug() << "Page::paint: " << m_width*zoom << m_height*zoom;
+            stroke.paint(painter, QRect(0,0, m_width*zoom, m_height*zoom), zoom);
         }
     }
+    painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
 }
 
 void Page::setBackgroundColor(QColor backgroundColor)

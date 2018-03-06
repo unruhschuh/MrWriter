@@ -152,6 +152,7 @@ void Widget::updateBuffer(int buffNum)
       painter.setRenderHint(QPainter::Antialiasing, true);
 
       currentDocument.pages[buffNum].paint(painter, zoom);
+      painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
 
       painter.end();
       pageBufferPtr.replace(buffNum, newPixmap);
@@ -233,7 +234,9 @@ void Widget::drawOnBuffer(bool last)
     painter.begin(pageBufferPtr[drawingOnPage].get());
     painter.setRenderHint(QPainter::Antialiasing, true);
 
-    currentStroke.paint(painter, zoom, last);
+    //currentStroke.paint(painter, zoom, last);
+    currentStroke.paint(painter, QRect(0,0, pageBufferPtr[drawingOnPage]->width(), pageBufferPtr[drawingOnPage]->height()), zoom, last);
+    painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
 }
 
 QRect Widget::getWidgetGeometry()
@@ -565,7 +568,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
     {
       if (pointerType == QTabletEvent::Pen)
       {
-        if (currentTool == tool::PEN)
+        if (currentTool == tool::PEN || currentTool == tool::HIGHLIGHTER) //treat highlighter basically the same as pen
         {
           startDrawing(mousePos, pressure);
           return;
@@ -1073,6 +1076,11 @@ void Widget::startDrawing(QPointF mousePos, qreal pressure)
   newStroke.pressures.append(pressure);
   newStroke.penWidth = currentPenWidth;
   newStroke.color = currentColor;
+  if(currentTool == tool::HIGHLIGHTER){
+      newStroke.penWidth *= 2.5;
+      //newStroke.color = QColor(255-currentColor.red(), 255-currentColor.green(), 255-currentColor.blue(), 127);
+      newStroke.color.setAlpha(127);
+  }
   currentStroke = newStroke;
   //    drawing = true;
   currentState = state::DRAWING;
@@ -1770,6 +1778,8 @@ void Widget::setCurrentTool(tool toolID)
     currentTool = toolID;
     if (toolID == tool::PEN)
       setCursor(penCursor);
+    if (toolID == tool::HIGHLIGHTER)
+        setCursor(penCursor);
     if (toolID == tool::RULER)
       setCursor(rulerCursor);
     if (toolID == tool::CIRCLE)

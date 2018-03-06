@@ -295,6 +295,13 @@ void MainWindow::createActions()
   connect(penAct, SIGNAL(triggered()), this, SLOT(pen()));
   this->addAction(penAct); // add to make shortcut work if menubar is hidden
 
+  highlighterAct = new QAction(tr("Highlighter"), this);
+  highlighterAct->setStatusTip(tr("Highlighting Tool"));
+  highlighterAct->setCheckable(true);
+  highlighterAct->setChecked(false);
+  connect(highlighterAct, &QAction::triggered, this, &MainWindow::highlighter);
+  this->addAction(highlighterAct);
+
   rulerAct = new QAction(QIcon(":/images/rulerIcon.png"), tr("Ruler"), this);
   rulerAct->setStatusTip(tr("Ruler Tool"));
   rulerAct->setShortcut(QKeySequence(Qt::Key_2));
@@ -331,6 +338,12 @@ void MainWindow::createActions()
   handAct->setCheckable(true);
   connect(handAct, SIGNAL(triggered()), this, SLOT(hand()));
   this->addAction(handAct); // add to make shortcut work if menubar is hidden
+
+  textAct = new QAction(tr("Text"), this);
+  textAct->setStatusTip(tr("Insert text"));
+  textAct->setCheckable(true);
+  textAct->setChecked(false);
+  connect(textAct, &QAction::triggered, this, &MainWindow::text);
 
   solidPatternAct = new QAction(QIcon(":/images/solidPatternIcon.png"), tr("solid line"), this);
   solidPatternAct->setStatusTip(tr("solid line"));
@@ -483,12 +496,6 @@ void MainWindow::createActions()
   rotateAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_R));
   connect(rotateAct, SIGNAL(triggered()), this, SLOT(rotate()));
   this->addAction(rotateAct); // add to make shortcut work if menubar is hidden
-
-  textAct = new QAction(tr("Text"), this);
-  textAct->setStatusTip(tr("Insert text"));
-  textAct->setCheckable(true);
-  textAct->setChecked(false);
-  connect(textAct, &QAction::triggered, this, &MainWindow::text);
 
   helpAct = new QAction(tr("&Help"), this);
   helpAct->setShortcut(QKeySequence(Qt::Key_F1));
@@ -650,6 +657,7 @@ void MainWindow::createToolBars()
   toolsToolBar = addToolBar(tr("Tools"));
   toolsToolBar->setObjectName("toolsToolBar");
   toolsToolBar->addAction(penAct);
+  toolsToolBar->addAction(highlighterAct);
   toolsToolBar->addAction(rulerAct);
   toolsToolBar->addAction(circleAct);
   toolsToolBar->addAction(eraserAct);
@@ -927,6 +935,11 @@ void MainWindow::pen()
 {
   mainWidget->setCurrentTool(Widget::tool::PEN);
   updateGUI();
+}
+
+void MainWindow::highlighter(){
+    mainWidget->setCurrentTool(Widget::tool::HIGHLIGHTER);
+    updateGUI();
 }
 
 void MainWindow::ruler()
@@ -1225,6 +1238,7 @@ void MainWindow::updateGUI()
   Widget::tool currentTool = mainWidget->getCurrentTool();
 
   penAct->setChecked(currentTool == Widget::tool::PEN);
+  highlighterAct->setChecked(currentTool == Widget::tool::HIGHLIGHTER);
   rulerAct->setChecked(currentTool == Widget::tool::RULER);
   circleAct->setChecked(currentTool == Widget::tool::CIRCLE);
   eraserAct->setChecked(currentTool == Widget::tool::ERASER);
