@@ -91,7 +91,6 @@ void Page::paint(QPainter &painter, qreal zoom, QRectF region)
             painter.drawText(std::get<0>(t).x()*zoom, std::get<0>(t).y()*zoom, m_width, m_height, Qt::TextWordWrap, std::get<3>(t));
         }
     }
-    //painter.setCompositionMode(QPainter::CompositionMode_Exclusion);
     for (Stroke &stroke : m_strokes)
     {
         if (region.isNull() || stroke.boundingRect().intersects(region))

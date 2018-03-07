@@ -155,6 +155,7 @@ QRectF Selection::boundingRect() const
 
 void Selection::updateBuffer(qreal zoom)
 {
+    qDebug() << "Selection::updateBuffer";
   QPainter imgPainter;
   qreal upscale = 2.0;
   m_buffer = QImage(upscale * zoom * width(), upscale * zoom * height(), QImage::Format_ARGB32_Premultiplied);

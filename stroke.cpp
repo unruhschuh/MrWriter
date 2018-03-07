@@ -74,7 +74,6 @@ void Stroke::paint(QPainter &painter, QRectF&& rect, qreal zoom, bool last)
     }
     else
     {
-        //QPixmap tmpPixmap(1,1);
         if(tmpPixmap.rect().width() != rect.width() || tmpPixmap.rect().height() != rect.height()){
             qDebug() << tmpPixmap.rect() << rect;
             tmpPixmap = tmpPixmap.scaled(rect.width(), rect.height());
