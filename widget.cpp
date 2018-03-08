@@ -178,6 +178,7 @@ void Widget::updateBuffer(int buffNum)
 
 void Widget::updateBufferRegion(int buffNum, QRectF const &clipRect)
 {
+    qDebug() << "updateRegion";
   QPainter painter;
   painter.begin(pageBufferPtr[buffNum].get());
   painter.setRenderHint(QPainter::Antialiasing, true);
@@ -194,11 +195,13 @@ void Widget::updateBufferRegion(int buffNum, QRectF const &clipRect)
 
 void Widget::updateAllDirtyBuffers()
 {
+    qDebug() << "dirty";
   for (int buffNum = 0; buffNum < currentDocument.pages.size(); ++buffNum)
   {
     QRectF const &dirtyRect = currentDocument.pages.at(buffNum).dirtyRect();
     if (!dirtyRect.isNull())
     {
+        qDebug() << "dirty2";
       QRectF dirtyBufferRect = QRectF(dirtyRect.topLeft() * zoom, dirtyRect.bottomRight() * zoom);
       updateBufferRegion(buffNum, dirtyBufferRect);
       currentDocument.pages[buffNum].clearDirtyRect();
@@ -236,7 +239,7 @@ void Widget::drawOnBuffer(bool last)
 
     //currentStroke.paint(painter, zoom, last);
     currentStroke.paint(painter, QRect(0,0, pageBufferPtr[drawingOnPage]->width(), pageBufferPtr[drawingOnPage]->height()), zoom, last);
-    painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+    //painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
 }
 
 QRect Widget::getWidgetGeometry()
@@ -273,6 +276,8 @@ void Widget::paintEvent(QPaintEvent *event)
 
     QPainter painter(this);
 
+    if(currentState == state::IDLE)
+        qDebug() << "idle";
     if (currentState == state::DRAWING)
     {
         QRectF rectSource;
@@ -312,6 +317,8 @@ void Widget::paintEvent(QPaintEvent *event)
              currentState == state::RESIZING_SELECTION || currentState == state::ROTATING_SELECTION) &&
                 i == currentSelection.pageNum())
         {
+            static int q = 0;
+            qDebug() << "currentSelection" << q++;
             currentSelection.paint(painter, zoom);
         }
 
@@ -802,8 +809,9 @@ void Widget::closeTextBox(){
         textBoxOpen = false;
         currentDocument.setDocumentChanged(true);
         //emit modified();
+        setCurrentState(state::IDLE);
     }
-    setCurrentState(state::IDLE);
+    //setCurrentState(state::IDLE);
 }
 
 void Widget::setPreviousTool()
