@@ -95,7 +95,6 @@ void Page::paint(QPainter &painter, qreal zoom, QRectF region)
     {
         if (region.isNull() || stroke.boundingRect().intersects(region))
         {
-            qDebug() << "Page::paint: " << m_width*zoom << m_height*zoom;
             stroke.paint(painter, QRect(0,0, m_width*zoom, m_height*zoom), zoom);
         }
     }

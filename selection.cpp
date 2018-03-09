@@ -155,7 +155,6 @@ QRectF Selection::boundingRect() const
 
 void Selection::updateBuffer(qreal zoom)
 {
-    qDebug() << "Selection::updateBuffer";
   QPainter imgPainter;
   qreal upscale = 2.0;
   m_buffer = QImage(upscale * zoom * width(), upscale * zoom * height(), QImage::Format_ARGB32_Premultiplied);
@@ -165,7 +164,10 @@ void Selection::updateBuffer(qreal zoom)
   imgPainter.setRenderHint(QPainter::Antialiasing, true);
 
   imgPainter.translate(-upscale * zoom * m_selectionPolygon.boundingRect().topLeft());
-  Page::paint(imgPainter, upscale * zoom);
+  //Page::paint(imgPainter, zoom*upscale);
+  for(Stroke& stroke : m_strokes){
+      stroke.paint(imgPainter, QRect(0, 0, (int)((width()+boundingRect().x())*upscale*zoom), (int)((height()+boundingRect().y())*upscale*zoom)), zoom*upscale);
+  }
 }
 
 void Selection::paint(QPainter &painter, qreal zoom, QRectF region __attribute__((unused)))
