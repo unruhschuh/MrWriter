@@ -26,6 +26,8 @@ public:
   bool loadMOJ(QString fileName);
   bool saveMOJ(QString fileName);
 
+  bool loadPDF(QString fileName);
+
   void paintPage(int pageNum, QPainter &painter, qreal zoom);
 
   bool setDocName(QString docName);

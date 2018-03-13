@@ -97,12 +97,13 @@ void Document::exportPDF(QString fileName)
 
     pdfWriter.setPageSize(QPageSize(QSizeF(pages[0].width(), pages[0].height()), QPageSize::Point));
     pdfWriter.setPageMargins(QMarginsF(0, 0, 0, 0));
-    qreal zoomW = ((qreal)pdfWriter.pageRect().width()) / ((qreal)pdfWriter.paperRect().width());
-    qreal zoomH = ((qreal)pdfWriter.pageRect().height()) / ((qreal)pdfWriter.paperRect().height());
-    qreal zoom = zoomW;
-    if (zoomH < zoomW)
-        zoom = zoomH;
-    pdfWriter.setResolution(72);
+//    qreal zoomW = ((qreal)pdfWriter.pageRect().width()) / ((qreal)pdfWriter.paperRect().width());
+//    qreal zoomH = ((qreal)pdfWriter.pageRect().height()) / ((qreal)pdfWriter.paperRect().height());
+//    qreal zoom = zoomW;
+//    if (zoomH < zoomW)
+//        zoom = zoomH;
+    //*2 is a little bit arbitrarily
+    pdfWriter.setResolution(72*2);
     pdfWriter.pageLayout().setUnits(QPageLayout::Point);
     QPainter painter;
 
@@ -118,7 +119,8 @@ void Document::exportPDF(QString fileName)
             pageRect.translate(-pageRect.topLeft());
             painter.fillRect(pageRect, pages[pageNum].backgroundColor());
         }
-        pages[pageNum].paint(painter, zoom, QRect(0, 0, 0, 0));
+        //2 (as zoom) is a little bit arbitrarily (has to be the same number as above)
+        pages[pageNum].paint(painter, 2, QRect(0, 0, 0, 0));
 
         if (pageNum + 1 < pages.size())
         {
@@ -457,9 +459,40 @@ bool Document::loadMOJ(QString fileName)
     if (reader.name() == "background" && reader.tokenType() == QXmlStreamReader::StartElement)
     {
       QXmlStreamAttributes attributes = reader.attributes();
+      QStringRef type = attributes.value("", "type");
+      if(type == "pdf"){
+          QStringRef pdfPath = attributes.value("", "filename");
+          if(!pdfPath.isEmpty()){
+              m_pdfPath = pdfPath.toString();
+              m_pdfDoc.reset(Poppler::Document::load(m_pdfPath));
+              m_pdfDoc->setRenderHint(Poppler::Document::Antialiasing);
+              m_pdfDoc->setRenderHint(Poppler::Document::TextAntialiasing);
+          }
+          QStringRef pdfPageNumStr = attributes.value("", "pageno");
+          int pdfPageNum = pdfPageNumStr.toInt();
+          Poppler::Page* page = m_pdfDoc->page(pdfPageNum-1);
+          pages.last().setPdf(page, pdfPageNum-1);
+
+          continue;
+      }
       QStringRef color = attributes.value("", "color");
       QColor newColor = stringToColor(color.toString());
       pages.last().setBackgroundColor(newColor);
+    }
+    if (reader.name() == "text" && reader.tokenType() == QXmlStreamReader::StartElement){
+        QXmlStreamAttributes attributes = reader.attributes();
+        QStringRef fontString = attributes.value("", "font");
+        QFont font = QFont(fontString.toString());
+        QStringRef sizeString = attributes.value("", "size");
+        font.setPointSize(sizeString.toFloat());
+        QStringRef xString = attributes.value("", "x");
+        QStringRef yString = attributes.value("", "y");
+        QStringRef colorString = attributes.value("", "color");
+        QColor color = stringToColor(colorString.toString());
+        QString text = reader.readElementText();
+        //QPointF point(xString.toFloat(), yString.toFloat());
+        QRectF rect(xString.toDouble(), yString.toDouble(), 0, 0);
+        pages.last().appendText(rect, font, color, text);
     }
     if (reader.name() == "stroke" && reader.tokenType() == QXmlStreamReader::StartElement)
     {
@@ -572,16 +605,46 @@ bool Document::saveMOJ(QString fileName)
   writer.writeCharacters("MrWriter document - see http://unruhschuh.com/mrwriter/");
   writer.writeEndElement();
 
+  bool pdfFileNameSet = false;
+
   for (int i = 0; i < pages.size(); ++i)
   {
     writer.writeStartElement("page");
     writer.writeAttribute(QXmlStreamAttribute("width", QString::number(pages[i].width())));
     writer.writeAttribute(QXmlStreamAttribute("height", QString::number(pages[i].height())));
     writer.writeEmptyElement("background");
-    writer.writeAttribute(QXmlStreamAttribute("type", "solid"));
-    writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(pages[i].backgroundColor().name(QColor::HexArgb))));
-    writer.writeAttribute(QXmlStreamAttribute("style", "plain"));
+
+    if(pages[i].isPdf()){
+        writer.writeAttribute(QXmlStreamAttribute("type", "pdf"));
+        if(!pdfFileNameSet){
+            writer.writeAttribute(QXmlStreamAttribute("domain", "absolute"));
+            writer.writeAttribute(QXmlStreamAttribute("filename", m_pdfPath));
+            pdfFileNameSet = true;
+        }
+        writer.writeAttribute(QXmlStreamAttribute("pageno", QString::number(pages[i].pageNum()+1)));
+    }
+    else{
+        writer.writeAttribute(QXmlStreamAttribute("type", "solid"));
+        writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(pages[i].backgroundColor().name(QColor::HexArgb))));
+        writer.writeAttribute(QXmlStreamAttribute("style", "plain"));
+    }
+
+//    writer.writeAttribute(QXmlStreamAttribute("type", "solid"));
+//    writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(pages[i].backgroundColor().name(QColor::HexArgb))));
+//    writer.writeAttribute(QXmlStreamAttribute("style", "plain"));
+
     writer.writeStartElement("layer");
+
+    for (auto t : pages[i].texts()){
+        writer.writeStartElement("text");
+        writer.writeAttribute(QXmlStreamAttribute("font", std::get<1>(t).key()));
+        writer.writeAttribute(QXmlStreamAttribute("size", QString::number(std::get<1>(t).pointSize())));
+        writer.writeAttribute(QXmlStreamAttribute("x", QString::number(std::get<0>(t).x())));
+        writer.writeAttribute(QXmlStreamAttribute("y", QString::number(std::get<0>(t).y())));
+        writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(std::get<2>(t).name(QColor::HexArgb))));
+        writer.writeCharacters(std::get<3>(t));
+        writer.writeEndElement();
+    }
 
     //    for (int j = 0; j < pages[i].m_strokes.size(); ++j)
     for (auto strokes : pages[i].strokes())
@@ -657,6 +720,27 @@ bool Document::saveMOJ(QString fileName)
     m_docName = fileInfo.completeBaseName();
     return true;
   }
+}
+
+bool Document::loadPDF(QString fileName){
+    pages.clear();
+    if(!fileName.isEmpty()){
+        m_pdfPath = fileName;
+        m_pdfDoc.reset(Poppler::Document::load(m_pdfPath));
+        if(m_pdfDoc->isLocked()){
+            return false;
+        }
+        m_pdfDoc->setRenderHint(Poppler::Document::Antialiasing);
+        m_pdfDoc->setRenderHint(Poppler::Document::TextAntialiasing);
+        int numPages = m_pdfDoc->numPages();
+        for(int i = 0; i < numPages; ++i){
+            Poppler::Page* page = m_pdfDoc->page(i);
+            pages.append(Page());
+            pages.last().setPdf(page, i);
+        }
+        return true;
+    }
+    return false;
 }
 
 bool Document::setDocName(QString docName)

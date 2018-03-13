@@ -32,6 +32,7 @@ private slots:
   void newWindow();
   void cloneWindow();
   void newFile();
+  void openPdf();
   void openFile();
 
   bool saveFileAs();
@@ -113,6 +114,7 @@ private:
   QAction *cloneWindowAct;
   QAction *closeWindowAct;
   QAction *newFileAct;
+  QAction *annotatePdfAct;
   QAction *openFileAct;
   QAction *saveFileAct;
   QAction *saveFileAsAct;

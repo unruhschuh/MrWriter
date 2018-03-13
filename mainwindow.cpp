@@ -127,6 +127,11 @@ void MainWindow::createActions()
   connect(newFileAct, SIGNAL(triggered()), this, SLOT(newFile()));
   this->addAction(newFileAct); // add to make shortcut work if menubar is hidden
 
+  annotatePdfAct = new QAction(tr("&Annotate PDF"), this);
+  annotatePdfAct->setStatusTip(tr("Annotate PDF"));
+  connect(annotatePdfAct, &QAction::triggered, this, &MainWindow::openPdf);
+  this->addAction(annotatePdfAct);
+
   openFileAct = new QAction(QIcon(":/images/openIcon.png"), tr("&Open file"), this);
   openFileAct->setShortcuts(QKeySequence::Open);
   openFileAct->setStatusTip(tr("Open File"));
@@ -521,6 +526,7 @@ void MainWindow::createMenus()
   fileMenu->addAction(closeWindowAct);
   fileMenu->addSeparator();
   fileMenu->addAction(newFileAct);
+  fileMenu->addAction(annotatePdfAct);
   fileMenu->addAction(openFileAct);
   fileMenu->addAction(saveFileAct);
   fileMenu->addAction(saveFileAsAct);
@@ -712,6 +718,40 @@ void MainWindow::newFile()
   {
     // ignore
   }
+}
+
+void MainWindow::openPdf(){
+    if(!maybeSave()){
+        return;
+    }
+
+    QString dir;
+    if(mainWidget->currentDocument.path().isEmpty()){
+        dir = QDir::homePath();
+    }
+    else{
+        dir = mainWidget->currentDocument.path();
+    }
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open PDF"), dir, tr("PDF Files (*.pdf)"));
+    if(fileName.isNull()){
+        return;
+    }
+
+    MrDoc::Document openDocument;
+
+    if (openDocument.loadPDF(fileName))
+    {
+      mainWidget->letGoSelection();
+      mainWidget->setDocument(openDocument);
+      setTitle();
+      modified();
+    }
+    else
+    {
+      QMessageBox errMsgBox;
+      errMsgBox.setText("Couldn't open file");
+      errMsgBox.exec();
+    }
 }
 
 void MainWindow::openFile()
