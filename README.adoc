@@ -7,6 +7,9 @@ Notetaking and blackboard replacement application. Inspired by Xournal. Written 
 
 See the http://unruhschuh.github.io/MrWriter/[project homepage] for more informations and screenshots.
 
+== Fork
+This is a fork of the original MrWriter software. The fork has the ability to annotate PDFs with your stylus. 
+
 == Build
 * Download and install http://www.qt.io/download/[Qt]
 * Run in the terminal
