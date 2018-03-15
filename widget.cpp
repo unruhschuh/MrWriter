@@ -2044,3 +2044,60 @@ void Widget::setCurrentPenWidth(qreal penWidth)
     update();
   }
 }
+
+void Widget::searchAllPdf(const QString& text){
+    QVector<QFuture<bool>> future;
+    for(int i = 0; i < currentDocument.pages.size(); ++i){
+        future.append(QtConcurrent::run(&currentDocument.pages[i], &MrDoc::Page::searchPdfNext, text));
+    }
+    for(int i = 0; i < currentDocument.pages.size(); ++i){
+        future[i].waitForFinished();
+    }
+    searchPageNums.clear();
+    for(int i = 0; i < future.size(); ++i){
+        if(future.at(i).result()){
+            searchPageNums.append(i);
+        }
+    }
+}
+
+void Widget::searchPdfNext(const QString& text){
+    if(text != previousSearchText){
+        searchAllPdf(text);
+        previousSearchPageIndex = -1;
+    }
+    if(searchPageNums.isEmpty()){
+       return;
+    }
+    previousSearchText = text;
+    previousSearchPageIndex = (previousSearchPageIndex + 1)%searchPageNums.size();
+    updateAllPageBuffers();
+    scrollDocumentToPageNum(searchPageNums.at(previousSearchPageIndex));
+    update();
+}
+
+void Widget::searchPdfPrev(const QString &text){
+    if(text != previousSearchText){
+        searchAllPdf(text);
+        previousSearchPageIndex = -1;
+        //updateAllPageBuffers();
+    }
+    if(searchPageNums.isEmpty()){
+       return;
+    }
+    previousSearchText = text;
+    previousSearchPageIndex = (previousSearchPageIndex - 1 + searchPageNums.size())%searchPageNums.size(); //no negative numbers
+    updateAllPageBuffers();
+    scrollDocumentToPageNum(searchPageNums.at(previousSearchPageIndex));
+    update();
+}
+
+void Widget::clearPdfSearch(){
+    for(int i = 0; i < currentDocument.pages.size(); ++i){
+        currentDocument.pages[i].clearPdfSearch();
+    }
+    previousSearchText = "";
+    previousSearchPageIndex = -1;
+    updateAllPageBuffers();
+    update();
+}

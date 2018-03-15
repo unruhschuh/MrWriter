@@ -26,6 +26,7 @@
 #include "mrdoc.h"
 #include "document.h"
 #include "textbox.h"
+#include "page.h"
 
 class Widget : public QWidget
 // class Widget : public QOpenGLWidget
@@ -120,6 +121,8 @@ public:
 
   void closeTextBox();
 
+  void searchAllPdf(const QString &text);
+
   MrDoc::Document currentDocument;
   QMutex pageImageBufferMutex;
 
@@ -194,6 +197,10 @@ private:
   TextBox* textBox;
   bool textBoxOpen = false;
   bool textChanged = false;
+
+  QString previousSearchText;
+  int previousSearchPageIndex;
+  QVector<int> searchPageNums;
 
   void startDrawing(QPointF mousePos, qreal pressure);
   void continueDrawing(QPointF mousePos, qreal pressure);
@@ -291,6 +298,9 @@ protected:
 signals:
 
 public slots:
+  void searchPdfNext(const QString& text);
+  void searchPdfPrev(const QString& text);
+  void clearPdfSearch();
 };
 
 #endif // WIDGET_H

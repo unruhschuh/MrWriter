@@ -65,6 +65,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
   QWidget *sep2 = new QWidget();
   sep2->setFixedWidth(10);
 
+  //possible memory leak?
+  searchBar = new SearchBar();
+  connect(searchBar, &SearchBar::searchNext, this->mainWidget, &Widget::searchPdfNext);
+  connect(searchBar, &SearchBar::searchPrev, this->mainWidget, &Widget::searchPdfPrev);
+  connect(searchBar, &SearchBar::clearSearch, this->mainWidget, &Widget::clearPdfSearch);
+
   statusBar()->addPermanentWidget(&colorStatus);
   statusBar()->addPermanentWidget(sep1);
   statusBar()->addPermanentWidget(&penWidthStatus);
@@ -662,6 +668,8 @@ void MainWindow::createToolBars()
   viewToolBar->addSeparator();
   viewToolBar->addAction(fullscreenAct);
   viewToolBar->setIconSize(iconSize);
+
+  viewToolBar->addWidget(searchBar);
 
   addToolBarBreak();
 

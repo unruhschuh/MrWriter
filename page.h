@@ -61,6 +61,22 @@ public:
   void setPdf(Poppler::Page *page, int pageNum);
   //void setPdfPath(const QString path);
 
+  /**
+   * @brief searchPdfNext searches for all occurences of @param text in the page
+   * @return true if some text was found, else false
+   */
+  bool searchPdfNext(const QString& text);
+
+  /**
+   * @brief searchPdfPrev searches for all occurences of @param text in the page
+   * @return true if some text was found, else false
+   * @see searchPdfNext
+   */
+  bool searchPdfPrev(const QString& text);
+
+  void clearPdfSearch();
+
+
   //    virtual void paint(QPainter &painter, qreal zoom);
   /**
    * @brief paint
@@ -85,6 +101,7 @@ protected:
   QImage m_pdf;
   std::shared_ptr<Poppler::Page> m_pdfPointer = std::shared_ptr<Poppler::Page>(nullptr);
   int pageno; //pageNumber
+  QList<QRectF> searchResultRects;
 
   QVector<std::tuple<QRectF, QFont, QColor, QString>> m_texts;
 

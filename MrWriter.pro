@@ -25,7 +25,8 @@ HEADERS  += version.h \
     colorbutton.h \
     stroke.h \
     mrdoc.h \
-    textbox.h
+    textbox.h \
+    searchbar.h
 
 #VERSION_MAJOR = MY_MAJOR_VERSION
 #VERSION_MINOR = MY_MINOR_VERSION
@@ -42,7 +43,8 @@ SOURCES += main.cpp\
     pagesettingsdialog.cpp \
     colorbutton.cpp \
     stroke.cpp \
-    textbox.cpp
+    textbox.cpp \
+    searchbar.cpp
 
 HEADERS  += mainwindow.h \
     widget.h \
@@ -55,7 +57,8 @@ HEADERS  += mainwindow.h \
     tabletapplication.h \
     version.h
 
-FORMS    +=
+FORMS    += \
+    searchbar.ui
 
 RESOURCES += \
     myresource.qrc

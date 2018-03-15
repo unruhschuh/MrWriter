@@ -7,6 +7,7 @@
 #include <QScrollArea>
 
 #include "widget.h"
+#include "searchbar.h"
 
 class MainWindow : public QMainWindow
 {
@@ -108,6 +109,8 @@ private:
   QLabel pageStatus;
   QLabel penWidthStatus;
   QLabel colorStatus;
+
+  SearchBar* searchBar;
 
   // actions
   QAction *newWindowAct;

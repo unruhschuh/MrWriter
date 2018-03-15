@@ -99,6 +99,11 @@ void Page::paint(QPainter &painter, qreal zoom, QRectF region)
         }
     }
     painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+
+    QColor halfYellow(255,255,0,128);
+    for (QRectF& rect : searchResultRects){
+        painter.fillRect(rect.x()*zoom, rect.y()*zoom, rect.width()*zoom, rect.height()*zoom, halfYellow);
+    }
 }
 
 void Page::setBackgroundColor(QColor backgroundColor)
@@ -320,6 +325,26 @@ void Page::setPdf(Poppler::Page* page, int pageNum){
     //delete doc;
     m_pdfPointer.reset(page);
     pageno = pageNum;
+}
+
+bool Page::searchPdfNext(const QString &text){
+    if(isPdf()){
+        searchResultRects = m_pdfPointer->search(text, Poppler::Page::IgnoreCase);
+        return !searchResultRects.isEmpty();
+    }
+    return false;
+}
+
+bool Page::searchPdfPrev(const QString &text){
+    if(isPdf()){
+        searchResultRects = m_pdfPointer->search(text, Poppler::Page::IgnoreCase);
+        return !searchResultRects.isEmpty();
+    }
+    return false;
+}
+
+void Page::clearPdfSearch(){
+    searchResultRects.clear();
 }
 
 }
