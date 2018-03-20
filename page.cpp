@@ -95,7 +95,9 @@ void Page::paint(QPainter &painter, qreal zoom, QRectF region)
     {
         if (region.isNull() || stroke.boundingRect().intersects(region))
         {
-            stroke.paint(painter, QRect(0,0, m_width*zoom, m_height*zoom), zoom);
+            //stroke.paint(painter, QRect(stroke.boundingRect().x()*zoom, stroke.boundingRect().y()*zoom, stroke.boundingRect().width()*zoom, stroke.boundingRect().height()*zoom), zoom);
+            stroke.paint(painter, zoom);
+            //stroke.paint(painter, QRect(0,0, m_width*zoom, m_height*zoom), zoom);
         }
     }
     painter.setCompositionMode(QPainter::CompositionMode_SourceOver);

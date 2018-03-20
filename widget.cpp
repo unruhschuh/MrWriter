@@ -235,7 +235,9 @@ void Widget::drawOnBuffer(bool last)
     painter.setRenderHint(QPainter::Antialiasing, true);
 
     //currentStroke.paint(painter, zoom, last);
-    currentStroke.paint(painter, QRect(0,0, pageBufferPtr[drawingOnPage]->width(), pageBufferPtr[drawingOnPage]->height()), zoom, last);
+    //currentStroke.paint(painter, QRect(0,0, pageBufferPtr[drawingOnPage]->width(), pageBufferPtr[drawingOnPage]->height()), zoom, last);
+    //currentStroke.paint(painter, QRect(currentStroke.boundingRect().x()*zoom, currentStroke.boundingRect().y()*zoom, currentStroke.boundingRect().width()*zoom, currentStroke.boundingRect().height()), zoom, last);
+    currentStroke.paint(painter, zoom, last);
     //painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
 }
 

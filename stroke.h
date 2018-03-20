@@ -22,7 +22,7 @@ struct Stroke
 public:
   Stroke();
   //    enum class dashPattern { SolidLine, DashLine, DashDotLine, DotLine };
-  void paint(QPainter &painter, QRectF &&rect, qreal zoom, bool last = false);
+  void paint(QPainter &painter, qreal zoom, bool last = false);
 
   QRectF boundingRect() const;
   QRectF boundingRectSansPenWidth() const;

@@ -166,7 +166,9 @@ void Selection::updateBuffer(qreal zoom)
   imgPainter.translate(-upscale * zoom * m_selectionPolygon.boundingRect().topLeft());
   //Page::paint(imgPainter, zoom*upscale);
   for(Stroke& stroke : m_strokes){
-      stroke.paint(imgPainter, QRect(0, 0, (int)((width()+boundingRect().x())*upscale*zoom), (int)((height()+boundingRect().y())*upscale*zoom)), zoom*upscale);
+      //stroke.paint(imgPainter, QRect(0, 0, (int)((width()+boundingRect().x())*upscale*zoom), (int)((height()+boundingRect().y())*upscale*zoom)), zoom*upscale);
+      //stroke.paint(imgPainter, QRect(stroke.boundingRect().x()*zoom*upscale, stroke.boundingRect().y()*zoom*upscale, stroke.boundingRect().width()*zoom*upscale, stroke.boundingRect().height()*zoom*upscale), zoom*upscale);
+      stroke.paint(imgPainter, zoom*upscale);
   }
 }
 
