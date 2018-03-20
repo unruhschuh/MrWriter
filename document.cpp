@@ -431,8 +431,6 @@ bool Document::loadMOJ(QString fileName)
 
   pages.clear();
 
-  int strokeCount = 0;
-
   while (!reader.atEnd())
   {
     reader.readNext();
@@ -498,9 +496,12 @@ bool Document::loadMOJ(QString fileName)
     {
       QXmlStreamAttributes attributes = reader.attributes();
       QStringRef tool = attributes.value("", "tool");
-      if (tool == "pen")
+      if (tool == "pen" || tool == "highlighter")
       {
         Stroke newStroke;
+        if(tool == "highlighter"){
+            newStroke.isHighlighter = true;
+        }
         newStroke.pattern = MrDoc::solidLinePattern;
         QStringRef color = attributes.value("", "color");
         newStroke.color = stringToColor(color.toString());
@@ -551,8 +552,6 @@ bool Document::loadMOJ(QString fileName)
           return false;
         }
         pages.last().appendStroke(newStroke);
-        strokeCount++;
-        qDebug() << strokeCount;
       }
     }
   }
@@ -650,7 +649,10 @@ bool Document::saveMOJ(QString fileName)
     for (auto strokes : pages[i].strokes())
     {
       writer.writeStartElement("stroke");
-      writer.writeAttribute(QXmlStreamAttribute("tool", "pen"));
+      if(strokes.isHighlighter)
+          writer.writeAttribute(QXmlStreamAttribute("tool", "highlighter"));
+      else
+        writer.writeAttribute(QXmlStreamAttribute("tool", "pen"));
       writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(strokes.color.name(QColor::HexArgb))));
       QString patternString;
       if (strokes.pattern == MrDoc::solidLinePattern)
