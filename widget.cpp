@@ -1080,6 +1080,7 @@ void Widget::startDrawing(QPointF mousePos, qreal pressure)
   newStroke.penWidth = currentPenWidth;
   newStroke.color = currentColor;
   if(currentTool == tool::HIGHLIGHTER){
+      newStroke.isHighlighter = true;
       newStroke.penWidth *= 4.5;
       //newStroke.color = QColor(255-currentColor.red(), 255-currentColor.green(), 255-currentColor.blue(), 127);
       newStroke.color.setAlpha(127);

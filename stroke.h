@@ -33,6 +33,7 @@ public:
   qreal penWidth;
   QColor color;
   QPixmap tmpPixmap =QPixmap(1,1);
+  bool isHighlighter = false;
 };
 }
 
