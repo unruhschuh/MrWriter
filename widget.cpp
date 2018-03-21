@@ -70,6 +70,7 @@ Widget::Widget(QWidget *parent)
 
   currentPenWidth = 1.41;
   currentColor = QColor(0, 0, 0);
+  currentFont = QFont("Sans", 12);
   zoom = 1.0;
 
   currentCOSPos.setX(0.0);
@@ -703,6 +704,7 @@ void Widget::mousePressEvent(QMouseEvent *event)
             textBoxOpen = true;
             textChanged = true;
             setCurrentColor(currentDocument.pages[getCurrentPage()].textColorByIndex(textIndex));
+            setCurrentFont(currentDocument.pages[getCurrentPage()].textFontByIndex(textIndex));
         }
         else if(textIndex == -1){ //clicked not on text
             textBox->setGeometry(event->x(), event->y(), 250,100);
@@ -712,7 +714,7 @@ void Widget::mousePressEvent(QMouseEvent *event)
             textBox->setTextX(point.x());
             textBox->setTextY(point.y());
             textBox->setTextColor(getCurrentColor());
-            textBox->setTextFont(QFont("Sans", 12));
+            textBox->setTextFont(currentFont);
             textBox->show();
             textBoxOpen = true;
         }
@@ -787,7 +789,7 @@ void Widget::closeTextBox(){
         textBox->setTextColor(getCurrentColor());
         if(textChanged){
             ChangeTextCommand* changeTextCommand = new ChangeTextCommand(textBox->getPage(), textBox->getTextIndex(), textBox->getPrevColor(),
-                                                                         getCurrentColor(), textBox->getPrevFont(), textBox->getFont(),
+                                                                         getCurrentColor(), textBox->getPrevFont(), getCurrentFont(),
                                                                          textBox->getPrevText(), textBox->toPlainText());
             undoStack.push(changeTextCommand);
             //update();
@@ -797,7 +799,7 @@ void Widget::closeTextBox(){
         else{
             TextCommand* textCommand = new TextCommand(textBox->getPage(), QRectF(textBox->getTextX(), textBox->getTextY(), 0, 0), getCurrentColor(), textBox->getFont(), textBox->toPlainText());
             undoStack.push(textCommand);
-            emit setText(true); //onlyHide, because the textSetting is done by textCommand
+            emit setText(true); //onlyHide, because the text drawing is done by textCommand
         }
         //emit setText(false); //text get's really set
         //updateBuffer(getCurrentPage());
@@ -1951,6 +1953,15 @@ void Widget::setCurrentColor(QColor newColor)
 QColor Widget::getCurrentColor()
 {
   return currentColor;
+}
+
+void Widget::setCurrentFont(QFont newFont){
+    currentFont = newFont;
+    emit updateGUI();
+}
+
+QFont Widget::getCurrentFont(){
+    return currentFont;
 }
 
 void Widget::veryFine()

@@ -37,7 +37,7 @@ public:
   int textIndexFromMouseClick(int x, int y);
   const QString& textByIndex(int i);
   int appendText(const QRectF& rect, const QFont& font, const QColor& color, const QString& text);
-  void setText(int index, const QColor &color, const QString& text);
+  void setText(int index, const QFont &font, const QColor &color, const QString& text);
 
   const QRectF& textRectByIndex(int i);
   const QColor& textColorByIndex(int i);

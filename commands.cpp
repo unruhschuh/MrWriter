@@ -472,11 +472,11 @@ ChangeTextCommand::ChangeTextCommand(MrDoc::Page* page, int textIndex, const QCo
 }
 
 void ChangeTextCommand::undo(){
-    m_page->setText(m_textIndex, m_prevColor, m_prevText);
+    m_page->setText(m_textIndex, m_prevFont, m_prevColor, m_prevText);
 }
 
 void ChangeTextCommand::redo(){
-    m_page->setText(m_textIndex, m_color, m_text);
+    m_page->setText(m_textIndex, m_font, m_color, m_text);
 }
 
 /* *************************************************
@@ -493,7 +493,7 @@ TextCommand::TextCommand(MrDoc::Page *page, const QRectF& rect, const QColor &co
 }
 
 void TextCommand::undo(){
-    m_page->setText(m_textIndex, m_color, QString("")); //has the effect of removing it
+    m_page->setText(m_textIndex, m_font, m_color, QString("")); //has the effect of removing it
 }
 
 void TextCommand::redo(){

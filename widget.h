@@ -105,6 +105,9 @@ public:
   void setCurrentColor(QColor newColor);
   QColor getCurrentColor();
 
+  void setCurrentFont(QFont newFont);
+  QFont getCurrentFont();
+
   void setDocument(const MrDoc::Document &newDocument);
   void letGoSelection();
 
@@ -182,6 +185,8 @@ private:
   tool currentTool;
   tool previousTool;
   bool realEraser;
+
+  QFont currentFont;
 
   qreal currentDashOffset;
 
