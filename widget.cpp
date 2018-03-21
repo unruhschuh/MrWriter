@@ -687,6 +687,7 @@ void Widget::mousePressEvent(QMouseEvent *event)
         int textIndex = currentDocument.pages[getCurrentPage()].textIndexFromMouseClick(point.x(), point.y());
         if(textBoxOpen){
             closeTextBox();
+            return;
         }
         else if(textIndex != -1){ //clicked on text
             textBox->setPage(&(currentDocument.pages[getCurrentPage()]));
