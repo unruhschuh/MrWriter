@@ -5,6 +5,7 @@
 #include <QLabel>
 #include <QToolButton>
 #include <QScrollArea>
+#include <QFontDialog>
 
 #include "widget.h"
 #include "searchbar.h"
@@ -58,6 +59,8 @@ private slots:
   void select();
   void hand();
   void text();
+
+  void selectFont();
 
   void modified();
 
@@ -170,6 +173,7 @@ private:
   QAction *rotateAct;
 
   QAction *textAct;
+  QAction *fontAct;
 
   QAction *veryFinePenWidthAct;
   QAction *finePenWidthAct;

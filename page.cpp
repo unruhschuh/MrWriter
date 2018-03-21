@@ -183,13 +183,13 @@ const QString& Page::textByIndex(int i){
     return std::get<3>(m_texts[i]);
 }
 
-void Page::setText(int index, const QColor& color, const QString& text){
+void Page::setText(int index, const QFont& font, const QColor& color, const QString& text){
     if(text.isEmpty()){
         m_texts.remove(index);
     }
     else{
         //QRectF rect = std::get<0>(m_texts[index]);
-        auto t = std::make_tuple(std::get<0>(m_texts[index]), std::get<1>(m_texts[index]), color, text);
+        auto t = std::make_tuple(std::get<0>(m_texts[index]), font, color, text);
         m_texts[index] = t;
         rectIsPoint = true;
     }

@@ -98,7 +98,7 @@ void TextBox::applyText(bool onlyHide){
             }
         }
         else{
-            m_page->setText(m_textIndex, m_color, toPlainText());
+            m_page->setText(m_textIndex, m_font, m_color, toPlainText());
         }
     }
     hide();

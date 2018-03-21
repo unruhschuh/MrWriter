@@ -511,6 +511,14 @@ void MainWindow::createActions()
   connect(rotateAct, SIGNAL(triggered()), this, SLOT(rotate()));
   this->addAction(rotateAct); // add to make shortcut work if menubar is hidden
 
+  fontAct = new QAction(tr("Sans 12"), this);
+  fontAct->setText(tr("Select font"));
+  fontAct->setIconText(mainWidget->getCurrentFont().family() + ", " + QString::number(mainWidget->getCurrentFont().pointSize()));
+  fontAct->setStatusTip(tr("Set font"));
+  fontAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Modifier::SHIFT + Qt::Key_F));
+  connect(fontAct, &QAction::triggered, this, &MainWindow::selectFont);
+  this->addAction(fontAct);
+
   helpAct = new QAction(tr("&Help"), this);
   helpAct->setShortcut(QKeySequence(Qt::Key_F1));
   connect(helpAct, SIGNAL(triggered()), this, SLOT(help()));
@@ -553,6 +561,8 @@ void MainWindow::createMenus()
   editMenu->addAction(selectAllAct);
   editMenu->addSeparator();
   editMenu->addAction(rotateAct);
+  editMenu->addSeparator();
+  editMenu->addAction(fontAct);
 
   pageMenu = menuBar()->addMenu(tr("&Page"));
   pageMenu->addAction(pageAddBeforeAct);
@@ -649,6 +659,8 @@ void MainWindow::createToolBars()
   editToolBar->addAction(cutAct);
   editToolBar->addAction(copyAct);
   editToolBar->addAction(pasteAct);
+  editToolBar->addSeparator();
+  editToolBar->addAction(fontAct);
   editToolBar->addSeparator();
   editToolBar->addAction(undoAct);
   editToolBar->addAction(redoAct);
@@ -1030,6 +1042,20 @@ void MainWindow::text(){
     updateGUI();
 }
 
+void MainWindow::selectFont(){
+    bool ok;
+    QFont font = QFontDialog::getFont(
+                &ok, QFont("Sans", 12), this);
+    if(ok){
+        mainWidget->setCurrentFont(font);
+        fontAct->setIconText(font.family() + ", " + QString::number(font.pointSize()));
+    }
+    else{
+        mainWidget->setCurrentFont(font);
+        fontAct->setIconText(font.family() + ", " + QString::number(font.pointSize()));
+    }
+}
+
 void MainWindow::modified()
 {
   setWindowModified(mainWidget->currentDocument.documentChanged());
@@ -1274,6 +1300,8 @@ bool MainWindow::maybeSave()
 
 void MainWindow::updateGUI()
 {
+    QFont currentFont = mainWidget->getCurrentFont();
+    fontAct->setIconText(currentFont.family() + ", " + QString::number(currentFont.pointSize()));
   QColor currentColor = mainWidget->getCurrentColor();
 
   blackAct->setChecked(currentColor == MrDoc::black);
