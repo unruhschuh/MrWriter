@@ -68,6 +68,8 @@ private slots:
   void statusbar();
   void fullscreen();
   void maximize();
+  void horizontalView();
+  void verticalView();
 
   void pageSettings();
 
@@ -94,7 +96,7 @@ private slots:
   void saveMyGeometry();
   void loadMyGeometry();
 
-  void verticalScrolling();
+  void scrolling();
 
   bool maybeSave();
 
@@ -185,6 +187,9 @@ private:
   QAction *statusbarAct;
   QAction *fullscreenAct;
   QAction *maximizeAct;
+  QAction *horizontalViewAct;
+  QAction *verticalViewAct;
+  QMenu *viewOrientationMenu;
 
   // color actions
   QAction *blackAct;

@@ -60,6 +60,11 @@ public:
     RESIZING_SELECTION,
     ROTATING_SELECTION
   };
+  enum class view
+  {
+      HORIZONTAL,
+      VERTICAL
+  };
 
   static constexpr qreal veryFinePenWidth = 0.42;
   static constexpr qreal finePenWidth = 0.85;
@@ -101,6 +106,9 @@ public:
 
   void setCurrentState(state newState);
   state getCurrentState();
+
+  void setCurrentView(view newView);
+  view getCurrentView();
 
   void setCurrentColor(QColor newColor);
   QColor getCurrentColor();
@@ -154,8 +162,10 @@ public:
 private:
   std::shared_ptr<QPixmap> basePixmap = std::make_shared<QPixmap>();
   QMutex basePixmapMutex;
-  int previousValueRendered = 0;
-  int previousValueMaybeRendered = 0;
+  int previousVerticalValueRendered = 0;
+  int previousVerticalValueMaybeRendered = 0;
+  int previousHorizontalValueRendered = 0;
+  int previousHorizontalValueMaybeRendered = 0;
   QTimer* scrollTimer;
 
   QTime timer;
@@ -185,6 +195,8 @@ private:
   tool currentTool;
   tool previousTool;
   bool realEraser;
+
+  view currentView;
 
   QFont currentFont;
 

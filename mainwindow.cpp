@@ -440,6 +440,20 @@ void MainWindow::createActions()
   connect(maximizeAct, SIGNAL(triggered()), this, SLOT(maximize()));
   this->addAction(maximizeAct);
 
+  horizontalViewAct = new QAction(tr("HView"), this);
+  horizontalViewAct->setStatusTip(tr("Horizontal view"));
+  horizontalViewAct->setCheckable(true);
+  horizontalViewAct->setChecked(false);
+  connect(horizontalViewAct, &QAction::triggered, this, &MainWindow::horizontalView);
+  this->addAction(horizontalViewAct);
+
+  verticalViewAct = new QAction(tr("VView"), this);
+  verticalViewAct->setStatusTip(tr("Vertical view"));
+  verticalViewAct->setCheckable(true);
+  verticalViewAct->setChecked(true);
+  connect(verticalViewAct, &QAction::triggered, this, &MainWindow::verticalView);
+  this->addAction(verticalViewAct);
+
   // colorActions
   blackAct = new QAction(QIcon(":/images/blackIcon.png"), tr("black"), this);
   blackAct->setShortcut(QKeySequence(Qt::Key_Q));
@@ -529,7 +543,8 @@ void MainWindow::createActions()
   aboutQtAct = new QAction(tr("About &Qt"), this);
   connect(aboutQtAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 
-  QObject::connect(scrollArea->verticalScrollBar(), SIGNAL(valueChanged(int)), this, SLOT(verticalScrolling()));
+  QObject::connect(scrollArea->verticalScrollBar(), SIGNAL(valueChanged(int)), this, SLOT(scrolling()));
+  QObject::connect(scrollArea->horizontalScrollBar(), &QScrollBar::valueChanged, this, &MainWindow::scrolling);
 }
 
 void MainWindow::createMenus()
@@ -600,6 +615,10 @@ void MainWindow::createMenus()
   patternMenu->addAction(dashDotPatternAct);
   patternMenu->addAction(dotPatternAct);
 
+  viewOrientationMenu = new QMenu(tr("View orientation"), this);
+  viewOrientationMenu->addAction(verticalViewAct);
+  viewOrientationMenu->addAction(horizontalViewAct);
+
   viewMenu = menuBar()->addMenu(tr("&View"));
   viewMenu->addAction(zoomInAct);
   viewMenu->addAction(zoomOutAct);
@@ -609,6 +628,7 @@ void MainWindow::createMenus()
   viewMenu->addAction(toolbarAct);
   viewMenu->addAction(statusbarAct);
   viewMenu->addAction(fullscreenAct);
+  viewMenu->addMenu(viewOrientationMenu);
   viewMenu->addSeparator();
   viewMenu->addAction(saveMyStateAct);
   viewMenu->addAction(loadMyStateAct);
@@ -677,6 +697,9 @@ void MainWindow::createToolBars()
   viewToolBar->addAction(zoomFitWidthAct);
   viewToolBar->addAction(zoomFitHeightAct);
   viewToolBar->addAction(zoomInAct);
+  viewToolBar->addSeparator();
+  viewToolBar->addAction(verticalViewAct);
+  viewToolBar->addAction(horizontalViewAct);
   viewToolBar->addSeparator();
   viewToolBar->addAction(fullscreenAct);
   viewToolBar->setIconSize(iconSize);
@@ -1228,7 +1251,7 @@ void MainWindow::fullscreen()
   }
 }
 
-void MainWindow::verticalScrolling()
+void MainWindow::scrolling()
 {
   QSize size = scrollArea->size();
   QPoint globalMousePos = QPoint(size.width() / 2.0, size.height() / 2.0) + scrollArea->pos() + this->pos();
@@ -1354,6 +1377,9 @@ void MainWindow::updateGUI()
   fullscreenAct->setChecked(isFullScreen());
   statusbarAct->setChecked(statusBar()->isVisible());
 
+  verticalViewAct->setChecked(mainWidget->getCurrentView() == Widget::view::VERTICAL);
+  horizontalViewAct->setChecked(mainWidget->getCurrentView() == Widget::view::HORIZONTAL);
+
   if (mainWidget->getCurrentState() == Widget::state::SELECTED)
   {
     cutAct->setEnabled(true);
@@ -1372,7 +1398,7 @@ void MainWindow::updateGUI()
 
   penWidthStatus.setText(QString::number(mainWidget->currentPenWidth));
 
-  verticalScrolling();
+  scrolling();
   setTitle();
   if(currentTool != Widget::tool::TEXT){
       mainWidget->closeTextBox();
@@ -1420,6 +1446,16 @@ void MainWindow::cloneWindow()
 void MainWindow::maximize()
 {
   showMaximized();
+}
+
+void MainWindow::horizontalView(){
+    mainWidget->setCurrentView(Widget::view::HORIZONTAL);
+    updateGUI();
+}
+
+void MainWindow::verticalView(){
+    mainWidget->setCurrentView(Widget::view::VERTICAL);
+    updateGUI();
 }
 
 bool MainWindow::loadXOJ(QString fileName)
