@@ -64,6 +64,7 @@ private:
   Widget *widget;
   MrDoc::Selection selection;
   int pageNum;
+  Widget::view m_view;
 };
 
 class TransformSelectionCommand : public QUndoCommand

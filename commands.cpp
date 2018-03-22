@@ -169,10 +169,42 @@ ReleaseSelectionCommand::ReleaseSelectionCommand(Widget *newWidget, int newPageN
 
 void ReleaseSelectionCommand::undo()
 {
+//  widget->currentSelection = selection;
+//  for (int i = 0; i < widget->currentSelection.strokes().size(); ++i)
+//  {
+//    widget->currentDocument.pages[pageNum].removeLastStroke();
+//  }
+//  widget->setCurrentState(Widget::state::SELECTED);
+
   widget->currentSelection = selection;
-  for (int i = 0; i < widget->currentSelection.strokes().size(); ++i)
-  {
-    widget->currentDocument.pages[pageNum].removeLastStroke();
+  int pageNum = widget->currentSelection.pageNum();
+  if(m_view == Widget::view::VERTICAL){
+      for (MrDoc::Stroke stroke : widget->currentSelection.strokes())
+      {
+          if(stroke.boundingRect().center().y() < 0 && pageNum > 0){
+              widget->currentDocument.pages[pageNum-1].removeLastStroke();
+          }
+          else if(stroke.boundingRect().center().y() > widget->currentDocument.pages[pageNum].height() && pageNum < (widget->currentDocument.pages.size() - 1)){
+              widget->currentDocument.pages[pageNum+1].removeLastStroke();
+          }
+          else{
+              widget->currentDocument.pages[pageNum].removeLastStroke();
+          }
+      }
+  }
+  else if(m_view == Widget::view::HORIZONTAL){
+      for (MrDoc::Stroke stroke : widget->currentSelection.strokes())
+      {
+          if(stroke.boundingRect().center().x() < 0 && pageNum > 0){
+              widget->currentDocument.pages[pageNum-1].removeLastStroke();
+          }
+          else if(stroke.boundingRect().center().x() > widget->currentDocument.pages[pageNum].width() && pageNum < (widget->currentDocument.pages.size() - 1)){
+              widget->currentDocument.pages[pageNum+1].removeLastStroke();
+          }
+          else{
+              widget->currentDocument.pages[pageNum].removeLastStroke();
+          }
+      }
   }
   widget->setCurrentState(Widget::state::SELECTED);
 }
@@ -180,7 +212,53 @@ void ReleaseSelectionCommand::undo()
 void ReleaseSelectionCommand::redo()
 {
   int pageNum = widget->currentSelection.pageNum();
-  widget->currentDocument.pages[pageNum].appendStrokes(widget->currentSelection.strokes());
+  //widget->currentDocument.pages[pageNum].appendStrokes(widget->currentSelection.strokes());
+  //widget->setCurrentState(Widget::state::IDLE);
+
+  if(widget->getCurrentView() == Widget::view::VERTICAL){
+      m_view = Widget::view::VERTICAL;
+      for(MrDoc::Stroke stroke : widget->currentSelection.strokes()){
+          if(stroke.boundingRect().center().y() < 0 && pageNum > 0){
+              MrDoc::Stroke newStroke = stroke;
+              for(int i = 0; i < newStroke.points.size(); ++i){
+                  newStroke.points[i] += QPointF(0, widget->currentDocument.pages[pageNum].height());
+              }
+              widget->currentDocument.pages[pageNum-1].appendStroke(newStroke);
+          }
+          else if(stroke.boundingRect().center().y() > widget->currentDocument.pages[pageNum].height() && pageNum < (widget->currentDocument.pages.size() - 1)){
+              MrDoc::Stroke newStroke = stroke;
+              for(int i = 0; i < newStroke.points.size(); ++i){
+                  newStroke.points[i] -= QPointF(0, widget->currentDocument.pages[pageNum].height());
+              }
+              widget->currentDocument.pages[pageNum+1].appendStroke(newStroke);
+          }
+          else{
+              widget->currentDocument.pages[pageNum].appendStroke(stroke);
+          }
+      }
+  }
+  else if(widget->getCurrentView() == Widget::view::HORIZONTAL){
+      m_view = Widget::view::HORIZONTAL;
+      for(MrDoc::Stroke stroke : widget->currentSelection.strokes()){
+          if(stroke.boundingRect().center().x() < 0 && pageNum > 0){
+              MrDoc::Stroke newStroke = stroke;
+              for(int i = 0; i < newStroke.points.size(); ++i){
+                  newStroke.points[i] += QPointF(widget->currentDocument.pages[pageNum].width(), 0);
+              }
+              widget->currentDocument.pages[pageNum-1].appendStroke(newStroke);
+          }
+          else if(stroke.boundingRect().center().x() > widget->currentDocument.pages[pageNum].width() && pageNum < (widget->currentDocument.pages.size() - 1)){
+              MrDoc::Stroke newStroke = stroke;
+              for(int i = 0; i < newStroke.points.size(); ++i){
+                  newStroke.points[i] -= QPointF(widget->currentDocument.pages[pageNum].width(), 0);
+              }
+              widget->currentDocument.pages[pageNum+1].appendStroke(newStroke);
+          }
+          else{
+              widget->currentDocument.pages[pageNum].appendStroke(stroke);
+          }
+      }
+  }
   widget->setCurrentState(Widget::state::IDLE);
 }
 
