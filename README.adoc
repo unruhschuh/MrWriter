@@ -10,8 +10,11 @@ See the http://unruhschuh.github.io/MrWriter/[project homepage] for more informa
 == Fork
 This is a fork of the original MrWriter software. The fork has the ability to annotate PDFs with your stylus. 
 
+== Prerequisites
+* Qt has to be installed
+* Poppler has to be installed
+* _(optional)_ pdftk has to be installed (for proper PDF export)
 == Build
-* Download and install http://www.qt.io/download/[Qt]
 * Run in the terminal
 ** `git clone https://github.com/unruhschuh/MrWriter.git`
 ** `cd MrWriter`

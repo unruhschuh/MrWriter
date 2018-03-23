@@ -103,7 +103,13 @@ void Document::exportPDF(QString fileName)
     pdfWriter.setPageSize(QPageSize(QSizeF(pages[0].width(), pages[0].height()), QPageSize::Point));
     pdfWriter.setPageMargins(QMarginsF(0, 0, 0, 0));
 
-    pdfWriter.setResolution(72*2);  //*2 is a little arbitrarily
+//    qreal zoomW = ((qreal)pdfWriter.pageRect().width()) / ((qreal)pdfWriter.paperRect().width());
+//    qreal zoomH = ((qreal)pdfWriter.pageRect().height()) / ((qreal)pdfWriter.paperRect().height());
+//    qreal zoom = zoomW;
+//    if (zoomH < zoomW)
+//        zoom = zoomH;
+
+    pdfWriter.setResolution(72);
     pdfWriter.pageLayout().setUnits(QPageLayout::Point);
     QPainter painter;
     painter.begin(&pdfWriter);
@@ -142,8 +148,18 @@ void Document::exportPDF(QString fileName)
             ++interval;
         }
 
-        //2 (as zoom) is a little bit arbitrarily (has to be the same number as above)
-        pages[pageNum].paintForPdfExport(painter, 2);
+        if(pages[pageNum].isPdf()){
+            pages[pageNum].paintForPdfExport(painter, 1);
+        }
+        else{
+            if (pages[pageNum].backgroundColor() != QColor("white"))
+            {
+                QRectF pageRect = pdfWriter.pageRect(QPrinter::Point);
+                pageRect.translate(-pageRect.topLeft());
+                painter.fillRect(pageRect, pages[pageNum].backgroundColor());
+            }
+            pages[pageNum].paint(painter, 1);
+        }
 
         if (pageNum + 1 < pages.size())
         {
