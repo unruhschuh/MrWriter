@@ -108,6 +108,37 @@ void Page::paint(QPainter &painter, qreal zoom, QRectF region)
     }
 }
 
+void Page::paintForPdfExport(QPainter &painter, qreal zoom){
+
+    if(rectIsPoint){
+        for(int i = 0; i < m_texts.length(); ++i){
+            QFont font = std::get<1>(m_texts[i]);
+            font.setPointSize(font.pointSize()*zoom);
+            painter.setFont(font);
+            painter.setPen(std::get<2>(m_texts[i]));
+            painter.drawText(std::get<0>(m_texts[i]).x()*zoom, std::get<0>(m_texts[i]).y()*zoom, m_width, m_height, Qt::TextWordWrap, std::get<3>(m_texts[i]));
+            QRectF rect = painter.boundingRect(std::get<0>(m_texts[i]).x(), std::get<0>(m_texts[i]).y(), m_width, m_height, Qt::TextWordWrap, std::get<3>(m_texts[i]));
+            m_texts[i] = std::make_tuple(rect, std::get<1>(m_texts[i]), std::get<2>(m_texts[i]), std::get<3>(m_texts[i]));
+        }
+        //rectIsPoint = false;
+    }
+    else{
+        for(auto t : m_texts){
+            QFont font = std::get<1>(t);
+            font.setPointSize(font.pointSize()*zoom);
+            painter.setFont(font);
+            painter.setPen(std::get<2>(t));
+            painter.drawText(std::get<0>(t).x()*zoom, std::get<0>(t).y()*zoom, m_width, m_height, Qt::TextWordWrap, std::get<3>(t));
+        }
+    }
+
+
+    for (Stroke &stroke : m_strokes)
+    {
+        stroke.paint(painter, zoom);
+    }
+}
+
 void Page::setBackgroundColor(QColor backgroundColor)
 {
   m_backgroundColor = backgroundColor;

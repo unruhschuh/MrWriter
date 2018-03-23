@@ -87,28 +87,141 @@ pages[pageNum+1].height()));
 
 void Document::exportPDF(QString fileName)
 {
-    //    QPdfWriter pdfWriter("/Users/tom/Desktop/qpdfwriter.pdf");
-    //    QPdfWriter pdfWriter(fileName);
+    if(m_pdfPath.isEmpty()){
+        exportPDFAsImage(fileName);
+        return;
+    }
+
+    QString overlay = "overlay.pdf";
+    QString overlayFileName = QUrl(fileName).adjusted(QUrl::RemoveFilename).toString();
+    overlayFileName += overlay;
 
     QPrinter pdfWriter(QPrinter::HighResolution);
     pdfWriter.setOutputFormat(QPrinter::PdfFormat);
-    pdfWriter.setOutputFileName(fileName);
-    //    pdfWriter.setMargins();
+    pdfWriter.setOutputFileName(overlayFileName);
 
     pdfWriter.setPageSize(QPageSize(QSizeF(pages[0].width(), pages[0].height()), QPageSize::Point));
     pdfWriter.setPageMargins(QMarginsF(0, 0, 0, 0));
-//    qreal zoomW = ((qreal)pdfWriter.pageRect().width()) / ((qreal)pdfWriter.paperRect().width());
-//    qreal zoomH = ((qreal)pdfWriter.pageRect().height()) / ((qreal)pdfWriter.paperRect().height());
-//    qreal zoom = zoomW;
-//    if (zoomH < zoomW)
-//        zoom = zoomH;
+
+    pdfWriter.setResolution(72*2);  //*2 is a little arbitrarily
+    pdfWriter.pageLayout().setUnits(QPageLayout::Point);
+    QPainter painter;
+    painter.begin(&pdfWriter);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+
+    struct pdfOrNotInterval{
+        pageType type;
+        int begin;
+        int beginInPdf;
+        int endInPdf;
+    };
+
+    QVector<pdfOrNotInterval> pdfIntervals;
+    int interval = 0;
+    for (int pageNum = 0; pageNum < pages.size(); ++pageNum)
+    {
+        if(!pages[pageNum].isPdf()){
+            if(pdfIntervals.isEmpty() || pdfIntervals.last().type == pageType::PDF){
+                pdfOrNotInterval newInterval;
+                newInterval.type = pageType::NOPDF;
+                newInterval.begin = pageNum;
+                if(!pdfIntervals.isEmpty()){
+                    pdfIntervals.last().endInPdf = interval;
+                }
+                pdfIntervals.append(newInterval);
+            }
+        }
+        else{
+            if(pdfIntervals.isEmpty() || pdfIntervals.last().type == pageType::NOPDF){
+                pdfOrNotInterval newInterval;
+                newInterval.type = pageType::PDF;
+                newInterval.begin = pageNum;
+                newInterval.beginInPdf = interval+1;
+                pdfIntervals.append(newInterval);
+            }
+            ++interval;
+        }
+
+        //2 (as zoom) is a little bit arbitrarily (has to be the same number as above)
+        pages[pageNum].paintForPdfExport(painter, 2);
+
+        if (pageNum + 1 < pages.size())
+        {
+            pdfWriter.setPageSize(QPageSize(QSize(pages[pageNum + 1].width(), pages[pageNum + 1].height())));
+            pdfWriter.newPage();
+        }
+    }
+    painter.end();
+
+    for(int i = pdfIntervals.size()-1; i >= 0; --i){
+        if(pdfIntervals[i].type == pageType::PDF){
+            pdfIntervals[i].endInPdf = interval;
+            break;
+        }
+    }
+
+    QStringList pdfExtendIntervals;
+    for(int i = 0; i < pdfIntervals.size(); ++i){
+        if(pdfIntervals.at(i).type == pageType::PDF){
+            pdfExtendIntervals << "A"+QString::number(pdfIntervals.at(i).beginInPdf)+"-"+QString::number(pdfIntervals.at(i).endInPdf);
+        }
+        else{
+            if(i == pdfIntervals.size()-1){
+                pdfExtendIntervals << "B"+QString::number(pdfIntervals.at(i).begin+1)+"-"+QString::number(pages.size());
+            }
+            else{
+                pdfExtendIntervals << "B"+QString::number(pdfIntervals.at(i).begin+1)+"-"+QString::number(pdfIntervals.at(i+1).begin);
+            }
+        }
+    }
+//    for(int i = 0; i < pdfExtendIntervals.size(); ++i){
+//        qDebug() << pdfExtendIntervals[i];
+//    }
+
+    QString extended = "extended.pdf";
+    QString extendedPdfFileName = QUrl(fileName).adjusted(QUrl::RemoveFilename).toString();
+    extendedPdfFileName += extended;
+
+    QProcess extendProcess;
+    extendProcess.start("pdftk", QStringList() << "A="+m_pdfPath << "B="+overlayFileName <<
+                        "cat" << pdfExtendIntervals << "output" << extendedPdfFileName);
+
+    if(extendProcess.error() == QProcess::FailedToStart){
+        QMessageBox::StandardButton answer = QMessageBox::warning(nullptr, QObject::tr("Failed to start pdftk"), QObject::tr("Failed to start pdftk. \nCheck if you have "
+                                                                   "pdftk installed and the permission to start it.\n"
+                                                                   "Do you want to resume (PDF will be exported as image)?"),
+                             QMessageBox::Ignore | QMessageBox::Abort);
+        if(answer == QMessageBox::Ignore){
+            exportPDFAsImage(fileName);
+            return;
+        }
+        else{
+            return;
+        }
+        QDir dir(overlayFileName);
+        dir.remove(overlay);
+    }
+    extendProcess.waitForFinished();
+
+    QProcess process;
+    process.start("pdftk", QStringList() << extendedPdfFileName << "multistamp" <<
+                  overlayFileName << "output" << fileName);
+    process.waitForFinished();
+    QDir dir(QUrl(fileName).adjusted(QUrl::RemoveFilename).toString());
+    dir.remove(overlay);
+    dir.remove(extended);
+}
+
+void Document::exportPDFAsImage(QString fileName){
+    QPrinter pdfWriter(QPrinter::HighResolution);
+    pdfWriter.setOutputFormat(QPrinter::PdfFormat);
+    pdfWriter.setOutputFileName(fileName);
+    pdfWriter.setPageSize(QPageSize(QSizeF(pages[0].width(), pages[0].height()), QPageSize::Point));
+    pdfWriter.setPageMargins(QMarginsF(0, 0, 0, 0));
     //*2 is a little bit arbitrarily
     pdfWriter.setResolution(72*2);
     pdfWriter.pageLayout().setUnits(QPageLayout::Point);
     QPainter painter;
-
-    //    std::cout << "PDF " << pdfWriter.colorCount() << std::endl;
-
     painter.begin(&pdfWriter);
     painter.setRenderHint(QPainter::Antialiasing, true);
     for (int pageNum = 0; pageNum < pages.size(); ++pageNum)

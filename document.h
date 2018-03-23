@@ -1,6 +1,11 @@
 #ifndef DOCUMENT_H
 #define DOCUMENT_H
 
+#include <QMessageBox>
+#include <QPushButton>
+#include <QObject>
+#include <QDir>
+#include <QProcess>
 #include "page.h"
 #include <poppler-qt5.h>
 #include <memory>
@@ -19,6 +24,7 @@ public:
   Document& operator= (const Document& doc);*/
 
   void exportPDF(QString fileName);
+  void exportPDFAsImage(QString fileName);
 
   bool loadXOJ(QString fileName);
   bool saveXOJ(QString fileName);
@@ -47,6 +53,10 @@ public:
   QColor stringToColor(QString colorString);
 
 private:
+  enum class pageType {
+      PDF,
+      NOPDF
+  };
   bool m_documentChanged;
 
   QString m_docName;

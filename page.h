@@ -85,6 +85,7 @@ public:
    * @param region
    */
   virtual void paint(QPainter &painter, qreal zoom, QRectF region = QRect(0, 0, 0, 0));
+  void paintForPdfExport(QPainter &painter, qreal zoom);
 
   //    QVector<Stroke> strokes;
 
