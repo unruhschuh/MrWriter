@@ -408,7 +408,7 @@ void AddPageCommand::redo()
   page.setBackgroundColor(widget->currentDocument.pages[pageNumForSettings].backgroundColor());
 
   widget->currentDocument.pages.insert(pageNum, page);
-  widget->pageBufferPtr.insert(pageNum, std::make_shared<QPixmap>());
+  widget->pageBufferPtr.insert(pageNum, std::make_shared<std::shared_ptr<QPixmap>>(std::make_shared<QPixmap>()));
   widget->updateAllPageBuffers();
   //widget->updateBuffer(pageNum);
   widget->update();
@@ -429,7 +429,7 @@ RemovePageCommand::RemovePageCommand(Widget *newWidget, int newPageNum, QUndoCom
 void RemovePageCommand::undo()
 {
   widget->currentDocument.pages.insert(pageNum, page);
-  widget->pageBufferPtr.insert(pageNum, std::make_shared<QPixmap>());
+  widget->pageBufferPtr.insert(pageNum, std::make_shared<std::shared_ptr<QPixmap>>(std::make_shared<QPixmap>()));
   widget->updateAllPageBuffers();
   //widget->updateBuffer(pageNum);
   widget->update();

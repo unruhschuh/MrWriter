@@ -95,6 +95,7 @@ public:
   void updateAllPageBuffers();
   void updateNecessaryPagesBuffer();
   void updateBuffer(int i);
+  void updateBufferWithPlaceholder(int buffNum);
   void updateBufferRegion(int buffNum, QRectF const &clipRect);
   void drawOnBuffer(bool last = false);
   int getPageFromMousePos(QPointF mousePos);
@@ -137,7 +138,7 @@ public:
   MrDoc::Document currentDocument;
   QMutex pageImageBufferMutex;
 
-  QVector<std::shared_ptr<QPixmap>> pageBufferPtr;
+  QVector<std::shared_ptr<std::shared_ptr<QPixmap>>> pageBufferPtr;
 
   QColor currentColor;
   qreal currentPenWidth;
@@ -160,7 +161,7 @@ public:
   qreal prevZoom;
 
 private:
-  std::shared_ptr<QPixmap> basePixmap = std::make_shared<QPixmap>();
+  std::shared_ptr<std::shared_ptr<QPixmap>> basePixmap = std::make_shared<std::shared_ptr<QPixmap>>(std::make_shared<QPixmap>());
   QMutex basePixmapMutex;
   int previousVerticalValueRendered = 0;
   int previousVerticalValueMaybeRendered = 0;
