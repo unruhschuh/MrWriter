@@ -17,6 +17,7 @@
 #include <QMutex>
 #include <memory>
 #include <algorithm>
+#include <unordered_map>
 #include <math.h>
 
 #include <QTime>
@@ -27,6 +28,10 @@
 #include "document.h"
 #include "textbox.h"
 #include "page.h"
+
+struct BasicPageSize;
+struct BasicPageSizeHash;
+struct BasicPageSizeEqual;
 
 class Widget : public QWidget
 // class Widget : public QOpenGLWidget
@@ -161,6 +166,22 @@ public:
   qreal prevZoom;
 
 private:
+  struct BasicPageSize{
+      int pageWidth;
+      int pageHeight;
+  };
+  struct BasicPageSizeHash{
+      std::size_t operator ()(const BasicPageSize& s) const{
+          std::hash<int> f;
+          return f(s.pageHeight) ^ f(s.pageWidth);
+      }
+  };
+  struct BasicPageSizeEqual{
+      bool operator ()(const BasicPageSize& a, const BasicPageSize& b) const{
+          return a.pageWidth == b.pageWidth && a.pageHeight == b.pageHeight;
+      }
+  };
+  std::unordered_map<BasicPageSize, std::shared_ptr<std::shared_ptr<QPixmap>>, BasicPageSizeHash, BasicPageSizeEqual> basePixmapMap;
   std::shared_ptr<std::shared_ptr<QPixmap>> basePixmap = std::make_shared<std::shared_ptr<QPixmap>>(std::make_shared<QPixmap>());
   QMutex basePixmapMutex;
   int previousVerticalValueRendered = 0;

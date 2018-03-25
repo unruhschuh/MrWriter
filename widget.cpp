@@ -102,6 +102,7 @@ void Widget::updateAllPageBuffers()
         qDebug() << "new render";
         QVector<QFuture<void>> future;
         pageBufferPtr.clear();
+        basePixmapMap.clear();
 
         for (int buffNum = 0; buffNum < currentDocument.pages.size(); ++buffNum)
         {
@@ -164,10 +165,21 @@ void Widget::updateNecessaryPagesBuffer(){
         qDebug() << buffNum << ":" << (*pageBufferPtr.at(buffNum)).use_count() << "vs" << basePixmap.use_count();
         qDebug() << buffNum << ":" << pageBufferPtr.at(buffNum).use_count();
 
-        if(*pageBufferPtr.at(buffNum) == *basePixmap){
+        MrDoc::Page buffPage = currentDocument.pages[buffNum];
+        int pageWidth = zoom * buffPage.width() * devicePixelRatio();
+        int pageHight = zoom * buffPage.height() * devicePixelRatio();
+        BasicPageSize p;
+        p.pageHeight = pageHight;
+        p.pageWidth = pageWidth;
+        auto basePixmapIter = basePixmapMap.find(p);
+        if(basePixmapIter != basePixmapMap.end()){
+
+//        }
+//        if(*pageBufferPtr.at(buffNum) == *basePixmap){
             qDebug() << "replace" << buffNum;
             pageBufferPtr.replace(buffNum, std::make_shared<std::shared_ptr<QPixmap>>(std::make_shared<QPixmap>()));
             if(abs(buffNum - currentPageNum) < 2*visiblePages){
+                qDebug() << "urgent:" << buffNum;
                 toUpdateUrgent.append(buffNum);
             }
             else{
@@ -184,6 +196,10 @@ void Widget::updateNecessaryPagesBuffer(){
     for(int buffNum = 0; buffNum < futureUrgent.size(); ++buffNum){
         futureUrgent[buffNum].waitForFinished();
     }
+    for(int i = 0; i < future.size(); ++i){
+        future[i].waitForFinished();
+    }
+    //update();
 }
 
 void Widget::updateBuffer(int buffNum)
@@ -256,22 +272,64 @@ void Widget::updateBufferWithPlaceholder(int buffNum){
     int pixelHeight = zoom * page.height() * devicePixelRatio();
 
     basePixmapMutex.lock();
-    if((*basePixmap)->height() != pixelHeight || (*basePixmap)->width() != pixelWidth){
-        //basePixmap->scaled(pixelWidth, pixelHeight);
-        *basePixmap = std::make_shared<QPixmap>(pixelWidth, pixelHeight);
-    }
-    (*basePixmap)->setDevicePixelRatio(devicePixelRatio());
-    (*basePixmap)->fill(page.backgroundColor());
-
     QPainter painter;
+    BasicPageSize p;
+    p.pageWidth = pixelWidth;
+    p.pageHeight = pixelHeight;
 
-    painter.begin((*basePixmap).get());
-    painter.end();
-    pageBufferPtr.replace(buffNum, basePixmap);
-    //pageBufferPtr[buffNum] = std::make_shared<std::shared_ptr<QPixmap>>(basePixmap);
-    //*pageBufferPtr[buffNum] = basePixmap;
 
-    basePixmapMutex.unlock();
+//    try{
+//        auto bP = basePixmapMap.at(p);
+//        painter.begin((*bP).get());
+//        painter.end();
+//        pageBufferPtr.replace(buffNum, bP);
+//        basePixmapMutex.unlock();
+//    }
+//    catch(std::out_of_range e){
+//        auto bP = std::make_shared<std::shared_ptr<QPixmap>>(std::make_shared<QPixmap>(pixelWidth, pixelHeight));
+//        (*bP)->setDevicePixelRatio(devicePixelRatio());
+//        (*bP)->fill(page.backgroundColor());
+//        basePixmapMap.insert({p, bP});
+//        painter.begin((*bP).get());
+//        painter.end();
+//        pageBufferPtr.replace(buffNum, bP);
+//        basePixmapMutex.unlock();
+//    }
+
+    auto pixmapIter = basePixmapMap.find(p);
+    if(pixmapIter == basePixmapMap.end()){
+        auto bP = std::make_shared<std::shared_ptr<QPixmap>>(std::make_shared<QPixmap>(pixelWidth, pixelHeight));
+        (*bP)->setDevicePixelRatio(devicePixelRatio());
+        (*bP)->fill(page.backgroundColor());
+        basePixmapMap.insert({p, bP});
+        painter.begin((*bP).get());
+        painter.end();
+        pageBufferPtr.replace(buffNum, bP);
+        basePixmapMutex.unlock();
+    }
+    else{
+        auto bP = pixmapIter->second;
+        painter.begin((*bP).get());
+        painter.end();
+        pageBufferPtr.replace(buffNum, bP);
+        basePixmapMutex.unlock();
+    }
+//    if((*basePixmap)->height() != pixelHeight || (*basePixmap)->width() != pixelWidth){
+//        //basePixmap->scaled(pixelWidth, pixelHeight);
+//        *basePixmap = std::make_shared<QPixmap>(pixelWidth, pixelHeight);
+//    }
+//    (*basePixmap)->setDevicePixelRatio(devicePixelRatio());
+//    (*basePixmap)->fill(page.backgroundColor());
+
+//    QPainter painter;
+
+//    painter.begin((*basePixmap).get());
+//    painter.end();
+//    pageBufferPtr.replace(buffNum, basePixmap);
+//    //pageBufferPtr[buffNum] = std::make_shared<std::shared_ptr<QPixmap>>(basePixmap);
+//    //*pageBufferPtr[buffNum] = basePixmap;
+
+//    basePixmapMutex.unlock();
 }
 
 void Widget::updateBufferRegion(int buffNum, QRectF const &clipRect)
