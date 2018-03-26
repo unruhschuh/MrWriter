@@ -15,6 +15,7 @@
 #include <QGridLayout>
 #include <QtConcurrent>
 #include <QMutex>
+#include <QMutexLocker>
 #include <memory>
 #include <algorithm>
 #include <unordered_map>
@@ -141,9 +142,9 @@ public:
   void searchAllPdf(const QString &text);
 
   MrDoc::Document currentDocument;
-  QMutex pageImageBufferMutex;
 
   QVector<std::shared_ptr<std::shared_ptr<QPixmap>>> pageBufferPtr;
+  QMutex pageBufferPtrMutex;
 
   QColor currentColor;
   qreal currentPenWidth;

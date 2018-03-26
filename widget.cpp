@@ -106,6 +106,7 @@ void Widget::updateAllPageBuffers()
 
         for (int buffNum = 0; buffNum < currentDocument.pages.size(); ++buffNum)
         {
+            QMutexLocker locker(&pageBufferPtrMutex);
             pageBufferPtr.append(std::make_shared<std::shared_ptr<QPixmap>>(std::make_shared<QPixmap>()));
         }
 
@@ -128,7 +129,7 @@ void Widget::updateAllPageBuffers()
         prevZoom = zoom;
     }
     else{
-        updateNecessaryPagesBuffer();
+        QtConcurrent::run(this, &Widget::updateNecessaryPagesBuffer);
     }
 }
 
@@ -147,59 +148,86 @@ void Widget::updateNecessaryPagesBuffer(){
 //        future[buffNum].waitForFinished();
 //    }
 
-    QVector<QFuture<void>> futureUrgent;
     QVector<QFuture<void>> future;
 
-    qDebug() << "updateNecessary";
     int startingPage = std::max(0, getCurrentPage()-6);
     int endPage = std::min(currentDocument.pages.size(), getCurrentPage()+6);
-    QVector<int> toUpdateUrgent;
-    QVector<int> toUpdate;
-
-    int currentPageNum = getCurrentPage();
-    int visiblePages = getVisiblePages();
 
     for(int buffNum = startingPage; buffNum < endPage; ++buffNum){
-
-        //qDebug() << (*pageBufferPtr.at(buffNum))->rect() << "vs" << basePixmap->rect();
-        qDebug() << buffNum << ":" << (*pageBufferPtr.at(buffNum)).use_count() << "vs" << basePixmap.use_count();
-        qDebug() << buffNum << ":" << pageBufferPtr.at(buffNum).use_count();
-
-        MrDoc::Page buffPage = currentDocument.pages[buffNum];
+        const MrDoc::Page& buffPage = currentDocument.pages[buffNum];
         int pageWidth = zoom * buffPage.width() * devicePixelRatio();
         int pageHight = zoom * buffPage.height() * devicePixelRatio();
+
         BasicPageSize p;
         p.pageHeight = pageHight;
         p.pageWidth = pageWidth;
+
         auto basePixmapIter = basePixmapMap.find(p);
         if(basePixmapIter != basePixmapMap.end()){
-
-//        }
-//        if(*pageBufferPtr.at(buffNum) == *basePixmap){
-            qDebug() << "replace" << buffNum;
-            pageBufferPtr.replace(buffNum, std::make_shared<std::shared_ptr<QPixmap>>(std::make_shared<QPixmap>()));
-            if(abs(buffNum - currentPageNum) < 2*visiblePages){
-                qDebug() << "urgent:" << buffNum;
-                toUpdateUrgent.append(buffNum);
-            }
-            else{
-                toUpdate.append(buffNum);
-            }
+            future.append(QtConcurrent::run(this, &Widget::updateBuffer, buffNum));
         }
-    }
-    for(int i = 0; i < toUpdateUrgent.size(); ++i){
-        futureUrgent.append(QtConcurrent::run(this, &Widget::updateBuffer, toUpdateUrgent.at(i)));
-    }
-    for(int i = 0; i < toUpdate.size(); ++i){
-        future.append(QtConcurrent::run(this, &Widget::updateBuffer, toUpdate.at(i)));
-    }
-    for(int buffNum = 0; buffNum < futureUrgent.size(); ++buffNum){
-        futureUrgent[buffNum].waitForFinished();
     }
     for(int i = 0; i < future.size(); ++i){
         future[i].waitForFinished();
     }
-    //update();
+    update();
+
+//    QVector<QFuture<void>> futureUrgent;
+//    QVector<QFuture<void>> future;
+
+//    qDebug() << "updateNecessary";
+//    int startingPage = std::max(0, getCurrentPage()-6);
+//    int endPage = std::min(currentDocument.pages.size(), getCurrentPage()+6);
+//    QVector<int> toUpdateUrgent;
+//    QVector<int> toUpdate;
+
+//    int currentPageNum = getCurrentPage();
+//    int visiblePages = getVisiblePages();
+
+//    for(int buffNum = startingPage; buffNum < endPage; ++buffNum){
+
+//        //qDebug() << (*pageBufferPtr.at(buffNum))->rect() << "vs" << basePixmap->rect();
+//        qDebug() << buffNum << ":" << (*pageBufferPtr.at(buffNum)).use_count() << "vs" << basePixmap.use_count();
+//        qDebug() << buffNum << ":" << pageBufferPtr.at(buffNum).use_count();
+
+//        const MrDoc::Page& buffPage = currentDocument.pages[buffNum];
+//        int pageWidth = zoom * buffPage.width() * devicePixelRatio();
+//        int pageHight = zoom * buffPage.height() * devicePixelRatio();
+//        BasicPageSize p;
+//        p.pageHeight = pageHight;
+//        p.pageWidth = pageWidth;
+//        auto basePixmapIter = basePixmapMap.find(p);
+//        if(basePixmapIter != basePixmapMap.end()){
+
+////        }
+////        if(*pageBufferPtr.at(buffNum) == *basePixmap){
+//            qDebug() << "replace" << buffNum;
+//            {
+//                QMutexLocker locker(&pageBufferPtrMutex);
+//                pageBufferPtr.replace(buffNum, std::make_shared<std::shared_ptr<QPixmap>>(std::make_shared<QPixmap>()));
+//            }
+//            if(abs(buffNum - currentPageNum) < 2*visiblePages){
+//                qDebug() << "urgent:" << buffNum;
+//                toUpdateUrgent.append(buffNum);
+//            }
+//            else{
+//                toUpdate.append(buffNum);
+//            }
+//        }
+//    }
+//    for(int i = 0; i < toUpdateUrgent.size(); ++i){
+//        futureUrgent.append(QtConcurrent::run(this, &Widget::updateBuffer, toUpdateUrgent.at(i)));
+//    }
+//    for(int i = 0; i < toUpdate.size(); ++i){
+//        future.append(QtConcurrent::run(this, &Widget::updateBuffer, toUpdate.at(i)));
+//    }
+//    for(int buffNum = 0; buffNum < futureUrgent.size(); ++buffNum){
+//        futureUrgent[buffNum].waitForFinished();
+//    }
+//    for(int i = 0; i < future.size(); ++i){
+//        future[i].waitForFinished();
+//    }
+//    //update();
 }
 
 void Widget::updateBuffer(int buffNum)
@@ -262,7 +290,10 @@ void Widget::updateBuffer(int buffNum)
       painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
 
       painter.end();
-      pageBufferPtr.replace(buffNum, newPixmap);
+      {
+          QMutexLocker locker(&pageBufferPtrMutex);
+          pageBufferPtr.replace(buffNum, newPixmap);
+      }
   //}
 }
 
@@ -271,7 +302,7 @@ void Widget::updateBufferWithPlaceholder(int buffNum){
     int pixelWidth = zoom * page.width() * devicePixelRatio();
     int pixelHeight = zoom * page.height() * devicePixelRatio();
 
-    basePixmapMutex.lock();
+    //basePixmapMutex.lock();
     QPainter painter;
     BasicPageSize p;
     p.pageWidth = pixelWidth;
@@ -296,23 +327,36 @@ void Widget::updateBufferWithPlaceholder(int buffNum){
 //        basePixmapMutex.unlock();
 //    }
 
+    std::shared_ptr<std::shared_ptr<QPixmap>> bP;
     auto pixmapIter = basePixmapMap.find(p);
     if(pixmapIter == basePixmapMap.end()){
-        auto bP = std::make_shared<std::shared_ptr<QPixmap>>(std::make_shared<QPixmap>(pixelWidth, pixelHeight));
+        bP = std::make_shared<std::shared_ptr<QPixmap>>(std::make_shared<QPixmap>(pixelWidth, pixelHeight));
         (*bP)->setDevicePixelRatio(devicePixelRatio());
         (*bP)->fill(page.backgroundColor());
-        basePixmapMap.insert({p, bP});
-        painter.begin((*bP).get());
-        painter.end();
-        pageBufferPtr.replace(buffNum, bP);
-        basePixmapMutex.unlock();
+        {
+            QMutexLocker pixmapLocker(&basePixmapMutex);
+            basePixmapMap.insert({p, bP});
+            painter.begin((*bP).get());
+            painter.end();
+        }
+        {
+            QMutexLocker locker(&pageBufferPtrMutex);
+            pageBufferPtr.replace(buffNum, bP);
+        }
+        //basePixmapMutex.unlock();
     }
     else{
-        auto bP = pixmapIter->second;
-        painter.begin((*bP).get());
-        painter.end();
-        pageBufferPtr.replace(buffNum, bP);
-        basePixmapMutex.unlock();
+        {
+            QMutexLocker pixmapLocker(&basePixmapMutex);
+            bP = pixmapIter->second;
+            painter.begin((*bP).get());
+            painter.end();
+        }
+        {
+            QMutexLocker locker(&pageBufferPtrMutex);
+            pageBufferPtr.replace(buffNum, bP);
+        }
+        //basePixmapMutex.unlock();
     }
 //    if((*basePixmap)->height() != pixelHeight || (*basePixmap)->width() != pixelWidth){
 //        //basePixmap->scaled(pixelWidth, pixelHeight);
