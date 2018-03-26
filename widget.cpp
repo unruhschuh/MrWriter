@@ -164,7 +164,10 @@ void Widget::updateNecessaryPagesBuffer(){
 
         auto basePixmapIter = basePixmapMap.find(p);
         if(basePixmapIter != basePixmapMap.end()){
-            future.append(QtConcurrent::run(this, &Widget::updateBuffer, buffNum));
+            if(basePixmapIter->second == pageBufferPtr.at(buffNum)){
+                future.append(QtConcurrent::run(this, &Widget::updateBuffer, buffNum));
+                //updateBuffer(buffNum);
+            }
         }
     }
     for(int i = 0; i < future.size(); ++i){
@@ -432,7 +435,7 @@ void Widget::updatePageAfterScrollTimer(){
         if(!scrollArea->verticalScrollBar()->isSliderDown()){
             updateAllPageBuffers();
             scrollTimer->stop();
-            update();
+            //update();
             previousVerticalValueRendered = previousVerticalValueMaybeRendered;
         }
     }
@@ -440,7 +443,7 @@ void Widget::updatePageAfterScrollTimer(){
         if(!scrollArea->horizontalScrollBar()->isSliderDown()){
             updateAllPageBuffers();
             scrollTimer->stop();
-            update();
+            //update();
             previousHorizontalValueRendered = previousHorizontalValueMaybeRendered;
         }
     }
