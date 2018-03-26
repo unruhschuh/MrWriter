@@ -14,6 +14,7 @@ This is a fork of the original MrWriter software. The fork has the ability to an
 * Qt has to be installed
 * Poppler has to be installed
 * _(optional)_ pdftk has to be installed (for proper PDF export)
+
 == Build
 * Run in the terminal
 ** `git clone https://github.com/unruhschuh/MrWriter.git`
