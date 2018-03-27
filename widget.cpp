@@ -552,7 +552,7 @@ void Widget::paintEvent(QPaintEvent *event)
         if(currentView == view::VERTICAL)
             painter.translate(QPointF(0.0, rectSource.height()/devicePixelRatio() + PAGE_GAP));
         else
-        painter.translate(QPointF(rectSource.width()/devicePixelRatio() + PAGE_GAP, 0.0));
+            painter.translate(QPointF(rectSource.width()/devicePixelRatio() + PAGE_GAP, 0.0));
     }
 
 }

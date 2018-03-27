@@ -52,6 +52,7 @@ void Page::paint(QPainter &painter, qreal zoom, QRectF region)
 
         QImage image = m_pdfPointer->renderToImage(72.0*zoom, 72.0*zoom, 0,0, int(m_width*zoom), int(m_height*zoom));
         painter.drawImage(0,0, image);
+
         /*if(region.isNull()){
             qDebug() << "region is null";
             QImage image = m_pdfPointer->renderToImage(72.0*eZoom, 72.0*eZoom, 0,0,int(m_width*eZoom), int(m_height*eZoom));
