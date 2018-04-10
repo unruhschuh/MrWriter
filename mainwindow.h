@@ -10,6 +10,8 @@
 #include "widget.h"
 #include "searchbar.h"
 
+class ZoomScrollArea;
+
 class MainWindow : public QMainWindow
 {
   Q_OBJECT
@@ -230,6 +232,13 @@ private:
   // for android
   QToolButton *mainMenuButton;
   QMenu *mainMenu;
+};
+
+class ZoomScrollArea : public QScrollArea{
+public:
+    ZoomScrollArea(QWidget* parent = nullptr);
+protected:
+    void wheelEvent(QWheelEvent* event) override;
 };
 
 #endif // MAINWINDOW_H

@@ -1020,6 +1020,16 @@ void Widget::keyPressEvent(QKeyEvent *event){
     }
 }
 
+void Widget::wheelEvent(QWheelEvent *event){
+    if(event->modifiers().testFlag(Qt::ControlModifier)){
+        event->ignore();
+        zoomTo(zoom + ((qreal)(event->angleDelta().y()/360.0)));
+    }
+    else{
+        QWidget::wheelEvent(event);
+    }
+
+}
 void Widget::closeTextBox(){
     if(textBoxOpen){
         textBox->setTextColor(getCurrentColor());

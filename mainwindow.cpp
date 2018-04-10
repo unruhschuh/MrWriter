@@ -45,7 +45,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
   connect(mainWidget, SIGNAL(modified()), this, SLOT(modified()));
 
-  scrollArea = new QScrollArea(this);
+  scrollArea = new ZoomScrollArea(this);
   scrollArea->setWidget(mainWidget);
   scrollArea->setAlignment(Qt::AlignHCenter);
   //    scrollArea->setPalette(QPalette(QColor(130,255,130)));
@@ -1520,4 +1520,16 @@ void MainWindow::loadMyGeometry()
 void MainWindow::exit()
 {
   static_cast<TabletApplication *>(qApp)->exit();
+}
+
+ZoomScrollArea::ZoomScrollArea(QWidget *parent)
+    : QScrollArea(parent) {}
+
+void ZoomScrollArea::wheelEvent(QWheelEvent *event){
+    if(event->modifiers().testFlag(Qt::ControlModifier)){
+        event->ignore();
+    }
+    else{
+        QScrollArea::wheelEvent(event);
+    }
 }

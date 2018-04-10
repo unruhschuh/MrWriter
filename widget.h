@@ -335,6 +335,8 @@ protected:
 
   void keyPressEvent(QKeyEvent* event) override;
 
+  void wheelEvent(QWheelEvent* event) override;
+
 signals:
 
 public slots:
