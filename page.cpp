@@ -383,4 +383,18 @@ void Page::clearPdfSearch(){
     searchResultRects.clear();
 }
 
+Poppler::LinkGoto* Page::linkFromMouseClick(qreal x, qreal y){
+    if(isPdf()){
+        qDebug() << "Link clicked?";
+        QList<Poppler::Link*> links = m_pdfPointer->links();
+        for(auto link : links){
+            qDebug() << link->linkArea();
+            if(link->linkArea().contains(x/m_width,y/m_height) && link->linkType() == Poppler::Link::LinkType::Goto){
+                return static_cast<Poppler::LinkGoto*>(link);
+            }
+        }
+    }
+    return nullptr;
+}
+
 }

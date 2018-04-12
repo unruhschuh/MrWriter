@@ -3,6 +3,7 @@
 
 #include "stroke.h"
 #include <poppler-qt5.h>
+#include <poppler-link.h>
 #include <QDebug>
 #include <QImage>
 #include <QTextEdit>
@@ -75,6 +76,8 @@ public:
   bool searchPdfPrev(const QString& text);
 
   void clearPdfSearch();
+
+  Poppler::LinkGoto* linkFromMouseClick(qreal x, qreal y);
 
 
   //    virtual void paint(QPainter &painter, qreal zoom);

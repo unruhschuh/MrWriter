@@ -916,6 +916,17 @@ void Widget::tabletEvent(QTabletEvent *event)
 
 void Widget::mousePressEvent(QMouseEvent *event)
 {
+    if(currentState == state::IDLE){
+        int pageNum = getPageFromMousePos(event->pos());
+        QPointF point = getPagePosFromMousePos(event->pos(), pageNum);
+        Poppler::LinkGoto* gotoLink = currentDocument.pages[pageNum].linkFromMouseClick(point.x(), point.y());
+        if(gotoLink){
+            if(!gotoLink->isExternal()){
+                scrollDocumentToPageNum(gotoLink->destination().pageNumber()-1);
+            }
+        }
+    }
+
     if(currentTool == tool::TEXT){
         int pageNum = getPageFromMousePos(event->pos());
         QPointF point = getPagePosFromMousePos(event->pos(), pageNum);

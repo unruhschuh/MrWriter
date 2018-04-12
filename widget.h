@@ -24,6 +24,8 @@
 #include <QTime>
 #include <QTimer>
 
+#include <poppler-link.h>
+
 #include "tabletapplication.h"
 #include "mrdoc.h"
 #include "document.h"
