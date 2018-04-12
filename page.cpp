@@ -52,6 +52,7 @@ void Page::paint(QPainter &painter, qreal zoom, QRectF region)
 
         QImage image = m_pdfPointer->renderToImage(72.0*zoom, 72.0*zoom, 0,0, int(m_width*zoom), int(m_height*zoom));
         painter.drawImage(0,0, image);
+
         /*if(region.isNull()){
             qDebug() << "region is null";
             QImage image = m_pdfPointer->renderToImage(72.0*eZoom, 72.0*eZoom, 0,0,int(m_width*eZoom), int(m_height*eZoom));
@@ -380,6 +381,20 @@ bool Page::searchPdfPrev(const QString &text){
 
 void Page::clearPdfSearch(){
     searchResultRects.clear();
+}
+
+Poppler::LinkGoto* Page::linkFromMouseClick(qreal x, qreal y){
+    if(isPdf()){
+        qDebug() << "Link clicked?";
+        QList<Poppler::Link*> links = m_pdfPointer->links();
+        for(auto link : links){
+            qDebug() << link->linkArea();
+            if(link->linkArea().contains(x/m_width,y/m_height) && link->linkType() == Poppler::Link::LinkType::Goto){
+                return static_cast<Poppler::LinkGoto*>(link);
+            }
+        }
+    }
+    return nullptr;
 }
 
 }

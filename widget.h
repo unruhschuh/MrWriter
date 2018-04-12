@@ -24,6 +24,8 @@
 #include <QTime>
 #include <QTimer>
 
+#include <poppler-link.h>
+
 #include "tabletapplication.h"
 #include "mrdoc.h"
 #include "document.h"
@@ -334,6 +336,8 @@ protected:
   void tabletEvent(QTabletEvent *event) Q_DECL_OVERRIDE;
 
   void keyPressEvent(QKeyEvent* event) override;
+
+  void wheelEvent(QWheelEvent* event) override;
 
 signals:
 
