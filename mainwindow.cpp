@@ -1470,6 +1470,24 @@ bool MainWindow::loadMOJ(QString fileName)
   updateGUI();
 }
 
+bool MainWindow::loadPDF(QString fileName){
+
+    MrDoc::Document openDocument;
+
+    if (openDocument.loadPDF(fileName))
+    {
+      mainWidget->letGoSelection();
+      mainWidget->setDocument(openDocument);
+      setTitle();
+      modified();
+      return true;
+    }
+    else
+    {
+      return false;
+    }
+}
+
 void MainWindow::pageSettings()
 {
   int pageNum = mainWidget->getCurrentPage();

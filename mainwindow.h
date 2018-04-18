@@ -24,6 +24,7 @@ public:
   void setTitle();
   bool loadXOJ(QString fileName);
   bool loadMOJ(QString fileName);
+  bool loadPDF(QString fileName);
 
 protected:
   void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;

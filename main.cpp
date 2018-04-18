@@ -35,6 +35,9 @@ int main(int argc, char *argv[])
     {
       success = w->loadMOJ(fileName);
     }
+    else if (fileNameSplitted.last().compare(QString("pdf"), Qt::CaseInsensitive) == 0){
+        success = w->loadPDF(fileName);
+    }
     if (!success)
     {
       QMessageBox errMsgBox;

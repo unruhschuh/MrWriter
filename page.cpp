@@ -357,8 +357,9 @@ void Page::setPdf(Poppler::Page* page, int pageNum){
         }
     }*/
     //delete doc;
-    m_width = page->pageSizeF().width();
-    m_height = page->pageSizeF().height();
+
+    //m_width = page->pageSizeF().width();
+    //m_height = page->pageSizeF().height();
     m_pdfPointer.reset(page);
     pageno = pageNum;
 }

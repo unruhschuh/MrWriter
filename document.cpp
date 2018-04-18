@@ -224,8 +224,8 @@ void Document::exportPDF(QString fileName)
                   overlayFileName << "output" << fileName);
     process.waitForFinished();
     QDir dir(QUrl(fileName).adjusted(QUrl::RemoveFilename).toString());
-    dir.remove(overlay);
-    dir.remove(extended);
+    //dir.remove(overlay);
+    //dir.remove(extended);
 }
 
 void Document::exportPDFAsImage(QString fileName){
@@ -357,12 +357,20 @@ bool Document::loadXOJ(QString fileName)
         {
             QXmlStreamAttributes attributes = reader.attributes();
             QStringRef tool = attributes.value("", "tool");
-            if (tool == "pen")
+            if (tool == "pen" || tool == "highlighter")
             {
                 Stroke newStroke;
                 newStroke.pattern = MrDoc::solidLinePattern;
                 QStringRef color = attributes.value("", "color");
-                newStroke.color = stringToColor(color.toString());
+                if(tool == "highlighter"){
+                    newStroke.isHighlighter = true;
+                    QColor highlighterColor = stringToColor(color.toString());
+                    highlighterColor.setAlpha(127);
+                    newStroke.color = highlighterColor;
+                }
+                else{
+                    newStroke.color = stringToColor(color.toString());
+                }
                 QStringRef strokeWidth = attributes.value("", "width");
                 QStringList strokeWidthList = strokeWidth.toString().split(" ");
                 newStroke.penWidth = strokeWidthList.at(0).toDouble();
@@ -472,8 +480,16 @@ bool Document::saveXOJ(QString fileName)
     for (auto strokes : pages[i].strokes())
     {
       writer.writeStartElement("stroke");
-      writer.writeAttribute(QXmlStreamAttribute("tool", "pen"));
-      writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(strokes.color.name(QColor::HexArgb))));
+      if(strokes.isHighlighter){
+          writer.writeAttribute(QXmlStreamAttribute("tool", "highlighter"));
+          QColor highlighterColor = strokes.color;
+          highlighterColor.setAlpha(127);
+          writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(highlighterColor.name(QColor::HexArgb))));
+      }
+      else{
+          writer.writeAttribute(QXmlStreamAttribute("tool", "pen"));
+          writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(strokes.color.name(QColor::HexArgb))));
+      }
       qreal width = strokes.penWidth;
       QString widthString;
       widthString.append(QString::number(width));
