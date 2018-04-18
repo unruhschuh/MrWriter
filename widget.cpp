@@ -417,7 +417,6 @@ void Widget::updatePageAfterText(int i){
 void Widget::updatePageAfterScrolling(int value){
     if(currentView == view::VERTICAL){
         if(abs(value-previousVerticalValueRendered) > scrollArea->verticalScrollBar()->maximum()/currentDocument.pages.size()){
-            qDebug() << "scrolltimer->start()";
             scrollTimer->start(15);
             previousVerticalValueMaybeRendered = value;
         }
