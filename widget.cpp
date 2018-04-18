@@ -99,7 +99,6 @@ void Widget::updateAllPageBuffers()
 {
     if(prevZoom != zoom || pageBufferPtr.size() != currentDocument.pages.size() || pageBufferPtr.isEmpty()){
 
-        qDebug() << "new render";
         QVector<QFuture<void>> future;
         pageBufferPtr.clear();
         basePixmapMap.clear();
@@ -164,7 +163,7 @@ void Widget::updateNecessaryPagesBuffer(){
 
         auto basePixmapIter = basePixmapMap.find(p);
         if(basePixmapIter != basePixmapMap.end()){
-            if(basePixmapIter->second == pageBufferPtr.at(buffNum)){
+            if((*(*(basePixmapIter->second))).toImage() == (*(*(pageBufferPtr.at(buffNum)))).toImage()){
                 future.append(QtConcurrent::run(this, &Widget::updateBuffer, buffNum));
                 //updateBuffer(buffNum);
             }
@@ -418,6 +417,7 @@ void Widget::updatePageAfterText(int i){
 void Widget::updatePageAfterScrolling(int value){
     if(currentView == view::VERTICAL){
         if(abs(value-previousVerticalValueRendered) > scrollArea->verticalScrollBar()->maximum()/currentDocument.pages.size()){
+            qDebug() << "scrolltimer->start()";
             scrollTimer->start(15);
             previousVerticalValueMaybeRendered = value;
         }
@@ -2416,6 +2416,7 @@ void Widget::searchPdfNext(const QString& text){
     }
     previousSearchText = text;
     previousSearchPageIndex = (previousSearchPageIndex + 1)%searchPageNums.size();
+    prevZoom = -1.0;  //this is a workaround, so that all pages get rendered and updateNecessaryPagesBuffer is not called
     updateAllPageBuffers();
     scrollDocumentToPageNum(searchPageNums.at(previousSearchPageIndex));
     update();
@@ -2432,6 +2433,7 @@ void Widget::searchPdfPrev(const QString &text){
     }
     previousSearchText = text;
     previousSearchPageIndex = (previousSearchPageIndex - 1 + searchPageNums.size())%searchPageNums.size(); //no negative numbers
+    prevZoom = -1.0;  //this is a workaround, so that all pages get rendered and updateNecessaryPagesBuffer is not called
     updateAllPageBuffers();
     scrollDocumentToPageNum(searchPageNums.at(previousSearchPageIndex));
     update();
@@ -2443,6 +2445,7 @@ void Widget::clearPdfSearch(){
     }
     previousSearchText = "";
     previousSearchPageIndex = -1;
+    prevZoom = -1.0;  //this is a workaround, so that all pages get rendered and updateNecessaryPagesBuffer is not called
     updateAllPageBuffers();
     update();
 }
