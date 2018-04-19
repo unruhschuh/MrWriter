@@ -138,6 +138,9 @@ private:
   QAction *undoAct;
   QAction *redoAct;
 
+  QAction *pageHistoryForward;
+  QAction *pageHistoryBackward;
+
   QAction *selectAllAct;
   QAction *copyAct;
   QAction *pasteAct;

@@ -197,6 +197,16 @@ void MainWindow::createActions()
   //    disconnect(redoAct, SIGNAL(triggered()), mainWidget->undoStack, SLOT(redo()));
   this->addAction(redoAct); // add to make shortcut work if menubar is hidden
 
+  pageHistoryForward = new QAction(this);
+  pageHistoryForward->setShortcut(QKeySequence::Forward);
+  connect(pageHistoryForward, &QAction::triggered, mainWidget, &Widget::pageHistoryForward);
+  this->addAction(pageHistoryForward);
+
+  pageHistoryBackward = new QAction(this);
+  pageHistoryBackward->setShortcut(QKeySequence::Back);
+  connect(pageHistoryBackward, &QAction::triggered, mainWidget, &Widget::pageHistoryBackward);
+  this->addAction(pageHistoryBackward);
+
   selectAllAct = new QAction(tr("Select &All"), this);
   selectAllAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_A));
   selectAllAct->setToolTip(tr("Select All"));

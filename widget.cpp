@@ -916,12 +916,26 @@ void Widget::tabletEvent(QTabletEvent *event)
 void Widget::mousePressEvent(QMouseEvent *event)
 {
     if(currentState == state::IDLE){
-        int pageNum = getPageFromMousePos(event->pos());
-        QPointF point = getPagePosFromMousePos(event->pos(), pageNum);
-        Poppler::LinkGoto* gotoLink = currentDocument.pages[pageNum].linkFromMouseClick(point.x(), point.y());
-        if(gotoLink){
-            if(!gotoLink->isExternal()){
-                scrollDocumentToPageNum(gotoLink->destination().pageNumber()-1);
+        if(event->button() == Qt::ForwardButton){
+            pageHistoryForward();
+            return;
+        }
+        else if(event->button() == Qt::BackButton){
+            pageHistoryBackward();
+            return;
+        }
+        else{
+            int pageNum = getPageFromMousePos(event->pos());
+            QPointF point = getPagePosFromMousePos(event->pos(), pageNum);
+            Poppler::LinkGoto* gotoLink = currentDocument.pages[pageNum].linkFromMouseClick(point.x(), point.y());
+            if(gotoLink){
+                if(!gotoLink->isExternal()){
+                    int gotoNum = gotoLink->destination().pageNumber()-1;
+                    appendToPageHistory(getCurrentPage());
+                    scrollDocumentToPageNum(gotoNum);
+                    appendToPageHistory(gotoNum);
+                    return;
+                }
             }
         }
     }
@@ -942,13 +956,14 @@ void Widget::mousePressEvent(QMouseEvent *event)
             QRect textRect = currentDocument.pages[pageNum].textRectByIndex(textIndex).toAlignedRect().adjusted(0,0,50,50);
             textBox->setGeometry(event->x(), event->y(), textRect.width(), textRect.height());
             textBox->setText(currentDocument.pages[pageNum].textByIndex(textIndex));
-            //qDebug() << "Text clicked";
             textBox->setPrevText(textBox->toPlainText());
             textBox->setPrevColor(currentDocument.pages[pageNum].textColorByIndex(textIndex));
             textBox->setPrevFont(currentDocument.pages[pageNum].textFontByIndex(textIndex));
             textBox->show();
+
             textBoxOpen = true;
             textChanged = true;
+
             setCurrentColor(currentDocument.pages[pageNum].textColorByIndex(textIndex));
             setCurrentFont(currentDocument.pages[pageNum].textFontByIndex(textIndex));
         }
@@ -1017,6 +1032,7 @@ void Widget::mouseReleaseEvent(QMouseEvent *event)
 }
 
 void Widget::keyPressEvent(QKeyEvent *event){
+    qDebug() << "Hi";
     if(textBoxOpen){
         if(event->key() == Qt::Key_Escape){
             closeTextBox();
@@ -2046,6 +2062,24 @@ void Widget::pageRemove()
   }
 }
 
+void Widget::appendToPageHistory(int pageNum){
+    for(int i = pageHistory.size()-1; i > pageHistoryPosition; --i){
+        pageHistory.removeLast();
+    }
+    if(pageHistoryPosition < pageHistory.size()){
+        if(pageHistoryPosition >= 0){
+            if(pageHistory[pageHistoryPosition] != pageNum){
+                pageHistory.append(pageNum);
+                ++pageHistoryPosition;
+            }
+        }
+        else{
+            pageHistory.append(pageNum);
+            ++pageHistoryPosition;
+        }
+    }
+}
+
 void Widget::scrollDocumentToPageNum(int pageNum)
 {
   if (pageNum >= currentDocument.pages.size())
@@ -2447,4 +2481,18 @@ void Widget::clearPdfSearch(){
     prevZoom = -1.0;  //this is a workaround, so that all pages get rendered and updateNecessaryPagesBuffer is not called
     updateAllPageBuffers();
     update();
+}
+
+void Widget::pageHistoryForward(){
+    pageHistoryPosition = std::min(pageHistoryPosition+1, pageHistory.size()-1);
+    if(pageHistoryPosition >= 0){
+        scrollDocumentToPageNum(pageHistory.at(pageHistoryPosition));
+    }
+}
+
+void Widget::pageHistoryBackward(){
+    pageHistoryPosition = std::max(pageHistoryPosition-1, -1); //-1 because it should be possible to delete whole pageHistory
+    if(pageHistoryPosition >= 0 && pageHistoryPosition < pageHistory.size()){
+        scrollDocumentToPageNum(pageHistory.at(pageHistoryPosition));
+    }
 }

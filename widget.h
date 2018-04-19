@@ -200,6 +200,9 @@ private:
 
   qreal count;
 
+  QList<int> pageHistory;
+  int pageHistoryPosition = -1;
+  void appendToPageHistory(int pageNum);
   void scrollDocumentToPageNum(int pageNum);
 
   QVector<qreal> currentPattern = MrDoc::solidLinePattern;
@@ -345,6 +348,9 @@ public slots:
   void searchPdfNext(const QString& text);
   void searchPdfPrev(const QString& text);
   void clearPdfSearch();
+
+  void pageHistoryForward();
+  void pageHistoryBackward();
 };
 
 #endif // WIDGET_H
