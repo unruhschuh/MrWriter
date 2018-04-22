@@ -2,7 +2,8 @@
 Type=Application
 Name=MrWriter
 GenericName=note program
-Icon=MyIcon
+Icon=MyIcon.png
 Exec=MrWriter %F
+MimeType=application/x-moj;application/pdf;application/x-xoj
 Terminal=false
 Categories=Office;

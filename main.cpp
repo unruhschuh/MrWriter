@@ -20,6 +20,7 @@ int main(int argc, char *argv[])
   const QStringList args = parser.positionalArguments();
 
   MainWindow *w = new MainWindow();
+  w->setWindowIcon(QIcon(":/images/Icon1024.png"));
   a.mainWindows.append(w);
 
   if (args.size() == 1)
