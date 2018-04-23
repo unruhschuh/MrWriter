@@ -389,6 +389,7 @@ void AddPageCommand::undo()
 {
   widget->currentDocument.pages.removeAt(pageNum);
   widget->pageBufferPtr.removeAt(pageNum);
+  widget->prevZoom = -1; //workaround (otherwise nothing will happen because updateNecesseryPages gets called
   widget->updateAllPageBuffers();
   widget->update();
 }
@@ -409,6 +410,7 @@ void AddPageCommand::redo()
 
   widget->currentDocument.pages.insert(pageNum, page);
   widget->pageBufferPtr.insert(pageNum, std::make_shared<std::shared_ptr<QPixmap>>(std::make_shared<QPixmap>()));
+  widget->prevZoom = -1; //workaround (otherwise nothing will happen because updateNecesseryPages gets called
   widget->updateAllPageBuffers();
   //widget->updateBuffer(pageNum);
   widget->update();
@@ -430,6 +432,7 @@ void RemovePageCommand::undo()
 {
   widget->currentDocument.pages.insert(pageNum, page);
   widget->pageBufferPtr.insert(pageNum, std::make_shared<std::shared_ptr<QPixmap>>(std::make_shared<QPixmap>()));
+  widget->prevZoom = -1; //workaround (otherwise nothing will happen because updateNecesseryPages gets called
   widget->updateAllPageBuffers();
   //widget->updateBuffer(pageNum);
   widget->update();
@@ -439,6 +442,7 @@ void RemovePageCommand::redo()
 {
   widget->currentDocument.pages.removeAt(pageNum);
   widget->pageBufferPtr.removeAt(pageNum);
+  widget->prevZoom = -1; //workaround (otherwise nothing will happen because updateNecesseryPages gets called
   widget->updateAllPageBuffers();
   widget->update();
 }

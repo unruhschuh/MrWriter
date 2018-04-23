@@ -94,7 +94,7 @@ void TextBox::applyText(bool onlyHide){
     if(!onlyHide){
         if(m_textIndex == -1){ //it's a new text
             if(!toPlainText().isEmpty()){
-                m_page->appendText(QRectF(x, y, 0, 0), QFont("Sans", 12), m_color, toPlainText());
+                m_page->appendText(QRectF(x, y, 0, 0), m_font, m_color, toPlainText());
             }
         }
         else{

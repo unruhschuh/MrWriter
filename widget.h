@@ -32,6 +32,9 @@
 #include "textbox.h"
 #include "page.h"
 
+/**
+ * These structs are basically for @ref basePixmapMap
+ */
 struct BasicPageSize;
 struct BasicPageSizeHash;
 struct BasicPageSizeEqual;
@@ -97,12 +100,28 @@ public:
                            QTabletEvent::PointerType pointerType, QEvent::Type eventType, qreal pressure, bool tabletEvent);
 
   /**
-   * @brief updateAllPageBuffers
-   * @todo use std::unique_lock
+   * @brief updateAllPageBuffers updates the page buffers in @ref pageBufferPtr.
+   * @details If zoom level changes or a new document was loaded the page buffer
+   * is cleared. After that only the visible pages (and a few more pages around)
+   * are painted and loaded to @ref pageBufferPtr. For the other pages only a pointer to
+   * a blank placeholder (stored in @ref basePixmapMap) is loaded into the buffer.
    */
   void updateAllPageBuffers();
+  /**
+   * @brief updateNecessaryPagesBuffer updates the page buffer only for currentpage plus/minus 6 pages.
+   * @details A page gets repainted if its current buffer pixmap is a placeholder.
+   */
   void updateNecessaryPagesBuffer();
+  /**
+   * @brief updateBuffer updates the page buffer for a single page.
+   * @param i page index of the page to repaint and load into buffer
+   * @see updateBufferWithPlaceholder
+   */
   void updateBuffer(int i);
+  /**
+   * @brief updateBufferWithPlaceholder loads a pointer to a blank placeholder into @ref pageBufferPtr
+   * @param buffNum page index
+   */
   void updateBufferWithPlaceholder(int buffNum);
   void updateBufferRegion(int buffNum, QRectF const &clipRect);
   void drawOnBuffer(bool last = false);
@@ -111,6 +130,10 @@ public:
   QPointF getAbsolutePagePosFromMousePos(QPointF mousePos);
   QRect getWidgetGeometry();
   int getCurrentPage();
+  /**
+   * @brief getVisiblePages
+   * @return the number of visible pages
+   */
   int getVisiblePages();
 
   void setCurrentState(state newState);
@@ -139,14 +162,20 @@ public:
 
   void rotateSelection(qreal angle);
 
+  /**
+   * @brief closeTextBox closes the text insertion box if one is open
+   */
   void closeTextBox();
 
+  /**
+   * @brief searchAllPdf searchs in the loaded pdf for @param text and highlights the results.
+   */
   void searchAllPdf(const QString &text);
 
   MrDoc::Document currentDocument;
 
-  QVector<std::shared_ptr<std::shared_ptr<QPixmap>>> pageBufferPtr;
-  QMutex pageBufferPtrMutex;
+  QVector<std::shared_ptr<std::shared_ptr<QPixmap>>> pageBufferPtr; /**< buffer for page pixmaps */
+  QMutex pageBufferPtrMutex; /**< Mutex for @ref pageBufferPtr */
 
   QColor currentColor;
   qreal currentPenWidth;
@@ -184,11 +213,10 @@ private:
           return a.pageWidth == b.pageWidth && a.pageHeight == b.pageHeight;
       }
   };
-  std::unordered_map<BasicPageSize, std::shared_ptr<std::shared_ptr<QPixmap>>, BasicPageSizeHash, BasicPageSizeEqual> basePixmapMap;
-  std::shared_ptr<std::shared_ptr<QPixmap>> basePixmap = std::make_shared<std::shared_ptr<QPixmap>>(std::make_shared<QPixmap>());
+  std::unordered_map<BasicPageSize, std::shared_ptr<std::shared_ptr<QPixmap>>, BasicPageSizeHash, BasicPageSizeEqual> basePixmapMap; /**< Stores the pointers to the blank placeholders for certain page sizes */
   QMutex basePixmapMutex;
-  int previousVerticalValueRendered = 0;
-  int previousVerticalValueMaybeRendered = 0;
+  int previousVerticalValueRendered = 0; /**< Stores the vertical slider value where the last call of updateAllPageBuffers happened */
+  int previousVerticalValueMaybeRendered = 0; /**< Stores the vertical slider value where the last @ref scrollTimer start happened */
   int previousHorizontalValueRendered = 0;
   int previousHorizontalValueMaybeRendered = 0;
   QTimer* scrollTimer;
@@ -200,9 +228,9 @@ private:
 
   qreal count;
 
-  QList<int> pageHistory;
-  int pageHistoryPosition = -1;
-  void appendToPageHistory(int pageNum);
+  QList<int> pageHistory; /**< Stores the page numbers where the user were when he clicked on goto links in the pdf */
+  int pageHistoryPosition = -1; /**< Stores the current position in @ref pageHistory */
+  void appendToPageHistory(int pageNum); /**< Appends a new page to @ref pageHistory and truncates unnecessary page numbers */
   void scrollDocumentToPageNum(int pageNum);
 
   QVector<qreal> currentPattern = MrDoc::solidLinePattern;
@@ -245,7 +273,7 @@ private:
 
   QString previousSearchText;
   int previousSearchPageIndex;
-  QVector<int> searchPageNums;
+  QVector<int> searchPageNums; /**< Stores the page numbers where a search result is */
 
   void startDrawing(QPointF mousePos, qreal pressure);
   void continueDrawing(QPointF mousePos, qreal pressure);
@@ -279,9 +307,20 @@ private:
   void erase(QPointF mousePos, bool invertEraser = false);
 
 private slots:
+  /**
+   * @brief updatePageAfterText updates page buffer when text is inserted
+   * @param i page index
+   */
   void updatePageAfterText(int i);
+  /**
+   * @brief updatePage starts @ref scrollTimer when the user scrolled more than one (average) page height/width
+   * @param value is current scrollbar value
+   */
   void updatePageAfterScrolling(int value);
   void updateAllDirtyBuffers();
+  /**
+   * @brief updatePageAfterScrollTimer updates (necessary) pages when @ref scrollTimer stopped.
+   */
   void updatePageAfterScrollTimer();
 
   void undo();

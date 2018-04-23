@@ -4,6 +4,10 @@
 #include <QTextEdit>
 #include "page.h"
 
+/**
+ * @brief The TextBox class is the widget for text insertion. It contains also the information for previous text
+ * display in the text box, when changing it.
+ */
 class TextBox : public QTextEdit {
     Q_OBJECT
 public:
@@ -32,6 +36,10 @@ public:
     int getTextY() const;
 
 public slots:
+    /**
+     * @brief applyText hides the widget (and appends it to the page)
+     * @param onlyHide if true, widget is only hidden, otherwise the text is also appended to the page
+     */
     void applyText(bool onlyHide);
 
 signals:

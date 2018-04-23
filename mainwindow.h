@@ -10,6 +10,9 @@
 #include "widget.h"
 #include "searchbar.h"
 
+/**
+ * @brief ZoomScrollArea is a custom QScrollArea. It's necessary to support scrolling by mouse wheel.
+ */
 class ZoomScrollArea;
 
 class MainWindow : public QMainWindow
@@ -54,6 +57,9 @@ private slots:
   void zoomFitWidth();
   void zoomFitHeight();
 
+  /**
+   * @brief pen gets called when the tool pen is selected
+   */
   void pen();
   void highlighter();
   void ruler();

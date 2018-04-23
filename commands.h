@@ -210,6 +210,9 @@ private:
     QFont m_font;
 };
 
+/**
+ * @brief The TextCommand class is for inserting text into an MrDoc::Page
+ */
 class TextCommand : public QUndoCommand{
 public:
     TextCommand(MrDoc::Page* page, const QRectF &rect, const QColor& color, const QFont& font, const QString& text, QUndoCommand* parent = nullptr);

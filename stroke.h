@@ -32,7 +32,8 @@ public:
   QVector<qreal> pattern;
   qreal penWidth;
   QColor color;
-  QPixmap tmpPixmap =QPixmap(1,1);
+  QPixmap tmpPixmap =QPixmap(1,1); /**< this is only for highlighter strokes, not for normal ones. It is necessary to be able to use QPainter::CompositionMode_Source.
+                                     Otherwise the stroke points are drawn twice*/
   bool isHighlighter = false;
 };
 }
