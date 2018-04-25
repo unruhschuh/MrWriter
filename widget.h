@@ -13,6 +13,7 @@
 #include <QScrollArea>
 #include <QSizeGrip>
 #include <QGridLayout>
+#include <QSet>
 #include <QtConcurrent>
 #include <QMutex>
 #include <QMutexLocker>
