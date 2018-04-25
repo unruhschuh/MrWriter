@@ -138,7 +138,7 @@ public:
    * @brief getVisiblePages
    * @return the number of visible pages
    */
-  int getVisiblePages();
+  QSet<int> getVisiblePages();
 
   void setCurrentState(state newState);
   state getCurrentState();

@@ -121,15 +121,17 @@ void Widget::updateAllPageBuffers()
         }
 
         int currentPageNum = getCurrentPage();
-        int visiblePages = getVisiblePages();
-        for (int buffNum = 0; buffNum < currentDocument.pages.size(); ++buffNum)
-        {
-            if(abs(buffNum - currentPageNum) < 2*visiblePages){
-                future.append(QtConcurrent::run(this, &Widget::updateBuffer, buffNum));
-            }
-            else{
-                future.append(QtConcurrent::run(this, &Widget::updateBufferWithPlaceholder, buffNum));
-            }
+        QSet<int> allPages;
+        for(int i = 0; i < currentDocument.pages.size(); ++i){
+            allPages.insert(i);
+        }
+        QSet<int> visiblePages = getVisiblePages();
+        QSet<int> nonVisiblePages = allPages.subtract(visiblePages);
+        for(int buffNum : visiblePages){
+            future.append(QtConcurrent::run(this, &Widget::updateBuffer, buffNum));
+        }
+        for(int buffNum : nonVisiblePages){
+            future.append(QtConcurrent::run(this, &Widget::updateBufferWithPlaceholder, buffNum));
         }
 
         for (int buffNum = 0; buffNum < currentDocument.pages.size(); ++buffNum)
@@ -1854,13 +1856,38 @@ int Widget::getCurrentPage()
   //    return getPageFromMousePos(QPointF(0.0, 2.0));
 }
 
-int Widget::getVisiblePages(){
-    int visiblePages;
-    if(currentView == view::VERTICAL)
-        visiblePages = currentDocument.pages.at(getCurrentPage()).height()/parentWidget()->size().height()/zoom + 1;
-    else
-        visiblePages = currentDocument.pages.at(getCurrentPage()).width()/parentWidget()->size().width()/zoom + 1;
+QSet<int> Widget::getVisiblePages(){
+    QSet<int> visiblePages;
+    if(currentView == view::VERTICAL){
+        QPoint globalMousePosTop = parentWidget()->mapToGlobal(QPoint(parentWidget()->size().width()/2, 0));
+        QPoint posTop = this->mapFromGlobal(globalMousePosTop);
+        QPoint globalMousePosBottom = parentWidget()->mapToGlobal(QPoint(parentWidget()->size().width()/2, parentWidget()->size().height()));
+        QPoint posBottom = this->mapFromGlobal(globalMousePosBottom);
+        int beginPage = getPageFromMousePos(posTop);
+        int endPage = getPageFromMousePos(posBottom);
+        for(int i = beginPage; i <= endPage; ++i){
+            visiblePages.insert(i);
+        }
+    }
+    else{
+        QPoint globalMousePosLeft = parentWidget()->mapToGlobal(QPoint(0, parentWidget()->size().height()/2));
+        QPoint posLeft = this->mapFromGlobal(globalMousePosLeft);
+        QPoint globalMousePosRight = parentWidget()->mapToGlobal(QPoint(parentWidget()->size().width(), parentWidget()->size().height()/2));
+        QPoint posRight = this->mapFromGlobal(globalMousePosRight);
+        int beginPage = getPageFromMousePos(posLeft);
+        int endPage = getPageFromMousePos(posRight);
+        for(int i = beginPage; i <= endPage; ++i){
+            visiblePages.insert(i);
+        }
+    }
     return visiblePages;
+
+//    int visiblePages;
+//    if(currentView == view::VERTICAL)
+//        visiblePages = currentDocument.pages.at(getCurrentPage()).height()/parentWidget()->size().height()/zoom + 1;
+//    else
+//        visiblePages = currentDocument.pages.at(getCurrentPage()).width()/parentWidget()->size().width()/zoom + 1;
+//    return visiblePages;
 }
 
 QPointF Widget::getPagePosFromMousePos(QPointF mousePos, int pageNum)
