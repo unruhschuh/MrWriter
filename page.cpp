@@ -149,6 +149,17 @@ void Page::paintForPdfExport(QPainter &painter, qreal zoom){
     {
         stroke.paint(painter, zoom);
     }
+
+    painter.scale(zoom, zoom);
+    for(auto t : m_markdownDocs){
+        qDebug() << std::get<0>(t);
+        QTextDocument td;
+        td.setHtml(compileMarkdown(std::get<1>(t)));
+        painter.translate(std::get<0>(t).x(), std::get<0>(t).y());
+        td.setPageSize(QSizeF(std::get<0>(t).width(), std::get<0>(t).height()));
+        td.drawContents(&painter);
+        painter.translate(-std::get<0>(t).x(), -std::get<0>(t).y());
+    }
 }
 
 void Page::setBackgroundColor(QColor backgroundColor)
@@ -404,7 +415,7 @@ void Page::appendStrokes(const QVector<Stroke> &strokes)
   }
 }
 
-void Page::setPdf(Poppler::Page* page, int pageNum){
+void Page::setPdf(Poppler::Page* page, int pageNum, bool adjustSize){
     /*Poppler::Document* doc = Poppler::Document::load(path);
     if (!doc || doc->isLocked()){
         qDebug() << "Couldn't load PDF";
@@ -423,8 +434,10 @@ void Page::setPdf(Poppler::Page* page, int pageNum){
     }*/
     //delete doc;
 
-    //m_width = page->pageSizeF().width();
-    //m_height = page->pageSizeF().height();
+    if(adjustSize){
+        m_width = page->pageSizeF().width();
+        m_height = page->pageSizeF().height();
+    }
     m_pdfPointer.reset(page);
     pageno = pageNum;
 }
