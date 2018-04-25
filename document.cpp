@@ -330,7 +330,7 @@ bool Document::loadXOJ(QString fileName)
                 QStringRef pdfPageNumStr = attributes.value("", "pageno");
                 int pdfPageNum = pdfPageNumStr.toInt();
                 Poppler::Page* page = m_pdfDoc->page(pdfPageNum-1);
-                pages.last().setPdf(page, pdfPageNum-1);
+                pages.last().setPdf(page, pdfPageNum-1, false);
 
                 continue;
             }
@@ -614,7 +614,7 @@ bool Document::loadMOJ(QString fileName)
           QStringRef pdfPageNumStr = attributes.value("", "pageno");
           int pdfPageNum = pdfPageNumStr.toInt();
           Poppler::Page* page = m_pdfDoc->page(pdfPageNum-1);
-          pages.last().setPdf(page, pdfPageNum-1);
+          pages.last().setPdf(page, pdfPageNum-1, false);
 
           continue;
       }
@@ -905,7 +905,7 @@ bool Document::loadPDF(QString fileName){
         for(int i = 0; i < numPages; ++i){
             Poppler::Page* page = m_pdfDoc->page(i);
             pages.append(Page());
-            pages.last().setPdf(page, i);
+            pages.last().setPdf(page, i, true);
         }
         return true;
     }

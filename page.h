@@ -138,8 +138,9 @@ public:
    * @brief setPdf sets a pdf page as "background" for the page
    * @param page is the pointer to pdf page (provided by poppler)
    * @param pageNum is the page number (first page is 0)
+   * @param adjustSize if true, the size will adjusted to pdf's size
    */
-  void setPdf(Poppler::Page *page, int pageNum);
+  void setPdf(Poppler::Page *page, int pageNum, bool adjustSize);
   //void setPdfPath(const QString path);
 
   /**
