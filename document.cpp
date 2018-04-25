@@ -637,6 +637,19 @@ bool Document::loadMOJ(QString fileName)
         QRectF rect(xString.toDouble(), yString.toDouble(), 0, 0);
         pages.last().appendText(rect, font, color, text);
     }
+    if (reader.name() == "markdown" && reader.tokenType() == QXmlStreamReader::StartElement){
+        QXmlStreamAttributes attributes = reader.attributes();
+        QStringRef xString = attributes.value("", "x");
+        QStringRef yString = attributes.value("", "y");
+        QStringRef widthString = attributes.value("", "width");
+        QStringRef heightString = attributes.value("", "height");
+        int x = xString.toInt();
+        int y = yString.toInt();
+        qreal width = static_cast<qreal>(widthString.toDouble());
+        qreal height = static_cast<qreal>(heightString.toDouble());
+        QString text = reader.readElementText();
+        pages.last().appendMarkdown(QRectF(x, y, width, height), text);
+    }
     if (reader.name() == "stroke" && reader.tokenType() == QXmlStreamReader::StartElement)
     {
       QXmlStreamAttributes attributes = reader.attributes();
@@ -787,6 +800,15 @@ bool Document::saveMOJ(QString fileName)
         writer.writeAttribute(QXmlStreamAttribute("y", QString::number(std::get<0>(t).y())));
         writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(std::get<2>(t).name(QColor::HexArgb))));
         writer.writeCharacters(std::get<3>(t));
+        writer.writeEndElement();
+    }
+    for (auto t : pages[i].markdowns()){
+        writer.writeStartElement("markdown");
+        writer.writeAttribute(QXmlStreamAttribute("x", QString::number(std::get<0>(t).x())));
+        writer.writeAttribute(QXmlStreamAttribute("y", QString::number(std::get<0>(t).y())));
+        writer.writeAttribute(QXmlStreamAttribute("width", QString::number(std::get<0>(t).width())));
+        writer.writeAttribute(QXmlStreamAttribute("height", QString::number(std::get<0>(t).height())));
+        writer.writeCharacters(std::get<1>(t));
         writer.writeEndElement();
     }
 

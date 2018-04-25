@@ -7,9 +7,13 @@
 #include <QDebug>
 #include <QImage>
 #include <QTextEdit>
+#include <QTextDocument>
 #include <memory>
 #include <algorithm>
 #include <math.h>
+extern "C" {
+#include<mkdio.h>
+}
 
 namespace MrDoc
 {
@@ -60,11 +64,11 @@ public:
    */
   int appendText(const QRectF& rect, const QFont& font, const QColor& color, const QString& text);
   /**
-   * @brief setText changes the text of tuple provided by @param index
+   * @brief setText changes the text of tuple provided by @param index or removes the tuple if text is empty.
    * @param index
    * @param font
    * @param color
-   * @param text new text
+   * @param text new text. If text is empty, the tuple is removed
    */
   void setText(int index, const QFont &font, const QColor &color, const QString& text);
 
@@ -87,8 +91,36 @@ public:
    */
   const QFont& textFontByIndex(int i);
 
+
+  /**
+   * @brief markdownIndexFromMouseClick tests if a (mouse click) coordinate is on a inserted markdown document element
+   * @param x x-coordinate of mouse click
+   * @param y y-coordinate of mouse click
+   * @return index of document in @ref m_markdownDocs if found, otherwise -1
+   */
+  int markdownIndexFromMouseClick(int x, int y);
+
+  /**
+   * @brief appendMarkdown appends a tuple to @ref m_texts
+   * @param rect is the bounding rect. If width and height are 0, then width and height are calculated by appendMarkdown.
+   * @param text
+   * @return index of the new appended tuple
+   */
+  int appendMarkdown(const QRectF &rect, const QString& text);
+
+  /**
+   * @brief setMarkdown changes the text of a "markdown" tuple indexed at @param index or removes the tuple if text is empty.
+   * @param index
+   * @param text new text. If text is empty, the tuple is removed.
+   */
+  void setMarkdown(int index, const QString& text);
+
+  QString markdownByIndex(int i);
+  QRectF markdownRectByIndex(int i);
+
   const QVector<Stroke> &strokes();
   const QVector<std::tuple<QRectF, QFont, QColor, QString> > &texts();
+  const QVector<std::tuple<QRectF, QString>>& markdowns();
 
   QVector<QPair<Stroke, int>> getStrokes(QPolygonF selectionPolygon);
   QVector<QPair<Stroke, int>> removeStrokes(QPolygonF selectionPolygon);
@@ -162,8 +194,11 @@ protected:
   QList<QRectF> searchResultRects; /**< list of the (yellow) rectangles around search results */
 
   QVector<std::tuple<QRectF, QFont, QColor, QString>> m_texts; /**< contains the texts */
+  QVector<std::tuple<QRectF, QString>> m_markdownDocs; /**< contains the inserted markdown documents, QRectF is the bounding rect (zoom factor 1)*/
 
 private:
+  char* compileMarkdown(const QString& text);
+  QSizeF adjustMarkdownSize(int x, int y, QSizeF oldSize);
   QColor m_backgroundColor;
 
   qreal m_width;  // post script units

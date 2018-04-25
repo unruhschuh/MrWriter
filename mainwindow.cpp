@@ -369,6 +369,14 @@ void MainWindow::createActions()
   connect(textAct, &QAction::triggered, this, &MainWindow::text);
   this->addAction(textAct);
 
+  markdownAct = new QAction(tr("Markdown"), this);
+  markdownAct->setStatusTip(tr("Insert Markdown text"));
+  markdownAct->setShortcut(QKeySequence(Qt::Key_9));
+  markdownAct->setCheckable(true);
+  markdownAct->setChecked(false);
+  connect(markdownAct, &QAction::triggered, this, &MainWindow::markdown);
+  this->addAction(markdownAct);
+
   solidPatternAct = new QAction(QIcon(":/images/solidPatternIcon.png"), tr("solid line"), this);
   solidPatternAct->setStatusTip(tr("solid line"));
   solidPatternAct->setCheckable(true);
@@ -608,6 +616,7 @@ void MainWindow::createMenus()
   toolsMenu->addAction(selectAct);
   toolsMenu->addAction(handAct);
   toolsMenu->addAction(textAct);
+  toolsMenu->addAction(markdownAct);
   toolsMenu->addSeparator();
 
   penWidthMenu = toolsMenu->addMenu(tr("Pen Width"));
@@ -728,6 +737,7 @@ void MainWindow::createToolBars()
   toolsToolBar->addAction(selectAct);
   toolsToolBar->addAction(handAct);
   toolsToolBar->addAction(textAct);
+  toolsToolBar->addAction(markdownAct);
 
   toolsToolBar->addSeparator();
 
@@ -1075,6 +1085,11 @@ void MainWindow::text(){
     updateGUI();
 }
 
+void MainWindow::markdown(){
+    mainWidget->setCurrentTool(Widget::tool::MARKDOWN);
+    updateGUI();
+}
+
 void MainWindow::selectFont(){
     bool ok;
     QFont font = QFontDialog::getFont(
@@ -1359,6 +1374,7 @@ void MainWindow::updateGUI()
   selectAct->setChecked(currentTool == Widget::tool::SELECT);
   handAct->setChecked(currentTool == Widget::tool::HAND);
   textAct->setChecked(currentTool == Widget::tool::TEXT);
+  markdownAct->setChecked(currentTool == Widget::tool::MARKDOWN);
 
   qreal currentPenWidth = mainWidget->getCurrentPenWidth();
 

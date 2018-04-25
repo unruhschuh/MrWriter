@@ -27,14 +27,25 @@ Widget::Widget(QWidget *parent)
 // Widget::Widget(QWidget *parent) : QOpenGLWidget(parent)
 {
     textBox = new TextBox(this);
-    connect(this, &Widget::setText, textBox, &TextBox::applyText);
-    connect(textBox, &TextBox::updatePage, this, &Widget::updatePageAfterText);
+    connect(this, &Widget::setSimpleText, textBox, &TextBox::applyText);
+    connect(textBox, &TextBox::updatePageSimpleText, this, &Widget::updatePageAfterText);
     textBox->setWordWrapMode(QTextOption::WordWrap);
     textBox->setWindowFlags(Qt::SubWindow);
     QSizeGrip* sizeGrip = new QSizeGrip(textBox);
     QGridLayout* layout = new QGridLayout(textBox);
     layout->addWidget(sizeGrip, 0,0,1,1, Qt::AlignBottom|Qt::AlignRight);
     textBox->hide();
+
+    markdownBox = new MarkdownBox(this);
+    connect(this, &Widget::setMarkdownText, markdownBox, &MarkdownBox::applyText);
+    connect(markdownBox, &MarkdownBox::updatePageMarkdown, this, &Widget::updatePageAfterText);
+    markdownBox->setWordWrapMode(QTextOption::WordWrap);
+    markdownBox->setWindowFlags(Qt::SubWindow);
+    QSizeGrip* sizeGrip2 = new QSizeGrip(markdownBox);
+    QGridLayout* layout2 = new QGridLayout(markdownBox);
+    layout2->addWidget(sizeGrip2, 0,0,1,1, Qt::AlignBottom|Qt::AlignRight);
+    markdownBox->hide();
+
   QSettings settings;
   //    qDebug() << settings.applicationVersion();
 
@@ -952,7 +963,6 @@ void Widget::mousePressEvent(QMouseEvent *event)
             textBox->setPage(&(currentDocument.pages[pageNum]));
             textBox->setPageNum(pageNum);
             textBox->setTextIndex(textIndex);
-            //textBox->setGeometry(currentDocument.pages[pageNum].textRectByIndex(textIndex).toAlignedRect().adjusted(0,0,50,50));
             QRect textRect = currentDocument.pages[pageNum].textRectByIndex(textIndex).toAlignedRect().adjusted(0,0,50,50);
             textBox->setGeometry(event->x(), event->y(), textRect.width(), textRect.height());
             textBox->setText(currentDocument.pages[pageNum].textByIndex(textIndex));
@@ -979,7 +989,42 @@ void Widget::mousePressEvent(QMouseEvent *event)
             textBox->show();
             textBoxOpen = true;
         }
-        setCurrentState(state::WRITING);
+        setCurrentState(state::TEXTTYPING);
+    }
+
+    if(currentTool == tool::MARKDOWN){
+        qDebug() << "markdown";
+        if(markdownBoxOpen){
+            closeTextBox();
+            return;
+        }
+        int pageNum = getPageFromMousePos(event->pos());
+        QPointF point = getPagePosFromMousePos(event->pos(), pageNum);
+        int textIndex = currentDocument.pages[pageNum].markdownIndexFromMouseClick(point.x(), point.y());
+        if(textIndex != -1){
+            markdownBox->setPage(&(currentDocument.pages[pageNum]));
+            markdownBox->setPageNum(pageNum);
+            markdownBox->setTextIndex(textIndex);
+            QRect textRect = currentDocument.pages[pageNum].markdownRectByIndex(textIndex).toAlignedRect().adjusted(0,0,50,50);
+            markdownBox->setGeometry(event->x(), event->y(), textRect.width(), textRect.height());
+            markdownBox->setText(currentDocument.pages[pageNum].markdownByIndex(textIndex));
+            markdownBox->setPrevText(markdownBox->toPlainText());
+            markdownBox->show();
+
+            markdownBoxOpen = true;
+            markdownChanged = true;
+        }
+        else{
+            markdownBox->setGeometry(event->x(), event->y(), 300,200);
+            markdownBox->setPageNum(pageNum);
+            markdownBox->setPage(&(currentDocument.pages[pageNum]));
+            markdownBox->setTextIndex(-1);
+            markdownBox->setTextX(point.x());
+            markdownBox->setTextY(point.y());
+            markdownBox->show();
+            markdownBoxOpen = true;
+        }
+        setCurrentState(state::MARKDOWNTYPING);
     }
   bool usingTablet = static_cast<TabletApplication *>(qApp)->isUsingTablet();
 
@@ -1032,7 +1077,6 @@ void Widget::mouseReleaseEvent(QMouseEvent *event)
 }
 
 void Widget::keyPressEvent(QKeyEvent *event){
-    qDebug() << "Hi";
     if(textBoxOpen){
         if(event->key() == Qt::Key_Escape){
             closeTextBox();
@@ -1064,23 +1108,36 @@ void Widget::closeTextBox(){
                                                                          getCurrentColor(), textBox->getPrevFont(), getCurrentFont(),
                                                                          textBox->getPrevText(), textBox->toPlainText());
             undoStack.push(changeTextCommand);
-            //update();
             textChanged = false;
-            emit setText(true); //onlyHide
+            emit setSimpleText();
         }
         else{
             TextCommand* textCommand = new TextCommand(textBox->getPage(), QRectF(textBox->getTextX(), textBox->getTextY(), 0, 0), getCurrentColor(), textBox->getFont(), textBox->toPlainText());
             undoStack.push(textCommand);
-            emit setText(true); //onlyHide, because the text drawing is done by textCommand
+            emit setSimpleText();
         }
-        //emit setText(false); //text get's really set
-        //updateBuffer(getCurrentPage());
         textBoxOpen = false;
         currentDocument.setDocumentChanged(true);
-        //emit modified();
         setCurrentState(state::IDLE);
     }
-    //setCurrentState(state::IDLE);
+    else if(markdownBoxOpen){
+        qDebug() << "markdown open";
+        if(markdownChanged){
+            ChangeMarkdownCommand* changeMarkdownCommand = new ChangeMarkdownCommand(markdownBox->getPage(), markdownBox->getTextIndex(),
+                                                                                    markdownBox->getPrevText(), markdownBox->toPlainText());
+            undoStack.push(changeMarkdownCommand);
+            markdownChanged = false;
+            emit setMarkdownText();
+        }
+        else{
+            MarkdownCommand* markdownCommand = new MarkdownCommand(markdownBox->getPage(), QPointF(markdownBox->getTextX(), markdownBox->getTextY()), markdownBox->toPlainText());
+            undoStack.push(markdownCommand);
+            emit setMarkdownText();
+        }
+        markdownBoxOpen = false;
+        currentDocument.setDocumentChanged(true);
+        setCurrentState(state::IDLE);
+    }
 }
 
 void Widget::setPreviousTool()
@@ -2148,6 +2205,8 @@ void Widget::setCurrentTool(tool toolID)
     if (toolID == tool::HAND)
       setCursor(Qt::OpenHandCursor);
     if (toolID == tool::TEXT)
+        setCursor(Qt::ArrowCursor);
+    if (toolID == tool::MARKDOWN)
         setCursor(Qt::ArrowCursor);
   }
 }

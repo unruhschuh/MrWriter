@@ -68,6 +68,7 @@ private slots:
   void select();
   void hand();
   void text();
+  void markdown();
 
   void selectFont();
 
@@ -188,6 +189,8 @@ private:
 
   QAction *textAct;
   QAction *fontAct;
+
+  QAction *markdownAct;
 
   QAction *veryFinePenWidthAct;
   QAction *finePenWidthAct;

@@ -30,6 +30,7 @@
 #include "mrdoc.h"
 #include "document.h"
 #include "textbox.h"
+#include "markdownbox.h"
 #include "page.h"
 
 /**
@@ -56,7 +57,8 @@ public:
     ERASER,
     SELECT,
     HAND,
-    TEXT
+    TEXT,
+    MARKDOWN
   };
   enum class state
   {
@@ -64,7 +66,8 @@ public:
     DRAWING,
     RULING,
     CIRCLING,
-    WRITING,
+    TEXTTYPING,
+    MARKDOWNTYPING,
     SELECTING,
     SELECTED,
     MOVING_SELECTION,
@@ -271,6 +274,10 @@ private:
   bool textBoxOpen = false;
   bool textChanged = false;
 
+  MarkdownBox* markdownBox;
+  bool markdownBoxOpen = false;
+  bool markdownChanged = false;
+
   QString previousSearchText;
   int previousSearchPageIndex;
   QVector<int> searchPageNums; /**< Stores the page numbers where a search result is */
@@ -363,7 +370,8 @@ signals:
   void eraser();
   void select();
   void hand();
-  void setText(bool);
+  void setSimpleText();
+  void setMarkdownText();
 
   void updateGUI();
 

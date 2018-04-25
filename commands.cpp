@@ -581,3 +581,41 @@ void TextCommand::undo(){
 void TextCommand::redo(){
     m_textIndex = m_page->appendText(m_rect, m_font, m_color, m_text);
 }
+
+/* **********************************************
+ * Markdown Change Command
+ */
+ChangeMarkdownCommand::ChangeMarkdownCommand(MrDoc::Page *page, int markdownIndex, const QString &prevText, const QString &text, QUndoCommand *parent)
+    : QUndoCommand(parent),
+      m_page {page},
+      m_markdownIndex {markdownIndex},
+      m_prevText {prevText},
+      m_text {text} {
+}
+
+void ChangeMarkdownCommand::undo(){
+    m_page->setMarkdown(m_markdownIndex, m_prevText);
+}
+
+void ChangeMarkdownCommand::redo(){
+    m_page->setMarkdown(m_markdownIndex, m_text);
+}
+
+/* *********************************************
+ * Markdown Insertion Command
+ */
+
+MarkdownCommand::MarkdownCommand(MrDoc::Page *page, const QPointF &upperLeft, const QString &text, QUndoCommand *parent)
+    : QUndoCommand(parent),
+      m_page {page},
+      m_upperLeft {upperLeft},
+      m_text {text} {
+}
+
+void MarkdownCommand::undo(){
+    m_page->setMarkdown(m_markdowIndex, QString("")); //has the effect of removing it
+}
+
+void MarkdownCommand::redo(){
+    m_markdowIndex = m_page->appendMarkdown(QRectF(m_upperLeft, m_upperLeft), m_text);
+}

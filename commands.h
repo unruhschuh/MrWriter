@@ -227,4 +227,28 @@ private:
     QString m_text;
 };
 
+class ChangeMarkdownCommand : public QUndoCommand{
+public:
+    ChangeMarkdownCommand(MrDoc::Page* page, int markdownIndex, const QString& prevText, const QString& text, QUndoCommand* parent = nullptr);
+    void undo() override;
+    void redo() override;
+private:
+    MrDoc::Page* m_page;
+    int m_markdownIndex;
+    QString m_prevText;
+    QString m_text;
+};
+
+class MarkdownCommand : public QUndoCommand{
+public:
+    MarkdownCommand(MrDoc::Page* page, const QPointF &upperLeft, const QString& text, QUndoCommand* parent = nullptr);
+    void undo() override;
+    void redo() override;
+private:
+    MrDoc::Page* m_page;
+    int m_markdowIndex;
+    QPointF m_upperLeft;
+    QString m_text;
+};
+
 #endif

@@ -107,6 +107,17 @@ void Page::paint(QPainter &painter, qreal zoom, QRectF region)
     for (QRectF& rect : searchResultRects){
         painter.fillRect(rect.x()*zoom, rect.y()*zoom, rect.width()*zoom, rect.height()*zoom, halfYellow);
     }
+
+    painter.scale(zoom, zoom);
+    for(auto t : m_markdownDocs){
+        qDebug() << std::get<0>(t);
+        QTextDocument td;
+        td.setHtml(compileMarkdown(std::get<1>(t)));
+        painter.translate(std::get<0>(t).x(), std::get<0>(t).y());
+        td.setPageSize(QSizeF(std::get<0>(t).width(), std::get<0>(t).height()));
+        td.drawContents(&painter);
+        painter.translate(-std::get<0>(t).x(), -std::get<0>(t).y());
+    }
 }
 
 void Page::paintForPdfExport(QPainter &painter, qreal zoom){
@@ -211,6 +222,12 @@ int Page::textIndexFromMouseClick(int x, int y){
     return -1;
 }
 
+int Page::appendText(const QRectF &rect, const QFont &font, const QColor &color, const QString &text){
+    m_texts.append(std::make_tuple(rect, font, color, text));
+    rectIsPoint = true;
+    return m_texts.size()-1;
+}
+
 const QString& Page::textByIndex(int i){
     return std::get<3>(m_texts[i]);
 }
@@ -225,9 +242,6 @@ void Page::setText(int index, const QFont& font, const QColor& color, const QStr
         m_texts[index] = t;
         rectIsPoint = true;
     }
-    /*for(auto t : m_texts){
-        qDebug() << std::get<3>(t);
-    }*/
 }
 
 const QRectF& Page::textRectByIndex(int i){
@@ -242,6 +256,59 @@ const QFont& Page::textFontByIndex(int i){
     return std::get<1>(m_texts[i]);
 }
 
+int Page::markdownIndexFromMouseClick(int x, int y){
+    for(int i = 0; i < m_markdownDocs.size(); ++i){
+        if(std::get<0>(m_markdownDocs[i]).contains(x, y)){
+            return i;
+        }
+    }
+    return -1;
+}
+
+int Page::appendMarkdown(const QRectF &rect, const QString &text){
+    QRectF boundingRect;
+
+    QTextDocument td;
+
+    td.setHtml(compileMarkdown(text));
+
+    td.setPageSize(adjustMarkdownSize(rect.x(), rect.y(), td.size()));
+
+    if(rect.width() == 0 && rect.height() == 0){
+        boundingRect = QRectF(rect.x(), rect.y(), td.size().width(), td.size().height());
+    }
+    else{
+        boundingRect = rect;
+    }
+
+    m_markdownDocs.append(std::make_tuple(boundingRect, text));
+    return m_markdownDocs.size()-1;
+}
+
+void Page::setMarkdown(int index, const QString &text){
+    if(text.isEmpty()){
+        m_markdownDocs.remove(index);
+    }
+    else{
+        QTextDocument td;
+
+        td.setHtml(compileMarkdown(text));
+
+        td.setPageSize(adjustMarkdownSize(std::get<0>(m_markdownDocs[index]).x(), std::get<0>(m_markdownDocs[index]).y(), td.size()));
+
+        auto t = std::make_tuple(QRectF(QPointF(std::get<0>(m_markdownDocs[index]).x(), std::get<0>(m_markdownDocs[index]).y()), td.size().toSize()), text);
+        m_markdownDocs[index] = t;
+    }
+}
+
+QString Page::markdownByIndex(int i){
+    return std::get<1>(m_markdownDocs[i]);
+}
+
+QRectF Page::markdownRectByIndex(int i){
+    return std::get<0>(m_markdownDocs[i]);
+}
+
 const QVector<Stroke> &Page::strokes()
 {
   return m_strokes;
@@ -249,6 +316,10 @@ const QVector<Stroke> &Page::strokes()
 
 const QVector<std::tuple<QRectF, QFont, QColor, QString> > &Page::texts(){
     return m_texts;
+}
+
+const QVector<std::tuple<QRectF, QString>>& Page::markdowns(){
+    return m_markdownDocs;
 }
 
 QVector<QPair<Stroke, int>> Page::getStrokes(QPolygonF selectionPolygon)
@@ -333,12 +404,6 @@ void Page::appendStrokes(const QVector<Stroke> &strokes)
   }
 }
 
-int Page::appendText(const QRectF &rect, const QFont &font, const QColor &color, const QString &text){
-    m_texts.append(std::make_tuple(rect, font, color, text));
-    rectIsPoint = true;
-    return m_texts.size()-1;
-}
-
 void Page::setPdf(Poppler::Page* page, int pageNum){
     /*Poppler::Document* doc = Poppler::Document::load(path);
     if (!doc || doc->isLocked()){
@@ -394,6 +459,33 @@ Poppler::LinkGoto* Page::linkFromMouseClick(qreal x, qreal y){
         }
     }
     return nullptr;
+}
+
+char* Page::compileMarkdown(const QString &text){
+    MMIOT* doc;
+    char* output;
+    QByteArray data = text.toUtf8();
+    doc = mkd_string(data, data.length(), 0);
+    mkd_compile(doc, 0);
+    mkd_document(doc, &output);
+    return output;
+}
+
+QSizeF Page::adjustMarkdownSize(int x, int y, QSizeF oldSize){
+    QSizeF returnSize = oldSize;
+    bool sizeChanged = false;
+    if((oldSize.width()+x) > m_width){
+        QSizeF newSize(m_width-x, std::max(m_height-y, oldSize.width()/(m_width-x)*oldSize.height())); //same area
+        returnSize = newSize;
+        sizeChanged = true;
+    }
+    if(!sizeChanged){
+        if((returnSize.height()+y) > m_height){
+            QSizeF newSize(std::max(m_width-x, returnSize.height()/(m_height-y)*returnSize.width()), m_height-y);
+            returnSize = newSize;
+        }
+    }
+    return returnSize;
 }
 
 }
