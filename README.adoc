@@ -13,6 +13,7 @@ This is a fork of the original MrWriter software. The fork has the ability to an
 == Prerequisites
 * Qt has to be installed
 * Poppler has to be installed
+* [Discount](https://www.pell.portland.or.us/~orc/Code/discount/) has to be installed
 * _(optional)_ pdftk has to be installed (for proper PDF export)
 
 == Build
