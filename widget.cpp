@@ -108,7 +108,12 @@ Widget::Widget(QWidget *parent)
 
 void Widget::updateAllPageBuffers()
 {
+    if(updateThread->isRunning()){
+        qDebug() << "isRunning";
+        updateThread->requestInterruption();
+    }
     if(prevZoom != zoom || pageBufferPtr.size() != currentDocument.pages.size() || pageBufferPtr.isEmpty()){
+        QMutexLocker locker1(&overallBufferMutex);
 
         QVector<QFuture<void>> future;
         pageBufferPtr.clear();
@@ -120,7 +125,6 @@ void Widget::updateAllPageBuffers()
             pageBufferPtr.append(std::make_shared<std::shared_ptr<QPixmap>>(std::make_shared<QPixmap>()));
         }
 
-        int currentPageNum = getCurrentPage();
         QSet<int> allPages;
         for(int i = 0; i < currentDocument.pages.size(); ++i){
             allPages.insert(i);
@@ -141,8 +145,14 @@ void Widget::updateAllPageBuffers()
         prevZoom = zoom;
     }
     else{
-        QtConcurrent::run(this, &Widget::updateNecessaryPagesBuffer);
+        UpdateWorker* worker = new UpdateWorker(this);
+        worker->moveToThread(updateThread);
+        connect(worker, &UpdateWorker::finished, updateThread, &QThread::quit);
+        connect(updateThread, &QThread::started, worker, &UpdateWorker::process);
+        updateThread->start();
+        //QtConcurrent::run(this, &Widget::updateNecessaryPagesBuffer);
     }
+    //scrollingBecauseOfZooming = false;
 }
 
 void Widget::updateNecessaryPagesBuffer(){
@@ -160,12 +170,25 @@ void Widget::updateNecessaryPagesBuffer(){
 //        future[buffNum].waitForFinished();
 //    }
 
+//    if(scrollingBecauseOfZooming){
+//        scrollingBecauseOfZooming = false;
+//        return;
+//    }
+    QMutexLocker locker1(&overallBufferMutex);
     QVector<QFuture<void>> future;
 
     int startingPage = std::max(0, getCurrentPage()-6);
     int endPage = std::min(currentDocument.pages.size(), getCurrentPage()+6);
 
     for(int buffNum = startingPage; buffNum < endPage; ++buffNum){
+        if(QThread::currentThread()->isInterruptionRequested()){
+            qDebug() << "interrupt requested";
+            for(int i = 0; i < future.size(); ++i){
+                future[i].waitForFinished();
+            }
+            locker1.unlock();
+            return;
+        }
         const MrDoc::Page& buffPage = currentDocument.pages[buffNum];
         int pageWidth = zoom * buffPage.width() * devicePixelRatio();
         int pageHight = zoom * buffPage.height() * devicePixelRatio();
@@ -479,27 +502,43 @@ QRect Widget::getWidgetGeometry()
     if(currentView == view::VERTICAL){
         int width = 0;
         int height = 0;
-        for (int i = 0; i < pageBufferPtr.size(); ++i)
-        {
-            height += (*pageBufferPtr[i])->height()/devicePixelRatio() + PAGE_GAP;
-            if ((*pageBufferPtr[i])->width()/devicePixelRatio() > width)
-                width = (*pageBufferPtr[i])->width()/devicePixelRatio();
+//        for (int i = 0; i < pageBufferPtr.size(); ++i)
+//        {
+//            height += (*pageBufferPtr[i])->height()/devicePixelRatio() + PAGE_GAP;
+//            if ((*pageBufferPtr[i])->width()/devicePixelRatio() > width)
+//                width = (*pageBufferPtr[i])->width()/devicePixelRatio();
+//        }
+//        height -= PAGE_GAP;
+//        return QRect(0, 0, width, height);
+
+        for (int i = 0; i < currentDocument.pages.size(); ++i){
+            height += currentDocument.pages[i].height()*zoom + PAGE_GAP;
+            if (currentDocument.pages[i].width()*zoom > width)
+                width = currentDocument.pages[i].width()*zoom;
         }
         height -= PAGE_GAP;
-        return QRect(0, 0, width, height);
+        return QRect(0,0,width,height);
     }
     else{ //view::HORIZONTAL
         int width = 0;
         int height = 0;
 
-        for (int i = 0; i < pageBufferPtr.size(); ++i)
-        {
-            width += (*(pageBufferPtr[i]))->width()/devicePixelRatio() + PAGE_GAP;
-            if ((*(pageBufferPtr[i]))->height()/devicePixelRatio() > height)
-                height = (*pageBufferPtr[i])->height()/devicePixelRatio();
+//        for (int i = 0; i < pageBufferPtr.size(); ++i)
+//        {
+//            width += (*(pageBufferPtr[i]))->width()/devicePixelRatio() + PAGE_GAP;
+//            if ((*(pageBufferPtr[i]))->height()/devicePixelRatio() > height)
+//                height = (*pageBufferPtr[i])->height()/devicePixelRatio();
+//        }
+//        width -= PAGE_GAP;
+//        return QRect(0, 0, width, height);
+
+        for (int i = 0; i < currentDocument.pages.size(); ++i){
+            width += currentDocument.pages[i].width()*zoom + PAGE_GAP;
+            if(currentDocument.pages[i].height()*zoom > height)
+                height = currentDocument.pages[i].height()*zoom;
         }
         width -= PAGE_GAP;
-        return QRect(0, 0, width, height);
+        return QRect(0,0,width,height);
     }
 }
 
@@ -1859,10 +1898,12 @@ int Widget::getCurrentPage()
 QSet<int> Widget::getVisiblePages(){
     QSet<int> visiblePages;
     if(currentView == view::VERTICAL){
-        QPoint globalMousePosTop = parentWidget()->mapToGlobal(QPoint(parentWidget()->size().width()/2, 0));
-        QPoint posTop = this->mapFromGlobal(globalMousePosTop);
-        QPoint globalMousePosBottom = parentWidget()->mapToGlobal(QPoint(parentWidget()->size().width()/2, parentWidget()->size().height()));
+        QPoint globalMousePosTop = parentWidget()->mapToGlobal(QPoint(0,0)) + QPoint(parentWidget()->size().width()/2, parentWidget()->size().height()/2);
+        QPoint posTop = this->mapFromGlobal(QPoint(globalMousePosTop));
+        posTop -= QPoint(0,parentWidget()->size().height()/2);
+        QPoint globalMousePosBottom = parentWidget()->mapToGlobal(QPoint(0,0)) + QPoint(parentWidget()->size().width()/2, parentWidget()->size().height()/2);
         QPoint posBottom = this->mapFromGlobal(globalMousePosBottom);
+        posBottom += QPoint(0,parentWidget()->size().height()/2);
         int beginPage = getPageFromMousePos(posTop);
         int endPage = getPageFromMousePos(posBottom);
         for(int i = beginPage; i <= endPage; ++i){
@@ -1870,10 +1911,12 @@ QSet<int> Widget::getVisiblePages(){
         }
     }
     else{
-        QPoint globalMousePosLeft = parentWidget()->mapToGlobal(QPoint(0, parentWidget()->size().height()/2));
+        QPoint globalMousePosLeft = parentWidget()->mapToGlobal(QPoint(0, 0)) + QPoint(parentWidget()->size().width()/2, parentWidget()->size().height()/2);
         QPoint posLeft = this->mapFromGlobal(globalMousePosLeft);
-        QPoint globalMousePosRight = parentWidget()->mapToGlobal(QPoint(parentWidget()->size().width(), parentWidget()->size().height()/2));
+        posLeft -= QPoint(parentWidget()->size().width()/2,0);
+        QPoint globalMousePosRight = parentWidget()->mapToGlobal(QPoint(0,0)) + QPoint(parentWidget()->size().width()/2, parentWidget()->size().height()/2);
         QPoint posRight = this->mapFromGlobal(globalMousePosRight);
+        posRight += QPoint(parentWidget()->size().width()/2,0);
         int beginPage = getPageFromMousePos(posLeft);
         int endPage = getPageFromMousePos(posRight);
         for(int i = beginPage; i <= endPage; ++i){
@@ -1994,9 +2037,10 @@ void Widget::zoomTo(qreal newZoom)
   int prevH = scrollArea->horizontalScrollBar()->value();
   int prevV = scrollArea->verticalScrollBar()->value();
 
-  updateAllPageBuffers();
-  currentSelection.updateBuffer(zoom);
   setGeometry(getWidgetGeometry());
+  //updateAllPageBuffers();
+  currentSelection.updateBuffer(zoom);
+  //setGeometry(getWidgetGeometry());
 
   int newHMax = scrollArea->horizontalScrollBar()->maximum();
   int newVMax = scrollArea->verticalScrollBar()->maximum();
@@ -2028,6 +2072,8 @@ void Widget::zoomTo(qreal newZoom)
 
   scrollArea->horizontalScrollBar()->setValue(newH);
   scrollArea->verticalScrollBar()->setValue(newV);
+
+  updateAllPageBuffers();
 
   //scrollArea->verticalScrollBar()->setTracking(false);
   connect(scrollArea->verticalScrollBar(), &QScrollBar::valueChanged, this, &Widget::updatePageAfterScrolling, Qt::UniqueConnection);
@@ -2177,17 +2223,14 @@ void Widget::scrollDocumentToPageNum(int pageNum)
 
   //    qreal x = currentCOSPos.x();
 
-  //I don't know why these calculations are better than simply taking the ratio of pageNum / pages.size() * scrollBar()->maximum()
   if(currentView == view::VERTICAL){
       qreal y = 0.0;
       for (int i = 0; i < pageNum; ++i)
       {
           y += (currentDocument.pages[i].height()) * zoom + PAGE_GAP;
       }
-      y -= 2*PAGE_GAP;
+      y -= PAGE_GAP;
 
-      y += static_cast<qreal>(pageNum) / static_cast<qreal>(currentDocument.pages.size()) * scrollArea->verticalScrollBar()->maximum();
-      y /= 2;
       scrollArea->verticalScrollBar()->setValue(y);
   }
   else{
@@ -2195,11 +2238,8 @@ void Widget::scrollDocumentToPageNum(int pageNum)
       for(int i = 0; i < pageNum; ++i){
           x += (currentDocument.pages[i].width() * zoom + PAGE_GAP);
       }
-      x += 2*PAGE_GAP;
-      x *= 3;
+      x -= PAGE_GAP;
 
-      x += static_cast<qreal>(pageNum) / static_cast<qreal>(currentDocument.pages.size()) * scrollArea->horizontalScrollBar()->maximum();
-      x /= 4;
       scrollArea->horizontalScrollBar()->setValue(x);
   }
 
@@ -2374,13 +2414,14 @@ Widget::state Widget::getCurrentState()
 }
 
 void Widget::setCurrentView(view newView){
+    int currentPage = getCurrentPage();
     currentView = newView;
-    //prevZoom = -2;
-    //updateAllPageBuffers();
+
     qreal oldZoom = zoom;
     zoom = 0.0;
     zoomTo(oldZoom);
-    //update();
+    scrollDocumentToPageNum(currentPage);
+
 }
 
 Widget::view Widget::getCurrentView(){
@@ -2581,4 +2622,12 @@ void Widget::pageHistoryBackward(){
     if(pageHistoryPosition >= 0 && pageHistoryPosition < pageHistory.size()){
         scrollDocumentToPageNum(pageHistory.at(pageHistoryPosition));
     }
+}
+
+UpdateWorker::UpdateWorker(Widget* widget)
+    : widgetPtr{widget} {}
+
+void UpdateWorker::process(){
+    widgetPtr->updateNecessaryPagesBuffer();
+    emit finished();
 }

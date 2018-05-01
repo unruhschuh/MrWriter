@@ -14,6 +14,7 @@
 #include <QSizeGrip>
 #include <QGridLayout>
 #include <QSet>
+#include <QThread>
 #include <QtConcurrent>
 #include <QMutex>
 #include <QMutexLocker>
@@ -40,6 +41,8 @@
 struct BasicPageSize;
 struct BasicPageSizeHash;
 struct BasicPageSizeEqual;
+
+class UpdateWorker;
 
 class Widget : public QWidget
 // class Widget : public QOpenGLWidget
@@ -136,7 +139,7 @@ public:
   int getCurrentPage();
   /**
    * @brief getVisiblePages
-   * @return the number of visible pages
+   * @return the indices of the visible pages
    */
   QSet<int> getVisiblePages();
 
@@ -179,7 +182,8 @@ public:
   MrDoc::Document currentDocument;
 
   QVector<std::shared_ptr<std::shared_ptr<QPixmap>>> pageBufferPtr; /**< buffer for page pixmaps */
-  QMutex pageBufferPtrMutex; /**< Mutex for @ref pageBufferPtr */
+  QMutex pageBufferPtrMutex; /**< Mutex for @ref pageBufferPtr It locks only single buffer operations like replace, but not clear.*/
+  QMutex overallBufferMutex; /**< Mutex for @ref pageBufferPtr. */
 
   QColor currentColor;
   qreal currentPenWidth;
@@ -219,11 +223,14 @@ private:
   };
   std::unordered_map<BasicPageSize, std::shared_ptr<std::shared_ptr<QPixmap>>, BasicPageSizeHash, BasicPageSizeEqual> basePixmapMap; /**< Stores the pointers to the blank placeholders for certain page sizes */
   QMutex basePixmapMutex;
+
   int previousVerticalValueRendered = 0; /**< Stores the vertical slider value where the last call of updateAllPageBuffers happened */
   int previousVerticalValueMaybeRendered = 0; /**< Stores the vertical slider value where the last @ref scrollTimer start happened */
   int previousHorizontalValueRendered = 0;
   int previousHorizontalValueMaybeRendered = 0;
   QTimer* scrollTimer;
+
+  QThread* updateThread = new QThread();
 
   QTime timer;
 
@@ -399,6 +406,25 @@ public slots:
 
   void pageHistoryForward();
   void pageHistoryBackward();
+};
+
+/**
+ * @brief The UpdateWorker class calls updateNecessaryPages. It is necessary to work with QThread instead of QtConcurrent.
+ */
+class UpdateWorker : public QObject {
+    Q_OBJECT
+
+public:
+    UpdateWorker(Widget* widget);
+
+public slots:
+    void process();
+
+signals:
+    void finished();
+
+private:
+    Widget* widgetPtr;
 };
 
 #endif // WIDGET_H
