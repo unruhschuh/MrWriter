@@ -167,6 +167,9 @@ void Widget::updateAllPageBuffers()
 
 void Widget::updateAllPageBuffersDirtyZoom(){
     if(dirtyZoom){
+        if(updateThread->isRunning()){
+            updateThread->requestInterruption();
+        }
 
         QMutexLocker locker1(&overallBufferMutex);
 
