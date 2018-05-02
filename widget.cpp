@@ -118,6 +118,11 @@ void Widget::updateAllPageBuffers()
     }
 
     if(prevZoom != zoom || pageBufferPtr.size() != currentDocument.pages.size() || pageBufferPtr.isEmpty()){
+        if(ctrlZoom){
+            dismissedCleanZoom = true;
+            return;
+        }
+        dismissedCleanZoom = false;
         QMutexLocker locker1(&overallBufferMutex);
 
         QVector<QFuture<void>> future;
@@ -186,7 +191,7 @@ void Widget::updateAllPageBuffersDirtyZoom(){
             future[buffNum].waitForFinished();
         }
         repaint();
-        updateAllPageBuffersTimer->start(25*zoom);
+        updateAllPageBuffersTimer->start(33);
     }
     dirtyZoom = false;
 
@@ -1201,6 +1206,7 @@ void Widget::keyPressEvent(QKeyEvent *event){
 void Widget::wheelEvent(QWheelEvent *event){
     if(event->modifiers().testFlag(Qt::ControlModifier)){
         event->ignore();
+        ctrlZoom = true;
         zoomTo(zoom + ((qreal)(event->angleDelta().y()/360.0)));
     }
     else{

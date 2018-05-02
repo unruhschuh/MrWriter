@@ -1330,6 +1330,18 @@ void MainWindow::closeEvent(QCloseEvent *event)
   }
 }
 
+void MainWindow::keyReleaseEvent(QKeyEvent *event){
+    if(event->key() == Qt::Key_Control){
+        qDebug() << "release";
+        mainWidget->ctrlZoom = false;
+        if(mainWidget->dismissedCleanZoom){
+            mainWidget->updateAllPageBuffers();
+            mainWidget->update();
+            mainWidget->updateAllPageBuffers();
+        }
+    }
+}
+
 bool MainWindow::maybeSave()
 {
   if (mainWidget->currentDocument.documentChanged())

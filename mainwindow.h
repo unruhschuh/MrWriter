@@ -33,6 +33,8 @@ protected:
   void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
   void showEvent(QShowEvent *event) Q_DECL_OVERRIDE;
 
+  void keyReleaseEvent(QKeyEvent* event) override;
+
 public slots:
   void updateGUI();
 

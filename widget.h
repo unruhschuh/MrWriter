@@ -208,6 +208,9 @@ public:
   qreal zoom;
   qreal prevZoom;
 
+  bool ctrlZoom = false; /**< true, if ctrl+wheel was/is used for zooming. Becomes false, when ctrl is released */ //maybe use getter/setter?
+  bool dismissedCleanZoom = false; /**< true, if a clean zoom was dismissed, because ctrlZoom was true. */
+
 private:
   struct BasicPageSize{
       int pageWidth;
