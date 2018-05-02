@@ -114,6 +114,7 @@ public:
    * a blank placeholder (stored in @ref basePixmapMap) is loaded into the buffer.
    */
   void updateAllPageBuffers();
+  void updateAllPageBuffersDirtyZoom();
   /**
    * @brief updateNecessaryPagesBuffer updates the page buffer only for currentpage plus/minus 6 pages.
    * @details A page gets repainted if its current buffer pixmap is a placeholder.
@@ -130,6 +131,7 @@ public:
    * @param buffNum page index
    */
   void updateBufferWithPlaceholder(int buffNum);
+  void updateBufferDirtyZoom(int buffNum);
   void updateBufferRegion(int buffNum, QRectF const &clipRect);
   void drawOnBuffer(bool last = false);
   int getPageFromMousePos(QPointF mousePos);
@@ -231,6 +233,9 @@ private:
   QTimer* scrollTimer;
 
   QThread* updateThread = new QThread();
+
+  bool dirtyZoom = false;
+  QTimer* updateAllPageBuffersTimer;
 
   QTime timer;
 
@@ -337,6 +342,8 @@ private slots:
    * @brief updatePageAfterScrollTimer updates (necessary) pages when @ref scrollTimer stopped.
    */
   void updatePageAfterScrollTimer();
+
+  void updatePageAfterZoomTimer();
 
   void undo();
   void redo();

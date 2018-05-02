@@ -79,6 +79,8 @@ Widget::Widget(QWidget *parent)
 
   currentView = view::VERTICAL;
 
+  updateAllPageBuffersTimer = new QTimer(this);
+
   currentDocument = MrDoc::Document();
 
   currentPenWidth = 1.41;
@@ -104,6 +106,8 @@ Widget::Widget(QWidget *parent)
   scrollTimer = new QTimer(this);
   connect(scrollTimer, &QTimer::timeout, this, &Widget::updatePageAfterScrollTimer);
   //scrollTimer->setInterval(30);
+
+  connect(updateAllPageBuffersTimer, &QTimer::timeout, this, &Widget::updatePageAfterZoomTimer);
 }
 
 void Widget::updateAllPageBuffers()
@@ -112,6 +116,7 @@ void Widget::updateAllPageBuffers()
         qDebug() << "isRunning";
         updateThread->requestInterruption();
     }
+
     if(prevZoom != zoom || pageBufferPtr.size() != currentDocument.pages.size() || pageBufferPtr.isEmpty()){
         QMutexLocker locker1(&overallBufferMutex);
 
@@ -152,7 +157,38 @@ void Widget::updateAllPageBuffers()
         updateThread->start();
         //QtConcurrent::run(this, &Widget::updateNecessaryPagesBuffer);
     }
-    //scrollingBecauseOfZooming = false;
+    dirtyZoom = false;
+}
+
+void Widget::updateAllPageBuffersDirtyZoom(){
+    if(dirtyZoom){
+        QMutexLocker locker1(&overallBufferMutex);
+
+        QVector<QFuture<void>> future;
+        //basePixmapMap.clear();
+
+        QSet<int> allPages;
+        for(int i = 0; i < currentDocument.pages.size(); ++i){
+            allPages.insert(i);
+        }
+        QSet<int> visiblePages = getVisiblePages();
+        QSet<int> nonVisiblePages = allPages.subtract(visiblePages);
+        for(int buffNum : visiblePages){
+            future.append(QtConcurrent::run(this, &Widget::updateBufferDirtyZoom, buffNum));
+        }
+        for(int buffNum : nonVisiblePages){
+            future.append(QtConcurrent::run(this, &Widget::updateBufferWithPlaceholder, buffNum));
+        }
+
+        for (int buffNum = 0; buffNum < currentDocument.pages.size(); ++buffNum)
+        {
+            future[buffNum].waitForFinished();
+        }
+        repaint();
+        updateAllPageBuffersTimer->start(50);
+    }
+    dirtyZoom = false;
+
 }
 
 void Widget::updateNecessaryPagesBuffer(){
@@ -182,7 +218,6 @@ void Widget::updateNecessaryPagesBuffer(){
 
     for(int buffNum = startingPage; buffNum < endPage; ++buffNum){
         if(QThread::currentThread()->isInterruptionRequested()){
-            qDebug() << "interrupt requested";
             for(int i = 0; i < future.size(); ++i){
                 future[i].waitForFinished();
             }
@@ -414,6 +449,31 @@ void Widget::updateBufferWithPlaceholder(int buffNum){
 //    basePixmapMutex.unlock();
 }
 
+void Widget::updateBufferDirtyZoom(int buffNum){
+    MrDoc::Page const &page = currentDocument.pages.at(buffNum);
+    int pixelWidth = zoom * page.width() * devicePixelRatio();
+    int pixelHeight = zoom * page.height() * devicePixelRatio();
+
+    std::shared_ptr<std::shared_ptr<QPixmap>> newPixmap = std::make_shared<std::shared_ptr<QPixmap>>(std::make_shared<QPixmap>(pixelWidth, pixelHeight));
+    (*newPixmap)->setDevicePixelRatio(devicePixelRatio());
+    (*newPixmap)->fill(page.backgroundColor());
+    QPainter painter;
+    painter.begin(newPixmap.get()->get());
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    //painter.scale(zoom/prevZoom, zoom/prevZoom);
+
+    {
+        QMutexLocker locker(&pageBufferPtrMutex);
+        painter.drawPixmap(0,0,pixelWidth,pixelHeight, *(*(pageBufferPtr[buffNum])));
+    }
+
+    painter.end();
+    {
+        QMutexLocker locker(&pageBufferPtrMutex);
+        pageBufferPtr.replace(buffNum, newPixmap);
+    }
+}
+
 void Widget::updateBufferRegion(int buffNum, QRectF const &clipRect)
 {
   QPainter painter;
@@ -482,6 +542,12 @@ void Widget::updatePageAfterScrollTimer(){
             previousHorizontalValueRendered = previousHorizontalValueMaybeRendered;
         }
     }
+}
+
+void Widget::updatePageAfterZoomTimer(){
+    updateAllPageBuffersTimer->stop();
+    updateAllPageBuffers();
+    update();
 }
 
 void Widget::drawOnBuffer(bool last)
@@ -2027,7 +2093,8 @@ void Widget::zoomTo(qreal newZoom)
   {
     return;
   }
-
+  if(prevZoom > 0)
+    dirtyZoom = true;
   prevZoom = zoom;
   zoom = newZoom;
 
@@ -2073,7 +2140,11 @@ void Widget::zoomTo(qreal newZoom)
   scrollArea->horizontalScrollBar()->setValue(newH);
   scrollArea->verticalScrollBar()->setValue(newV);
 
-  updateAllPageBuffers();
+  //updateAllPageBuffers();
+  if(dirtyZoom)
+      updateAllPageBuffersDirtyZoom();
+  else
+      updateAllPageBuffers();
 
   //scrollArea->verticalScrollBar()->setTracking(false);
   connect(scrollArea->verticalScrollBar(), &QScrollBar::valueChanged, this, &Widget::updatePageAfterScrolling, Qt::UniqueConnection);
@@ -2285,6 +2356,7 @@ void Widget::setDocument(const MrDoc::Document &newDocument)
   pageBufferPtr.clear();
   prevZoom = -1.0;  //this is a workaround, so that all pages get rendered and updateNecessaryPagesBuffer is not called
   zoom = 0.0; // otherwise zoomTo() doesn't do anything if zoom == newZoom
+  dirtyZoom = false;
   zoomFitWidth();
   pageFirst();
 }
