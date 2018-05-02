@@ -162,6 +162,7 @@ void Widget::updateAllPageBuffers()
 
 void Widget::updateAllPageBuffersDirtyZoom(){
     if(dirtyZoom){
+
         QMutexLocker locker1(&overallBufferMutex);
 
         QVector<QFuture<void>> future;
@@ -185,7 +186,7 @@ void Widget::updateAllPageBuffersDirtyZoom(){
             future[buffNum].waitForFinished();
         }
         repaint();
-        updateAllPageBuffersTimer->start(50);
+        updateAllPageBuffersTimer->start(25*zoom);
     }
     dirtyZoom = false;
 
