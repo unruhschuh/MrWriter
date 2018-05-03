@@ -115,6 +115,10 @@ public:
    * a blank placeholder (stored in @ref basePixmapMap) is loaded into the buffer.
    */
   void updateAllPageBuffers();
+  /**
+   * @brief updateAllPageBuffersDirtyZoom updates the page buffers in @ref pageBufferPtr with new zoom level.
+   * @details It zooms by scaling the existing buffer pixmaps by zoom factor. It does not a rerender.
+   */
   void updateAllPageBuffersDirtyZoom();
   /**
    * @brief updateNecessaryPagesBuffer updates the page buffer only for currentpage plus/minus 6 pages.
@@ -132,12 +136,20 @@ public:
    * @param buffNum page index
    */
   void updateBufferWithPlaceholder(int buffNum);
+  /**
+   * @brief updateBufferDirtyZoom loads a scaled pixmap into @ref pageBufferPtr.
+   * @param buffNum page index
+   */
   void updateBufferDirtyZoom(int buffNum);
   void updateBufferRegion(int buffNum, QRectF const &clipRect);
   void drawOnBuffer(bool last = false);
   int getPageFromMousePos(QPointF mousePos);
   QPointF getPagePosFromMousePos(QPointF mousePos, int pageNum);
   QPointF getAbsolutePagePosFromMousePos(QPointF mousePos);
+  /**
+   * @brief getWidgetGeometry calculates current/needed widget geometry based on page sizes and gaps between pages.
+   * @return
+   */
   QRect getWidgetGeometry();
   int getCurrentPage();
   /**

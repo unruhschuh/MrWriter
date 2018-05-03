@@ -113,7 +113,6 @@ Widget::Widget(QWidget *parent)
 void Widget::updateAllPageBuffers()
 {
     if(updateThread->isRunning()){
-        qDebug() << "isRunning";
         updateThread->requestInterruption();
     }
 
