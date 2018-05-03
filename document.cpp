@@ -621,6 +621,19 @@ bool Document::loadMOJ(QString fileName)
       QStringRef color = attributes.value("", "color");
       QColor newColor = stringToColor(color.toString());
       pages.last().setBackgroundColor(newColor);
+
+      QStringRef backgroundTypeString = attributes.value("", "backgroundType");
+      MrDoc::Page::backgroundType backgroundType;
+      if(backgroundTypeString.toString() == QString("plain")){
+          backgroundType = MrDoc::Page::backgroundType::PLAIN;
+      }
+      else if(backgroundTypeString.toString() == QString("squared")){
+          backgroundType = MrDoc::Page::backgroundType::SQUARED;
+      }
+      else if(backgroundTypeString.toString() == QString("ruled")){
+          backgroundType = MrDoc::Page::backgroundType::RULED;
+      }
+      pages.last().setBackgroundType(backgroundType);
     }
     if (reader.name() == "text" && reader.tokenType() == QXmlStreamReader::StartElement){
         QXmlStreamAttributes attributes = reader.attributes();
@@ -785,6 +798,14 @@ bool Document::saveMOJ(QString fileName)
         writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(pages[i].backgroundColor().name(QColor::HexArgb))));
         writer.writeAttribute(QXmlStreamAttribute("style", "plain"));
     }
+
+    QString backgroundTypeString;
+    switch(pages[i].getBackgroundType()){
+        case MrDoc::Page::backgroundType::PLAIN : backgroundTypeString = "plain"; break;
+        case MrDoc::Page::backgroundType::SQUARED : backgroundTypeString = "squared"; break;
+        case MrDoc::Page::backgroundType::RULED : backgroundTypeString = "ruled"; break;
+    }
+    writer.writeAttribute(QXmlStreamAttribute("backgroundType", backgroundTypeString));
 
 //    writer.writeAttribute(QXmlStreamAttribute("type", "solid"));
 //    writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(pages[i].backgroundColor().name(QColor::HexArgb))));
