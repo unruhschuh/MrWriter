@@ -25,6 +25,12 @@ class Page
 public:
     Page();
 
+    enum class backgroundType {
+        PLAIN,
+        SQUARED,
+        RULED
+    };
+
   qreal width() const;
   qreal height() const;
 
@@ -33,6 +39,9 @@ public:
 
   void setBackgroundColor(QColor backgroundColor);
   QColor backgroundColor(void) const;
+
+  void setBackgroundType(backgroundType type);
+  backgroundType getBackgroundType() const;
 
   const QRectF &dirtyRect() const;
   void clearDirtyRect();
@@ -201,6 +210,7 @@ private:
   char* compileMarkdown(const QString& text);
   QSizeF adjustMarkdownSize(int x, int y, QSizeF oldSize);
   QColor m_backgroundColor;
+  backgroundType m_backgroundType;
 
   qreal m_width;  // post script units
   qreal m_height; // post script units

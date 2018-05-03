@@ -503,7 +503,7 @@ void CutCommand::redo()
 ** ChangePageSettingsCommand
 */
 
-ChangePageSettingsCommand::ChangePageSettingsCommand(Widget *newWidget, int newPageNum, QSizeF newSize, QColor newBackgroundColor, QUndoCommand *parent)
+ChangePageSettingsCommand::ChangePageSettingsCommand(Widget *newWidget, int newPageNum, QSizeF newSize, QColor newBackgroundColor, MrDoc::Page::backgroundType newBackgroundType, QUndoCommand *parent)
     : QUndoCommand(parent)
 {
   widget = newWidget;
@@ -511,7 +511,9 @@ ChangePageSettingsCommand::ChangePageSettingsCommand(Widget *newWidget, int newP
   prevSize = QSizeF(widget->currentDocument.pages[pageNum].width(), widget->currentDocument.pages[pageNum].height());
   size = newSize;
   prevBackgroundColor = widget->currentDocument.pages[pageNum].backgroundColor();
+  prevBackgroundType = widget->currentDocument.pages[pageNum].getBackgroundType();
   backgroundColor = newBackgroundColor;
+  backgroundType = newBackgroundType;
 }
 
 void ChangePageSettingsCommand::undo()
@@ -521,6 +523,7 @@ void ChangePageSettingsCommand::undo()
   widget->currentDocument.pages[pageNum].setWidth(width);
   widget->currentDocument.pages[pageNum].setHeight(height);
   widget->currentDocument.pages[pageNum].setBackgroundColor(prevBackgroundColor);
+  widget->currentDocument.pages[pageNum].setBackgroundType(prevBackgroundType);
   widget->updateBuffer(pageNum);
   widget->setGeometry(widget->getWidgetGeometry());
 }
@@ -532,6 +535,7 @@ void ChangePageSettingsCommand::redo()
   widget->currentDocument.pages[pageNum].setWidth(width);
   widget->currentDocument.pages[pageNum].setHeight(height);
   widget->currentDocument.pages[pageNum].setBackgroundColor(backgroundColor);
+  widget->currentDocument.pages[pageNum].setBackgroundType(backgroundType);
   widget->updateBuffer(pageNum);
   widget->setGeometry(widget->getWidgetGeometry());
 }

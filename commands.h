@@ -181,7 +181,7 @@ private:
 class ChangePageSettingsCommand : public QUndoCommand
 {
 public:
-  ChangePageSettingsCommand(Widget *newWidget, int newPageNum, QSizeF newSize, QColor newBackgroundColor, QUndoCommand *parent = 0);
+  ChangePageSettingsCommand(Widget *newWidget, int newPageNum, QSizeF newSize, QColor newBackgroundColor, MrDoc::Page::backgroundType newBackgroundType, QUndoCommand *parent = 0);
   void undo() Q_DECL_OVERRIDE;
   void redo() Q_DECL_OVERRIDE;
 
@@ -192,6 +192,8 @@ private:
   QSizeF size;
   QColor prevBackgroundColor;
   QColor backgroundColor;
+  MrDoc::Page::backgroundType backgroundType;
+  MrDoc::Page::backgroundType prevBackgroundType;
 };
 
 class ChangeTextCommand : public QUndoCommand{

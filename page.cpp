@@ -13,6 +13,7 @@ Page::Page(/*const Page &page*/)
     //    setWidth(600.0);
     //    setHeight(800.0);
     setBackgroundColor(QColor(255, 255, 255));
+    setBackgroundType(backgroundType::PLAIN);
 }
 
 qreal Page::height() const
@@ -44,6 +45,26 @@ void Page::setWidth(qreal width)
 void Page::paint(QPainter &painter, qreal zoom, QRectF region)
 {
     painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+    if(m_backgroundType != backgroundType::PLAIN){
+        QPen pen;
+        pen.setColor(QColor(100,100,150));
+        painter.setPen(pen);
+        if(m_backgroundType == backgroundType::SQUARED){
+            for(int i = 0; i < 42*m_width/595.0; ++i){
+                painter.drawLine(QPointF(595.0/42*(i+1)*zoom,0), QPointF(595.0/42*(i+1)*zoom, m_height*zoom));
+            }
+            for(int i = 0; i < 59.4*m_height/842.0; ++i){
+                painter.drawLine(QPointF(0, 842.0/59.4*(i+1)*zoom), QPointF(m_width*zoom, 842.0/59.4*(i+1)*zoom));
+            }
+        }
+        else if(m_backgroundType == backgroundType::RULED){
+            for(int i = 0; i < 29.7*m_height/842.0; ++i){
+                painter.drawLine(QPointF(0, 842.0/29.7*(i+1)*zoom), QPointF(m_width*zoom, 842.0/29.7*(i+1)*zoom));
+            }
+        }
+        pen.setColor(QColor(255,255,255));
+        painter.setPen(pen);
+    }
     if(m_pdfPointer != nullptr){
         //double eZoom = zoom*(exp(-zoom)+2) > 10 ? 10 : zoom*(exp(-zoom)+2);
         //auto img = m_pdfPointer->renderToImage(72.0*eZoom, 72.0*eZoom, 0,0,int(m_width*eZoom), int(m_height*eZoom));
@@ -170,6 +191,14 @@ void Page::setBackgroundColor(QColor backgroundColor)
 QColor Page::backgroundColor() const
 {
   return m_backgroundColor;
+}
+
+void Page::setBackgroundType(backgroundType type){
+    m_backgroundType = type;
+}
+
+MrDoc::Page::backgroundType Page::getBackgroundType() const {
+    return m_backgroundType;
 }
 
 const QRectF &Page::dirtyRect() const

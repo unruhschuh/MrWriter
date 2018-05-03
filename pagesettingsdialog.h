@@ -11,15 +11,19 @@
 #include <QPageSize>
 #include <QColor>
 
+#include <map>
+
 #include "colorbutton.h"
+#include "page.h"
 
 class PageSettingsDialog : public QDialog
 {
   Q_OBJECT
 public:
-  explicit PageSettingsDialog(const QSizeF &newPageSize, const QColor &newBackgroundColor, QWidget *parent = 0);
+  explicit PageSettingsDialog(const QSizeF &newPageSize, const QColor &newBackgroundColor, const MrDoc::Page::backgroundType newBackgroundType, QWidget *parent = 0);
   QSizeF currentPageSize;
   QColor backgroundColor;
+  MrDoc::Page::backgroundType m_backgroundType;
 
 signals:
 
@@ -33,11 +37,15 @@ private:
   QVector<QSizeF> myStandardPageSizes;
   QVector<QString> myStandardPageSizeNames;
 
+  QVector<MrDoc::Page::backgroundType> backgroundTypes;
+  QVector<QString> backgroundTypeNames;
+
   QComboBox *standardPaperSizesComboBox;
   QLineEdit *widthLineEdit;
   QLineEdit *heightLineEdit;
   QPushButton *swapWidthHeightButton;
   ColorButton *colorButton;
+  QComboBox *backgroundTypesComboBox;
   QCheckBox *scaleContentCheckBox;
   QCheckBox *applyToAllCheckBox;
 

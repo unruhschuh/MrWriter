@@ -1531,14 +1531,14 @@ void MainWindow::pageSettings()
   int pageNum = mainWidget->getCurrentPage();
   qreal width = mainWidget->currentDocument.pages[pageNum].width();
   qreal height = mainWidget->currentDocument.pages[pageNum].height();
-  PageSettingsDialog *pageDialog = new PageSettingsDialog(QSizeF(width, height), mainWidget->currentDocument.pages[pageNum].backgroundColor(), this);
+  PageSettingsDialog *pageDialog = new PageSettingsDialog(QSizeF(width, height), mainWidget->currentDocument.pages[pageNum].backgroundColor(), mainWidget->currentDocument.pages[pageNum].getBackgroundType(), this);
   pageDialog->setWindowModality(Qt::WindowModal);
   if (pageDialog->exec() == QDialog::Accepted)
   {
     if (pageDialog->currentPageSize.isValid())
     {
       qDebug() << "valid";
-      ChangePageSettingsCommand *cpsCommand = new ChangePageSettingsCommand(mainWidget, pageNum, pageDialog->currentPageSize, pageDialog->backgroundColor);
+      ChangePageSettingsCommand *cpsCommand = new ChangePageSettingsCommand(mainWidget, pageNum, pageDialog->currentPageSize, pageDialog->backgroundColor, pageDialog->m_backgroundType);
       mainWidget->undoStack.push(cpsCommand);
     }
   }
