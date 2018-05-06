@@ -170,6 +170,10 @@ void Widget::updateAllPageBuffersDirtyZoom(){
             updateThread->requestInterruption();
         }
 
+        if(currentDocument.pages.size() != pageBufferPtr.size()){
+            updateAllPageBuffers();
+            return;
+        }
         QMutexLocker locker1(&overallBufferMutex);
 
         QVector<QFuture<void>> future;
