@@ -198,10 +198,13 @@ private:
 
 class ChangeTextCommand : public QUndoCommand{
 public:
-    ChangeTextCommand(MrDoc::Page* page, int textIndex, const QColor& prevColor, const QColor& color, const QFont& prevFont, const QFont& font, const QString& prevText, const QString& text, QUndoCommand *parent = nullptr);
+    ChangeTextCommand(Widget *widget, int pageNum, MrDoc::Page* page, int textIndex, const QColor& prevColor,
+                      const QColor& color, const QFont& prevFont, const QFont& font, const QString& prevText, const QString& text, QUndoCommand *parent = nullptr);
     void undo() override;
     void redo() override;
 private:
+    Widget* m_widget;
+    int m_pageNum;
     MrDoc::Page* m_page;
     int m_textIndex;
     QString m_prevText;
@@ -217,10 +220,12 @@ private:
  */
 class TextCommand : public QUndoCommand{
 public:
-    TextCommand(MrDoc::Page* page, const QRectF &rect, const QColor& color, const QFont& font, const QString& text, QUndoCommand* parent = nullptr);
+    TextCommand(Widget *widget, int pageNum, MrDoc::Page* page, const QRectF &rect, const QColor& color, const QFont& font, const QString& text, QUndoCommand* parent = nullptr);
     void undo() override;
     void redo() override;
 private:
+    Widget* m_widget;
+    int m_pageNum;
     MrDoc::Page* m_page;
     int m_textIndex;
     QRectF m_rect;
@@ -231,10 +236,12 @@ private:
 
 class ChangeMarkdownCommand : public QUndoCommand{
 public:
-    ChangeMarkdownCommand(MrDoc::Page* page, int markdownIndex, const QString& prevText, const QString& text, QUndoCommand* parent = nullptr);
+    ChangeMarkdownCommand(Widget* widget, int pageNum, MrDoc::Page* page, int markdownIndex, const QString& prevText, const QString& text, QUndoCommand* parent = nullptr);
     void undo() override;
     void redo() override;
 private:
+    Widget* m_widget;
+    int m_pageNum;
     MrDoc::Page* m_page;
     int m_markdownIndex;
     QString m_prevText;
@@ -243,10 +250,12 @@ private:
 
 class MarkdownCommand : public QUndoCommand{
 public:
-    MarkdownCommand(MrDoc::Page* page, const QPointF &upperLeft, const QString& text, QUndoCommand* parent = nullptr);
+    MarkdownCommand(Widget* widget, int pageNum, MrDoc::Page* page, const QPointF &upperLeft, const QString& text, QUndoCommand* parent = nullptr);
     void undo() override;
     void redo() override;
 private:
+    Widget* m_widget;
+    int m_pageNum;
     MrDoc::Page* m_page;
     int m_markdowIndex;
     QPointF m_upperLeft;

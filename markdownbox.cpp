@@ -6,5 +6,4 @@ MarkdownBox::MarkdownBox(QWidget *parent)
 void MarkdownBox::applyText(){
     hide();
     setText(QString(""));
-    emit updatePageMarkdown(m_pageNum);
 }

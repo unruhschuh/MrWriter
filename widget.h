@@ -344,11 +344,6 @@ private:
 
 private slots:
   /**
-   * @brief updatePageAfterText updates page buffer when text is inserted
-   * @param i page index
-   */
-  void updatePageAfterText(int i);
-  /**
    * @brief updatePage starts @ref scrollTimer when the user scrolled more than one (average) page height/width
    * @param value is current scrollbar value
    */

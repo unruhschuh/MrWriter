@@ -20,6 +20,10 @@ void AbstractTextBox::setPageNum(int pageNum){
     m_pageNum = pageNum;
 }
 
+int AbstractTextBox::getPageNum(){
+    return m_pageNum;
+}
+
 void AbstractTextBox::setPrevText(const QString &text){
     m_prevText = text;
 }

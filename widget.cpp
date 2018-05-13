@@ -27,8 +27,6 @@ Widget::Widget(QWidget *parent)
 // Widget::Widget(QWidget *parent) : QOpenGLWidget(parent)
 {
     textBox = new TextBox(this);
-    connect(this, &Widget::setSimpleText, textBox, &TextBox::applyText);
-    connect(textBox, &TextBox::updatePageSimpleText, this, &Widget::updatePageAfterText);
     textBox->setWordWrapMode(QTextOption::WordWrap);
     textBox->setWindowFlags(Qt::SubWindow);
     QSizeGrip* sizeGrip = new QSizeGrip(textBox);
@@ -37,8 +35,6 @@ Widget::Widget(QWidget *parent)
     textBox->hide();
 
     markdownBox = new MarkdownBox(this);
-    connect(this, &Widget::setMarkdownText, markdownBox, &MarkdownBox::applyText);
-    connect(markdownBox, &MarkdownBox::updatePageMarkdown, this, &Widget::updatePageAfterText);
     markdownBox->setWordWrapMode(QTextOption::WordWrap);
     markdownBox->setWindowFlags(Qt::SubWindow);
     QSizeGrip* sizeGrip2 = new QSizeGrip(markdownBox);
@@ -515,11 +511,6 @@ void Widget::updateAllDirtyBuffers()
     }
   }
   update();
-}
-
-void Widget::updatePageAfterText(int i){
-    updateBuffer(i);
-    emit modified();
 }
 
 void Widget::updatePageAfterScrolling(int value){
@@ -1224,38 +1215,44 @@ void Widget::closeTextBox(){
     if(textBoxOpen){
         textBox->setTextColor(getCurrentColor());
         if(textChanged){
-            ChangeTextCommand* changeTextCommand = new ChangeTextCommand(textBox->getPage(), textBox->getTextIndex(), textBox->getPrevColor(),
+            ChangeTextCommand* changeTextCommand = new ChangeTextCommand(this, textBox->getPageNum(), textBox->getPage(), textBox->getTextIndex(), textBox->getPrevColor(),
                                                                          getCurrentColor(), textBox->getPrevFont(), getCurrentFont(),
                                                                          textBox->getPrevText(), textBox->toPlainText());
             undoStack.push(changeTextCommand);
             textChanged = false;
-            emit setSimpleText();
         }
         else{
-            TextCommand* textCommand = new TextCommand(textBox->getPage(), QRectF(textBox->getTextX(), textBox->getTextY(), 0, 0), getCurrentColor(), textBox->getFont(), textBox->toPlainText());
+            TextCommand* textCommand = new TextCommand(this, textBox->getPageNum(), textBox->getPage(), QRectF(textBox->getTextX(), textBox->getTextY(), 0, 0),
+                                                       getCurrentColor(), textBox->getFont(), textBox->toPlainText());
             undoStack.push(textCommand);
-            emit setSimpleText();
         }
+        textBox->applyText();
+
+        emit modified();
         textBoxOpen = false;
         currentDocument.setDocumentChanged(true);
+
         setCurrentState(state::IDLE);
     }
     else if(markdownBoxOpen){
         qDebug() << "markdown open";
         if(markdownChanged){
-            ChangeMarkdownCommand* changeMarkdownCommand = new ChangeMarkdownCommand(markdownBox->getPage(), markdownBox->getTextIndex(),
+            ChangeMarkdownCommand* changeMarkdownCommand = new ChangeMarkdownCommand(this, markdownBox->getPageNum(), markdownBox->getPage(), markdownBox->getTextIndex(),
                                                                                     markdownBox->getPrevText(), markdownBox->toPlainText());
             undoStack.push(changeMarkdownCommand);
             markdownChanged = false;
-            emit setMarkdownText();
         }
         else{
-            MarkdownCommand* markdownCommand = new MarkdownCommand(markdownBox->getPage(), QPointF(markdownBox->getTextX(), markdownBox->getTextY()), markdownBox->toPlainText());
+            MarkdownCommand* markdownCommand = new MarkdownCommand(this, markdownBox->getPageNum(), markdownBox->getPage(),
+                                                                   QPointF(markdownBox->getTextX(), markdownBox->getTextY()), markdownBox->toPlainText());
             undoStack.push(markdownCommand);
-            emit setMarkdownText();
         }
+        markdownBox->applyText();
+
+        emit modified();
         markdownBoxOpen = false;
         currentDocument.setDocumentChanged(true);
+
         setCurrentState(state::IDLE);
     }
 }

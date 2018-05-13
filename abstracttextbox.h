@@ -16,6 +16,7 @@ public:
     void setTextIndex(int index);
 
     MrDoc::Page* getPage();
+    int getPageNum();
     int getTextIndex() const;
     const QString& getPrevText() const;
     int getTextX() const;

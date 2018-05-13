@@ -544,8 +544,11 @@ void ChangePageSettingsCommand::redo()
  * Text Change Command
  */
 
-ChangeTextCommand::ChangeTextCommand(MrDoc::Page* page, int textIndex, const QColor &prevColor, const QColor &color, const QFont &prevFont, const QFont &font, const QString& prevText, const QString& text, QUndoCommand* parent)
+ChangeTextCommand::ChangeTextCommand(Widget* widget, int pageNum, MrDoc::Page* page, int textIndex, const QColor &prevColor, const QColor &color,
+                                     const QFont &prevFont, const QFont &font, const QString& prevText, const QString& text, QUndoCommand* parent)
     : QUndoCommand(parent),
+      m_widget {widget},
+      m_pageNum {pageNum},
       m_page {page},
       m_textIndex {textIndex},
       m_prevText {prevText},
@@ -559,18 +562,24 @@ ChangeTextCommand::ChangeTextCommand(MrDoc::Page* page, int textIndex, const QCo
 
 void ChangeTextCommand::undo(){
     m_page->setText(m_textIndex, m_prevFont, m_prevColor, m_prevText);
+    m_widget->updateBuffer(m_pageNum);
+    m_widget->update();
 }
 
 void ChangeTextCommand::redo(){
     m_page->setText(m_textIndex, m_font, m_color, m_text);
+    m_widget->updateBuffer(m_pageNum);
+    m_widget->update();
 }
 
 /* *************************************************
  * Text Insertion Command
  */
 
-TextCommand::TextCommand(MrDoc::Page *page, const QRectF& rect, const QColor &color, const QFont &font, const QString &text, QUndoCommand *parent)
+TextCommand::TextCommand(Widget* widget, int pageNum, MrDoc::Page *page, const QRectF& rect, const QColor &color, const QFont &font, const QString &text, QUndoCommand *parent)
     : QUndoCommand(parent),
+      m_widget {widget},
+      m_pageNum {pageNum},
       m_page {page},
       m_rect {rect},
       m_color {color},
@@ -580,17 +589,23 @@ TextCommand::TextCommand(MrDoc::Page *page, const QRectF& rect, const QColor &co
 
 void TextCommand::undo(){
     m_page->setText(m_textIndex, m_font, m_color, QString("")); //has the effect of removing it
+    m_widget->updateBuffer(m_pageNum);
+    m_widget->update();
 }
 
 void TextCommand::redo(){
     m_textIndex = m_page->appendText(m_rect, m_font, m_color, m_text);
+    m_widget->updateBuffer(m_pageNum);
+    m_widget->update();
 }
 
 /* **********************************************
  * Markdown Change Command
  */
-ChangeMarkdownCommand::ChangeMarkdownCommand(MrDoc::Page *page, int markdownIndex, const QString &prevText, const QString &text, QUndoCommand *parent)
+ChangeMarkdownCommand::ChangeMarkdownCommand(Widget *widget, int pageNum, MrDoc::Page *page, int markdownIndex, const QString &prevText, const QString &text, QUndoCommand *parent)
     : QUndoCommand(parent),
+      m_widget {widget},
+      m_pageNum {pageNum},
       m_page {page},
       m_markdownIndex {markdownIndex},
       m_prevText {prevText},
@@ -599,18 +614,24 @@ ChangeMarkdownCommand::ChangeMarkdownCommand(MrDoc::Page *page, int markdownInde
 
 void ChangeMarkdownCommand::undo(){
     m_page->setMarkdown(m_markdownIndex, m_prevText);
+    m_widget->updateBuffer(m_pageNum);
+    m_widget->update();
 }
 
 void ChangeMarkdownCommand::redo(){
     m_page->setMarkdown(m_markdownIndex, m_text);
+    m_widget->updateBuffer(m_pageNum);
+    m_widget->update();
 }
 
 /* *********************************************
  * Markdown Insertion Command
  */
 
-MarkdownCommand::MarkdownCommand(MrDoc::Page *page, const QPointF &upperLeft, const QString &text, QUndoCommand *parent)
+MarkdownCommand::MarkdownCommand(Widget *widget, int pageNum, MrDoc::Page *page, const QPointF &upperLeft, const QString &text, QUndoCommand *parent)
     : QUndoCommand(parent),
+      m_widget {widget},
+      m_pageNum {pageNum},
       m_page {page},
       m_upperLeft {upperLeft},
       m_text {text} {
@@ -618,8 +639,12 @@ MarkdownCommand::MarkdownCommand(MrDoc::Page *page, const QPointF &upperLeft, co
 
 void MarkdownCommand::undo(){
     m_page->setMarkdown(m_markdowIndex, QString("")); //has the effect of removing it
+    m_widget->updateBuffer(m_pageNum);
+    m_widget->update();
 }
 
 void MarkdownCommand::redo(){
     m_markdowIndex = m_page->appendMarkdown(QRectF(m_upperLeft, m_upperLeft), m_text);
+    m_widget->updateBuffer(m_pageNum);
+    m_widget->update();
 }

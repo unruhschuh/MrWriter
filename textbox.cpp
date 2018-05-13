@@ -35,5 +35,4 @@ const QFont& TextBox::getPrevFont() const {
 void TextBox::applyText(){
     hide();
     setText(QString(""));
-    emit updatePageSimpleText(m_pageNum);
 }
