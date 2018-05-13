@@ -623,7 +623,7 @@ bool Document::loadMOJ(QString fileName)
       pages.last().setBackgroundColor(newColor);
 
       QStringRef backgroundTypeString = attributes.value("", "backgroundType");
-      MrDoc::Page::backgroundType backgroundType;
+      MrDoc::Page::backgroundType backgroundType = MrDoc::Page::backgroundType::PLAIN;
       if(backgroundTypeString.toString() == QString("plain")){
           backgroundType = MrDoc::Page::backgroundType::PLAIN;
       }
