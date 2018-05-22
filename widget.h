@@ -35,6 +35,7 @@
 #include "textbox.h"
 #include "markdownbox.h"
 #include "page.h"
+#include "markdownselection.h"
 
 /**
  * These structs are basically for @ref basePixmapMap
@@ -77,7 +78,9 @@ public:
     SELECTED,
     MOVING_SELECTION,
     RESIZING_SELECTION,
-    ROTATING_SELECTION
+    ROTATING_SELECTION,
+    MARKDOWN_SELECTED,
+    MARKDOWN_MOVING
   };
   enum class view
   {
@@ -172,6 +175,7 @@ public:
 
   void setDocument(const MrDoc::Document &newDocument);
   void letGoSelection();
+  void letGoMarkdownSelection();
 
   void newFile();
   //    void openFile();
@@ -210,6 +214,8 @@ public:
 
   MrDoc::Selection currentSelection;
   MrDoc::Selection &clipboard = static_cast<TabletApplication *>(qApp)->clipboard;
+
+  MrDoc::MarkdownSelection currentMarkdownSelection;
 
   int selectingOnPage;
 
@@ -299,6 +305,10 @@ private:
   QPointF previousPagePos;
   MrDoc::Selection::GrabZone m_grabZone = MrDoc::Selection::GrabZone::None;
 
+  int previousMarkdownPageNum;
+  QPointF previousMarkdownPagePos; /**< previous position of markdown selection */
+  QPointF markdownDelta;
+
   TextBox* textBox;
   bool textBoxOpen = false;
   bool textChanged = false;
@@ -337,6 +347,9 @@ private:
   void startResizingSelection(QPointF mousePos, MrDoc::Selection::GrabZone grabZone);
   void continueResizingSelection(QPointF mousePos);
   void stopResizingSelection(QPointF mousePos);
+
+  void startMovingMarkdownSelection(QPointF mousePos);
+  void continueMovingMarkdownSelection(QPointF mousePos);
 
   void setPreviousTool();
 
@@ -408,6 +421,7 @@ protected:
   void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
   void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
   void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+  void mouseDoubleClickEvent(QMouseEvent* event) override;
 
   void tabletEvent(QTabletEvent *event) Q_DECL_OVERRIDE;
 

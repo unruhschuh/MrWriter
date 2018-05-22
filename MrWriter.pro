@@ -28,7 +28,8 @@ HEADERS  += version.h \
     textbox.h \
     searchbar.h \
     markdownbox.h \
-    abstracttextbox.h
+    abstracttextbox.h \
+    markdownselection.h
 
 #VERSION_MAJOR = MY_MAJOR_VERSION
 #VERSION_MINOR = MY_MINOR_VERSION
@@ -48,7 +49,8 @@ SOURCES += main.cpp\
     textbox.cpp \
     searchbar.cpp \
     abstracttextbox.cpp \
-    markdownbox.cpp
+    markdownbox.cpp \
+    markdownselection.cpp
 
 HEADERS  += mainwindow.h \
     widget.h \

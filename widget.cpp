@@ -23,7 +23,8 @@
 #include <QRectF>
 
 Widget::Widget(QWidget *parent)
-    : QWidget(parent)
+    : QWidget(parent),
+      currentMarkdownSelection{std::make_tuple<QRectF, QString>(QRectF(0,0,0,0), QString(""))}
 // Widget::Widget(QWidget *parent) : QOpenGLWidget(parent)
 {
     textBox = new TextBox(this);
@@ -668,6 +669,9 @@ void Widget::paintEvent(QPaintEvent *event)
         {
             currentSelection.paint(painter, zoom);
         }
+        else if ((currentState == state::MARKDOWN_SELECTED || currentState == state::MARKDOWN_MOVING) && i == currentMarkdownSelection.pageNum()){
+            currentMarkdownSelection.paint(painter,zoom);
+        }
 
         if(currentView == view::VERTICAL)
             painter.translate(QPointF(0.0, rectSource.height()/devicePixelRatio() + PAGE_GAP));
@@ -760,6 +764,35 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
       return;
     }
     return;
+  }
+
+  if (currentState == state::MARKDOWN_SELECTED){
+      if (eventType == QEvent::MouseButtonPress){
+          using GrabZone = MrDoc::MarkdownSelection::GrabZone;
+          GrabZone grabZone = currentMarkdownSelection.grabZone(pagePos);
+          if(grabZone == GrabZone::None){
+              letGoMarkdownSelection();
+              return;
+          }
+          else if(grabZone == GrabZone::Move){
+              startMovingMarkdownSelection(mousePos);
+              return;
+          }
+          else{
+              qDebug() << "Resize";
+          }
+      }
+  }
+
+  if (currentState == state::MARKDOWN_MOVING){
+      if (eventType == QEvent::MouseMove){
+          continueMovingMarkdownSelection(mousePos);
+          return;
+      }
+      if (eventType == QEvent::MouseButtonRelease){
+          setCurrentState(state::MARKDOWN_SELECTED);
+          return;
+      }
   }
 
   if (currentState == state::SELECTED)
@@ -1092,8 +1125,7 @@ void Widget::mousePressEvent(QMouseEvent *event)
             textBox->setPageNum(pageNum);
             textBox->setPage(&(currentDocument.pages[pageNum]));
             textBox->setTextIndex(-1);
-            textBox->setTextX(point.x());
-            textBox->setTextY(point.y());
+            textBox->setBoundingRect(QRectF(point.x(), point.y(), 0,0));
             textBox->setTextColor(getCurrentColor());
             textBox->setTextFont(currentFont);
             textBox->show();
@@ -1102,7 +1134,7 @@ void Widget::mousePressEvent(QMouseEvent *event)
         setCurrentState(state::TEXTTYPING);
     }
 
-    if(currentTool == tool::MARKDOWN){
+    if(currentTool == tool::MARKDOWN && currentState != state::MARKDOWN_SELECTED){
         qDebug() << "markdown";
         if(markdownBoxOpen){
             closeTextBox();
@@ -1129,8 +1161,7 @@ void Widget::mousePressEvent(QMouseEvent *event)
             markdownBox->setPageNum(pageNum);
             markdownBox->setPage(&(currentDocument.pages[pageNum]));
             markdownBox->setTextIndex(-1);
-            markdownBox->setTextX(point.x());
-            markdownBox->setTextY(point.y());
+            markdownBox->setBoundingRect(QRectF(point.x(),point.y(),0,0));
             markdownBox->show();
             markdownBoxOpen = true;
         }
@@ -1186,6 +1217,27 @@ void Widget::mouseReleaseEvent(QMouseEvent *event)
   penDown = false;
 }
 
+void Widget::mouseDoubleClickEvent(QMouseEvent *event){
+    int pageNum = getPageFromMousePos(event->pos());
+    QPointF pagePos = getPagePosFromMousePos(event->pos(), pageNum);
+    if(currentState == state::MARKDOWNTYPING){
+        int index = currentDocument.pages[pageNum].markdownIndexFromMouseClick(pagePos.x(), pagePos.y());
+        if(index > -1){
+            MrDoc::MarkdownSelection newSelection = MrDoc::MarkdownSelection(std::make_tuple<QRectF, QString>(currentDocument.pages[pageNum].markdownRectByIndex(index), currentDocument.pages[pageNum].markdownByIndex(index)));
+            newSelection.setPageNum(pageNum);
+
+            CreateMarkdownSelection* createMarkdownSelection = new CreateMarkdownSelection(this, pageNum, index, newSelection);
+            undoStack.push(createMarkdownSelection);
+            markdownBox->applyText();
+            markdownBoxOpen = false;
+            markdownChanged = false;
+
+            updateBuffer(pageNum);
+            update();
+        }
+    }
+}
+
 void Widget::keyPressEvent(QKeyEvent *event){
     if(textBoxOpen){
         if(event->key() == Qt::Key_Escape){
@@ -1238,7 +1290,7 @@ void Widget::closeTextBox(){
         qDebug() << "markdown open";
         if(markdownChanged){
             ChangeMarkdownCommand* changeMarkdownCommand = new ChangeMarkdownCommand(this, markdownBox->getPageNum(), markdownBox->getPage(), markdownBox->getTextIndex(),
-                                                                                    markdownBox->getPrevText(), markdownBox->toPlainText());
+                                                                                    markdownBox->getPrevText(), markdownBox->toPlainText(), markdownBox->getBoundingRect());
             undoStack.push(changeMarkdownCommand);
             markdownChanged = false;
         }
@@ -1347,6 +1399,19 @@ void Widget::letGoSelection()
     updateAllDirtyBuffers();
     setCurrentState(state::IDLE);
   }
+}
+
+void Widget::letGoMarkdownSelection(){
+    if (currentState == state::MARKDOWN_SELECTED){
+        int pageNum = currentMarkdownSelection.pageNum();
+
+        ReleaseMarkdownSelectionCommand* releaseMardownCommand = new ReleaseMarkdownSelectionCommand(this, pageNum);
+        undoStack.push(releaseMardownCommand);
+        updateBuffer(pageNum);
+
+        setCurrentState(state::IDLE);
+        update();
+    }
 }
 
 void Widget::startRuling(QPointF mousePos)
@@ -1746,7 +1811,6 @@ void Widget::startMovingSelection(QPointF mousePos)
 
 void Widget::continueMovingSelection(QPointF mousePos)
 {
-    qDebug() << "continueMovingSelection";
   int pageNum = getPageFromMousePos(mousePos);
   QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
   //    currentSelection.move(1 * (pagePos - previousPagePos));
@@ -1925,6 +1989,30 @@ void Widget::stopResizingSelection(QPointF mousePos)
   currentSelection.finalize();
   currentSelection.updateBuffer(zoom);
   setCurrentState(state::SELECTED);
+}
+
+void Widget::startMovingMarkdownSelection(QPointF mousePos){
+    currentDocument.setDocumentChanged(true);
+    emit modified();
+
+    int pageNum = getPageFromMousePos(mousePos);
+    previousMarkdownPagePos = getPagePosFromMousePos(mousePos, pageNum);
+    previousMarkdownPageNum = pageNum;
+    markdownDelta = previousMarkdownPagePos - currentMarkdownSelection.boundingRect().topLeft();
+    setCurrentState(state::MARKDOWN_MOVING);
+}
+
+void Widget::continueMovingMarkdownSelection(QPointF mousePos){
+    int pageNum = getPageFromMousePos(mousePos);
+    QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
+
+    //QPointF delta = (pagePos - previousMarkdownPagePos);
+    QPointF delta = pagePos - currentSelection.boundingRect().topLeft();
+
+    MoveMarkdownCommand* moveMarkdownCommand = new MoveMarkdownCommand(this, previousMarkdownPageNum, pageNum, previousMarkdownPagePos, pagePos, -markdownDelta);
+    undoStack.push(moveMarkdownCommand);
+
+    previousMarkdownPagePos = pagePos;
 }
 
 int Widget::getPageFromMousePos(QPointF mousePos)
@@ -2458,7 +2546,7 @@ void Widget::cut()
 
 void Widget::undo()
 {
-  if (undoStack.canUndo() && (currentState == state::IDLE || currentState == state::SELECTED))
+  if (undoStack.canUndo() && (currentState == state::IDLE || currentState == state::SELECTED || currentState == state::MARKDOWN_SELECTED))
   {
     undoStack.undo();
     currentSelection.updateBuffer(zoom);
@@ -2468,7 +2556,7 @@ void Widget::undo()
 
 void Widget::redo()
 {
-  if (undoStack.canRedo() && (currentState == state::IDLE || currentState == state::SELECTED))
+  if (undoStack.canRedo() && (currentState == state::IDLE || currentState == state::SELECTED || currentState == state::MARKDOWN_SELECTED))
   {
     undoStack.redo();
     currentSelection.updateBuffer(zoom);

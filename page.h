@@ -122,7 +122,7 @@ public:
    * @param index
    * @param text new text. If text is empty, the tuple is removed.
    */
-  void setMarkdown(int index, const QString& text);
+  void setMarkdown(int index, const QString& text, const QRectF &rect);
 
   QString markdownByIndex(int i);
   QRectF markdownRectByIndex(int i);
@@ -197,6 +197,8 @@ public:
       return pageno;
   }
 
+  static char* compileMarkdown(const QString& text);
+
 protected:
   QVector<Stroke> m_strokes;
   std::shared_ptr<Poppler::Page> m_pdfPointer = std::shared_ptr<Poppler::Page>(nullptr); /**< pointer to the pdf page to draw on (nullptr, if blank page) */
@@ -207,7 +209,6 @@ protected:
   QVector<std::tuple<QRectF, QString>> m_markdownDocs; /**< contains the inserted markdown documents, QRectF is the bounding rect (zoom factor 1)*/
 
 private:
-  char* compileMarkdown(const QString& text);
   QSizeF adjustMarkdownSize(int x, int y, QSizeF oldSize);
   QColor m_backgroundColor;
   backgroundType m_backgroundType;

@@ -125,6 +125,54 @@ private:
   qreal m_penWidth;
 };
 
+
+class CreateMarkdownSelection : public QUndoCommand{
+public:
+    CreateMarkdownSelection(Widget* widget, int pageNum, int markdownIndex, MrDoc::MarkdownSelection selection, QUndoCommand* parent = nullptr);
+    void undo() override;
+    void redo() override;
+
+private:
+    Widget* m_widget;
+    int m_pageNum;
+    int m_markdownIndex;
+    MrDoc::MarkdownSelection m_selection;
+};
+
+class ReleaseMarkdownSelectionCommand : public QUndoCommand{
+public:
+    ReleaseMarkdownSelectionCommand(Widget* widget, int pageNum, QUndoCommand *parent = nullptr);
+    void undo() override;
+    void redo() override;
+
+private:
+    Widget* m_widget;
+    int m_pageNum;
+    MrDoc::MarkdownSelection m_selection;
+    int m_markdownIndex;
+};
+
+class MoveMarkdownCommand : public QUndoCommand {
+public:
+    MoveMarkdownCommand(Widget* widget, int oldPagenum, int newPageNum, QPointF oldPos, QPointF newPos, QPointF delta, QUndoCommand* parent = nullptr);
+    void undo() override;
+    void redo() override;
+    int id() const override {
+        return 1;
+    }
+
+    bool mergeWith(const QUndoCommand *other) override;
+
+private:
+    Widget* m_widget;
+    MrDoc::MarkdownSelection m_selection;
+    int m_oldPageNum;
+    int m_newPageNum;
+    QPointF m_oldPos;
+    QPointF m_newPos;
+    QPointF m_delta;
+};
+
 class AddPageCommand : public QUndoCommand
 {
 public:
@@ -236,7 +284,7 @@ private:
 
 class ChangeMarkdownCommand : public QUndoCommand{
 public:
-    ChangeMarkdownCommand(Widget* widget, int pageNum, MrDoc::Page* page, int markdownIndex, const QString& prevText, const QString& text, QUndoCommand* parent = nullptr);
+    ChangeMarkdownCommand(Widget* widget, int pageNum, MrDoc::Page* page, int markdownIndex, const QString& prevText, const QString& text, const QRectF &rect, QUndoCommand* parent = nullptr);
     void undo() override;
     void redo() override;
 private:
@@ -246,6 +294,7 @@ private:
     int m_markdownIndex;
     QString m_prevText;
     QString m_text;
+    QRectF m_rect;
 };
 
 class MarkdownCommand : public QUndoCommand{

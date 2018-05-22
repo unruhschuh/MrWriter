@@ -4,12 +4,8 @@ AbstractTextBox::AbstractTextBox(QWidget *parent)
     : QTextEdit(parent) {
 }
 
-void AbstractTextBox::setTextX(int _x){
-    x = _x;
-}
-
-void AbstractTextBox::setTextY(int _y){
-    y = _y;
+void AbstractTextBox::setBoundingRect(const QRectF &rect){
+    m_textRect = rect;
 }
 
 void AbstractTextBox::setPage(MrDoc::Page* page){
@@ -45,9 +41,13 @@ const QString& AbstractTextBox::getPrevText() const{
 }
 
 int AbstractTextBox::getTextX() const {
-    return x;
+    return m_textRect.x();
 }
 
 int AbstractTextBox::getTextY() const {
-    return y;
+    return m_textRect.y();
+}
+
+const QRectF& AbstractTextBox::getBoundingRect() const {
+    return m_textRect;
 }

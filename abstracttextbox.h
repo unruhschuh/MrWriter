@@ -8,8 +8,7 @@ class AbstractTextBox : public QTextEdit {
 public:
     AbstractTextBox(QWidget* parent = nullptr);
 
-    void setTextX(int _x);
-    void setTextY(int _y);
+    void setBoundingRect(const QRectF& rect);
     void setPage(MrDoc::Page *page);
     void setPageNum(int pageNum);
     void setPrevText(const QString& text);
@@ -21,6 +20,7 @@ public:
     const QString& getPrevText() const;
     int getTextX() const;
     int getTextY() const;
+    const QRectF& getBoundingRect() const;
 
 public slots:
     /**
@@ -33,8 +33,10 @@ protected:
     int m_pageNum;
     QString m_prevText;
     int m_textIndex;
-    int x;  //x-Coordinate of the text, not of the textBox
-    int y;
+    //int x;  //x-Coordinate of the text, not of the textBox
+    //int y;
+    QRectF m_textRect;
+
 };
 
 #endif // ABSTRACTTEXTBOX_H
