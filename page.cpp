@@ -320,26 +320,40 @@ int Page::appendMarkdown(const QRectF &rect, const QString &text){
     else{
         boundingRect = rect;
     }
-
     m_markdownDocs.append(std::make_tuple(boundingRect, text));
     return m_markdownDocs.size()-1;
 }
 
-void Page::setMarkdown(int index, const QString &text, const QRectF& rect){
-    if(text.isEmpty()){
-        m_markdownDocs.remove(index);
-    }
-    else{
-        QTextDocument td;
+void Page::insertMarkdown(int index, const QString &text, const QRectF& rect){
+    if(!text.isEmpty()){
 
-        td.setHtml(compileMarkdown(text));
-
-        td.setPageSize(QSizeF(rect.width(), rect.height()));
         //td.setPageSize(adjustMarkdownSize(std::get<0>(m_markdownDocs[index]).x(), std::get<0>(m_markdownDocs[index]).y(), td.size()));
 
         //auto t = std::make_tuple(QRectF(QPointF(std::get<0>(m_markdownDocs[index]).x(), std::get<0>(m_markdownDocs[index]).y()), td.size()), text);
         //m_markdownDocs[index] = t;
+
         m_markdownDocs.insert(index, std::make_tuple(rect, text));
+    }
+}
+
+void Page::resetMarkdown(int index, const QString &text, const QRectF &rect){
+    if(text.isEmpty()){
+        m_markdownDocs.remove(index);
+    }
+    else{
+        if(index < m_markdownDocs.size()){
+            QRectF boundingRect;
+
+            QTextDocument td;
+
+            td.setHtml(compileMarkdown(text));
+
+            td.setPageSize(adjustMarkdownSize(rect.x(), rect.y(), td.size()));
+
+            boundingRect = QRectF(rect.x(), rect.y(), td.size().width(), td.size().height());
+
+            m_markdownDocs[index] = std::make_tuple(boundingRect, text);
+        }
     }
 }
 

@@ -1147,10 +1147,11 @@ void Widget::mousePressEvent(QMouseEvent *event)
             markdownBox->setPage(&(currentDocument.pages[pageNum]));
             markdownBox->setPageNum(pageNum);
             markdownBox->setTextIndex(textIndex);
-            QRect textRect = currentDocument.pages[pageNum].markdownRectByIndex(textIndex).toAlignedRect().adjusted(0,0,50,50);
-            markdownBox->setGeometry(event->x(), event->y(), textRect.width(), textRect.height());
+            QRectF textRect = currentDocument.pages[pageNum].markdownRectByIndex(textIndex);
+            markdownBox->setGeometry(event->x(), event->y(), textRect.width()+50, textRect.height()+50);
             markdownBox->setText(currentDocument.pages[pageNum].markdownByIndex(textIndex));
             markdownBox->setPrevText(markdownBox->toPlainText());
+            markdownBox->setBoundingRect(textRect);
             markdownBox->show();
 
             markdownBoxOpen = true;

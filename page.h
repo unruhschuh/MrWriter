@@ -118,11 +118,19 @@ public:
   int appendMarkdown(const QRectF &rect, const QString& text);
 
   /**
-   * @brief setMarkdown changes the text of a "markdown" tuple indexed at @param index or removes the tuple if text is empty.
+   * @brief insertMarkdown inserts a markdown document at given @param index. If text is empty nothing happens.
    * @param index
    * @param text new text. If text is empty, the tuple is removed.
    */
-  void setMarkdown(int index, const QString& text, const QRectF &rect);
+  void insertMarkdown(int index, const QString& text, const QRectF &rect);
+
+  /**
+   * @brief resetMarkdown changes the text of a markdown document at given @param index. If text is empty the document will be deleted.
+   * @param index
+   * @param text
+   * @param rect
+   */
+  void resetMarkdown(int index, const QString& text, const QRectF &rect);
 
   QString markdownByIndex(int i);
   QRectF markdownRectByIndex(int i);

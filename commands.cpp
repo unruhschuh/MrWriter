@@ -386,14 +386,14 @@ CreateMarkdownSelection::CreateMarkdownSelection(Widget *widget, int pageNum, in
 
 
 void CreateMarkdownSelection::redo() {
-    m_widget->currentDocument.pages[m_pageNum].setMarkdown(m_markdownIndex, QString(""), QRectF(0,0,0,0));
+    m_widget->currentDocument.pages[m_pageNum].resetMarkdown(m_markdownIndex, QString(""), QRectF(0,0,0,0));
     m_widget->currentMarkdownSelection = m_selection;
     m_widget->setCurrentState(Widget::state::MARKDOWN_SELECTED);
     m_widget->update();
 }
 
 void CreateMarkdownSelection::undo() {
-    m_widget->currentDocument.pages[m_pageNum].setMarkdown(m_markdownIndex, m_selection.text(), m_selection.boundingRect());
+    m_widget->currentDocument.pages[m_pageNum].insertMarkdown(m_markdownIndex, m_selection.text(), m_selection.boundingRect());
     m_widget->setCurrentState(Widget::state::IDLE);
     m_widget->updateBuffer(m_pageNum);
     m_widget->update();
@@ -410,7 +410,7 @@ ReleaseMarkdownSelectionCommand::ReleaseMarkdownSelectionCommand(Widget *widget,
 
 void ReleaseMarkdownSelectionCommand::undo() {
     m_widget->currentMarkdownSelection = m_selection;
-    m_widget->currentDocument.pages[m_pageNum].setMarkdown(m_markdownIndex, QString(""), QRectF(0,0,0,0));
+    m_widget->currentDocument.pages[m_pageNum].resetMarkdown(m_markdownIndex, QString(""), QRectF(0,0,0,0));
     m_widget->setCurrentState(Widget::state::MARKDOWN_SELECTED);
 }
 
@@ -444,10 +444,8 @@ void MoveMarkdownCommand::undo(){
 }
 
 void MoveMarkdownCommand::redo(){
-    qDebug() << "Redo()";
     m_widget->currentMarkdownSelection = m_selection;
     m_widget->currentMarkdownSelection.moveTo(m_newPos, m_delta, m_newPageNum);
-    m_widget->updateBuffer(m_newPageNum);
     m_widget->update();
 }
 
@@ -701,13 +699,13 @@ ChangeMarkdownCommand::ChangeMarkdownCommand(Widget *widget, int pageNum, MrDoc:
 }
 
 void ChangeMarkdownCommand::undo(){
-    m_page->setMarkdown(m_markdownIndex, m_prevText, m_rect);
+    m_page->resetMarkdown(m_markdownIndex, m_prevText, m_rect);
     m_widget->updateBuffer(m_pageNum);
     m_widget->update();
 }
 
 void ChangeMarkdownCommand::redo(){
-    m_page->setMarkdown(m_markdownIndex, m_text, m_rect);
+    m_page->resetMarkdown(m_markdownIndex, m_text, m_rect);
     m_widget->updateBuffer(m_pageNum);
     m_widget->update();
 }
@@ -726,7 +724,7 @@ MarkdownCommand::MarkdownCommand(Widget *widget, int pageNum, MrDoc::Page *page,
 }
 
 void MarkdownCommand::undo(){
-    m_page->setMarkdown(m_markdowIndex, QString(""), QRectF(0,0,0,0)); //has the effect of removing it
+    m_page->resetMarkdown(m_markdowIndex, QString(""), QRectF(0,0,0,0)); //has the effect of removing it
     m_widget->updateBuffer(m_pageNum);
     m_widget->update();
 }
