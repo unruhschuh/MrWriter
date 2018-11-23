@@ -155,6 +155,7 @@ void Widget::updateAllPageBuffers()
         worker->moveToThread(updateThread);
         connect(worker, &UpdateWorker::finished, updateThread, &QThread::quit);
         connect(updateThread, &QThread::started, worker, &UpdateWorker::process);
+        connect(updateThread, &QThread::finished, this, [this](){update();}, Qt::QueuedConnection);
         updateThread->start();
         //QtConcurrent::run(this, &Widget::updateNecessaryPagesBuffer);
     }
@@ -252,7 +253,6 @@ void Widget::updateNecessaryPagesBuffer(){
     for(int i = 0; i < future.size(); ++i){
         future[i].waitForFinished();
     }
-    update();
 
 //    QVector<QFuture<void>> futureUrgent;
 //    QVector<QFuture<void>> future;
