@@ -18,8 +18,9 @@ This is a fork of the original MrWriter software. The fork has the ability to an
 
 == Build
 * Run in the terminal
-** `git clone https://github.com/unruhschuh/MrWriter.git`
+** `git clone https://github.com/AlexD97/MrWriter.git`
 ** `cd MrWriter`
 ** `qmake`
 ** `make`
+** `./MrWriter`
 * Alternatively: open `MrWriter.pro` in QtCreator, configure, build and run
