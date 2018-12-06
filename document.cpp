@@ -31,13 +31,29 @@ Document::Document()
   setDocumentChanged(false);
 }
 
-Document::Document(const Document &doc)
+/*Document::Document(const Document &doc)
 {
   for (int i = 0; i < doc.pages.size(); ++i)
   {
     pages.append(doc.pages.at(i));
   }
+  m_documentChanged = doc.m_documentChanged;
+  m_docName = doc.m_docName;
+  m_pdfPath = doc.m_pdfPath;
+  m_pdfDoc.reset(Poppler::Document::load(m_pdfPath));
 }
+
+Document& Document::operator=(const Document& doc){
+    pages.clear();
+    for(int i = 0; i < doc.pages.size(); ++i){
+        pages.append(doc.pages.at(i));
+    }
+    m_documentChanged = doc.m_documentChanged;
+    m_docName = doc.m_docName;
+    m_pdfPath = doc.m_pdfPath;
+    m_pdfDoc.reset(Poppler::Document::load(m_pdfPath));
+    return *this;
+}*/
 
 void Document::paintPage(int pageNum, QPainter &painter, qreal zoom)
 {
@@ -71,162 +87,332 @@ pages[pageNum+1].height()));
 
 void Document::exportPDF(QString fileName)
 {
-  //    QPdfWriter pdfWriter("/Users/tom/Desktop/qpdfwriter.pdf");
-  //    QPdfWriter pdfWriter(fileName);
-
-  QPrinter pdfWriter(QPrinter::HighResolution);
-  pdfWriter.setOutputFormat(QPrinter::PdfFormat);
-  pdfWriter.setOutputFileName(fileName);
-  //    pdfWriter.setMargins();
-
-  pdfWriter.setPageSize(QPageSize(QSizeF(pages[0].width(), pages[0].height()), QPageSize::Point));
-  pdfWriter.setPageMargins(QMarginsF(0, 0, 0, 0));
-  qreal zoomW = ((qreal)pdfWriter.pageRect().width()) / ((qreal)pdfWriter.paperRect().width());
-  qreal zoomH = ((qreal)pdfWriter.pageRect().height()) / ((qreal)pdfWriter.paperRect().height());
-  qreal zoom = zoomW;
-  if (zoomH < zoomW)
-    zoom = zoomH;
-  pdfWriter.setResolution(72);
-  pdfWriter.pageLayout().setUnits(QPageLayout::Point);
-  QPainter painter;
-
-  //    std::cout << "PDF " << pdfWriter.colorCount() << std::endl;
-
-  painter.begin(&pdfWriter);
-  painter.setRenderHint(QPainter::Antialiasing, true);
-  for (int pageNum = 0; pageNum < pages.size(); ++pageNum)
-  {
-    if (pages[pageNum].backgroundColor() != QColor("white"))
-    {
-      QRectF pageRect = pdfWriter.pageRect(QPrinter::Point);
-      pageRect.translate(-pageRect.topLeft());
-      painter.fillRect(pageRect, pages[pageNum].backgroundColor());
+    if(m_pdfPath.isEmpty()){
+        exportPDFAsImage(fileName);
+        return;
     }
-    pages[pageNum].paint(painter, zoom, QRect(0, 0, 0, 0));
 
-    if (pageNum + 1 < pages.size())
+    QString overlay = "overlay.pdf";
+    QString overlayFileName = QUrl(fileName).adjusted(QUrl::RemoveFilename).toString();
+    overlayFileName += overlay;
+
+    QPrinter pdfWriter(QPrinter::HighResolution);
+    pdfWriter.setOutputFormat(QPrinter::PdfFormat);
+    pdfWriter.setOutputFileName(overlayFileName);
+
+    pdfWriter.setPageSize(QPageSize(QSizeF(pages[0].width(), pages[0].height()), QPageSize::Point));
+    pdfWriter.setPageMargins(QMarginsF(0, 0, 0, 0));
+
+//    qreal zoomW = ((qreal)pdfWriter.pageRect().width()) / ((qreal)pdfWriter.paperRect().width());
+//    qreal zoomH = ((qreal)pdfWriter.pageRect().height()) / ((qreal)pdfWriter.paperRect().height());
+//    qreal zoom = zoomW;
+//    if (zoomH < zoomW)
+//        zoom = zoomH;
+
+    pdfWriter.setResolution(72);
+    pdfWriter.pageLayout().setUnits(QPageLayout::Point);
+    QPainter painter;
+    painter.begin(&pdfWriter);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+
+    struct pdfOrNotInterval{
+        pageType type;
+        int begin;
+        int beginInPdf;
+        int endInPdf;
+    };
+
+    QVector<pdfOrNotInterval> pdfIntervals;
+    int interval = 0;
+    for (int pageNum = 0; pageNum < pages.size(); ++pageNum)
     {
-      pdfWriter.setPageSize(QPageSize(QSize(pages[pageNum + 1].width(), pages[pageNum + 1].height())));
-      pdfWriter.newPage();
+        if(!pages[pageNum].isPdf()){
+            if(pdfIntervals.isEmpty() || pdfIntervals.last().type == pageType::PDF){
+                pdfOrNotInterval newInterval;
+                newInterval.type = pageType::NOPDF;
+                newInterval.begin = pageNum;
+                if(!pdfIntervals.isEmpty()){
+                    pdfIntervals.last().endInPdf = interval;
+                }
+                pdfIntervals.append(newInterval);
+            }
+        }
+        else{
+            if(pdfIntervals.isEmpty() || pdfIntervals.last().type == pageType::NOPDF){
+                pdfOrNotInterval newInterval;
+                newInterval.type = pageType::PDF;
+                newInterval.begin = pageNum;
+                newInterval.beginInPdf = interval+1;
+                pdfIntervals.append(newInterval);
+            }
+            ++interval;
+        }
+
+        if(pages[pageNum].isPdf()){
+            pages[pageNum].paintForPdfExport(painter, 1);
+        }
+        else{
+            if (pages[pageNum].backgroundColor() != QColor("white"))
+            {
+                QRectF pageRect = pdfWriter.pageRect(QPrinter::Point);
+                pageRect.translate(-pageRect.topLeft());
+                painter.fillRect(pageRect, pages[pageNum].backgroundColor());
+            }
+            pages[pageNum].paint(painter, 1);
+        }
+
+        if (pageNum + 1 < pages.size())
+        {
+            pdfWriter.setPageSize(QPageSize(QSize(pages[pageNum + 1].width(), pages[pageNum + 1].height())));
+            pdfWriter.newPage();
+        }
     }
-  }
-  painter.end();
+    painter.end();
+
+    for(int i = pdfIntervals.size()-1; i >= 0; --i){
+        if(pdfIntervals[i].type == pageType::PDF){
+            pdfIntervals[i].endInPdf = interval;
+            break;
+        }
+    }
+
+    QStringList pdfExtendIntervals;
+    for(int i = 0; i < pdfIntervals.size(); ++i){
+        if(pdfIntervals.at(i).type == pageType::PDF){
+            pdfExtendIntervals << "A"+QString::number(pdfIntervals.at(i).beginInPdf)+"-"+QString::number(pdfIntervals.at(i).endInPdf);
+        }
+        else{
+            if(i == pdfIntervals.size()-1){
+                pdfExtendIntervals << "B"+QString::number(pdfIntervals.at(i).begin+1)+"-"+QString::number(pages.size());
+            }
+            else{
+                pdfExtendIntervals << "B"+QString::number(pdfIntervals.at(i).begin+1)+"-"+QString::number(pdfIntervals.at(i+1).begin);
+            }
+        }
+    }
+//    for(int i = 0; i < pdfExtendIntervals.size(); ++i){
+//        qDebug() << pdfExtendIntervals[i];
+//    }
+
+    QString extended = "extended.pdf";
+    QString extendedPdfFileName = QUrl(fileName).adjusted(QUrl::RemoveFilename).toString();
+    extendedPdfFileName += extended;
+
+    QProcess extendProcess;
+    extendProcess.start("pdftk", QStringList() << "A="+m_pdfPath << "B="+overlayFileName <<
+                        "cat" << pdfExtendIntervals << "output" << extendedPdfFileName);
+
+    if(extendProcess.error() == QProcess::FailedToStart){
+        QMessageBox::StandardButton answer = QMessageBox::warning(nullptr, QObject::tr("Failed to start pdftk"), QObject::tr("Failed to start pdftk. \nCheck if you have "
+                                                                   "pdftk installed and the permission to start it.\n"
+                                                                   "Do you want to resume (PDF will be exported as image)?"),
+                             QMessageBox::Ignore | QMessageBox::Abort);
+        if(answer == QMessageBox::Ignore){
+            exportPDFAsImage(fileName);
+            return;
+        }
+        else{
+            return;
+        }
+        QDir dir(overlayFileName);
+        dir.remove(overlay);
+    }
+    extendProcess.waitForFinished();
+
+    QProcess process;
+    process.start("pdftk", QStringList() << extendedPdfFileName << "multistamp" <<
+                  overlayFileName << "output" << fileName);
+    process.waitForFinished();
+    QDir dir(QUrl(fileName).adjusted(QUrl::RemoveFilename).toString());
+    //dir.remove(overlay);
+    //dir.remove(extended);
+}
+
+void Document::exportPDFAsImage(QString fileName){
+    QPrinter pdfWriter(QPrinter::HighResolution);
+    pdfWriter.setOutputFormat(QPrinter::PdfFormat);
+    pdfWriter.setOutputFileName(fileName);
+    pdfWriter.setPageSize(QPageSize(QSizeF(pages[0].width(), pages[0].height()), QPageSize::Point));
+    pdfWriter.setPageMargins(QMarginsF(0, 0, 0, 0));
+    //*2 is a little bit arbitrarily
+    pdfWriter.setResolution(72*2);
+    pdfWriter.pageLayout().setUnits(QPageLayout::Point);
+    QPainter painter;
+    painter.begin(&pdfWriter);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    for (int pageNum = 0; pageNum < pages.size(); ++pageNum)
+    {
+        if (pages[pageNum].backgroundColor() != QColor("white"))
+        {
+            QRectF pageRect = pdfWriter.pageRect(QPrinter::Point);
+            pageRect.translate(-pageRect.topLeft());
+            painter.fillRect(pageRect, pages[pageNum].backgroundColor());
+        }
+        //2 (as zoom) is a little bit arbitrarily (has to be the same number as above)
+        pages[pageNum].paint(painter, 2, QRect(0, 0, 0, 0));
+
+        if (pageNum + 1 < pages.size())
+        {
+            pdfWriter.setPageSize(QPageSize(QSize(pages[pageNum + 1].width(), pages[pageNum + 1].height())));
+            pdfWriter.newPage();
+        }
+    }
+    painter.end();
 }
 
 bool Document::loadXOJ(QString fileName)
 {
-  QFile file(fileName);
-  if (!file.open(QIODevice::ReadOnly))
-  {
-    return false;
-  }
-
-  QXmlStreamReader reader;
-
-  // check if it is a gzipped xoj
-  QByteArray s = file.read(2);
-  if (s.size() == 2)
-  {
-    if (s.at(0) == static_cast<char>(0x1f) && s.at(1) == static_cast<char>(0x8b))
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly))
     {
-      // this is a gzipped file
-      file.reset();
-      QByteArray compressedData = file.readAll();
-      QByteArray uncompressedData;
-      if (!QCompressor::gzipDecompress(compressedData, uncompressedData))
-      {
         return false;
-      }
-      reader.addData(uncompressedData);
+    }
+
+    QXmlStreamReader reader;
+
+    // check if it is a gzipped xoj
+    QByteArray s = file.read(2);
+    if (s.size() == 2)
+    {
+        if (s.at(0) == static_cast<char>(0x1f) && s.at(1) == static_cast<char>(0x8b))
+        {
+            // this is a gzipped file
+            file.reset();
+            QByteArray compressedData = file.readAll();
+            QByteArray uncompressedData;
+            if (!QCompressor::gzipDecompress(compressedData, uncompressedData))
+            {
+                return false;
+            }
+            reader.addData(uncompressedData);
+        }
+        else
+        {
+            file.reset();
+            reader.setDevice(&file);
+        }
     }
     else
     {
-      file.reset();
-      reader.setDevice(&file);
+        return false;
     }
-  }
-  else
-  {
-    return false;
-  }
 
-  pages.clear();
+    pages.clear();
 
-  int strokeCount = 0;
+    int strokeCount = 0;
 
-  while (!reader.atEnd())
-  {
-    reader.readNext();
-    if (reader.name() == "page" && reader.tokenType() == QXmlStreamReader::StartElement)
+    while (!reader.atEnd())
     {
-      QXmlStreamAttributes attributes = reader.attributes();
-      QStringRef width = attributes.value("", "width");
-      QStringRef height = attributes.value("", "height");
-      Page newPage;
-      newPage.setWidth(width.toDouble());
-      newPage.setHeight(height.toDouble());
+        reader.readNext();
+        if (reader.name() == "page" && reader.tokenType() == QXmlStreamReader::StartElement)
+        {
+            QXmlStreamAttributes attributes = reader.attributes();
+            QStringRef width = attributes.value("", "width");
+            QStringRef height = attributes.value("", "height");
+            Page newPage;
+            newPage.setWidth(width.toDouble());
+            newPage.setHeight(height.toDouble());
 
-      pages.append(newPage);
+            pages.append(newPage);
+        }
+        if (reader.name() == "background" && reader.tokenType() == QXmlStreamReader::StartElement)
+        {
+            QXmlStreamAttributes attributes = reader.attributes();
+            QStringRef type = attributes.value("", "type");
+            if(type == "pdf"){
+                QStringRef pdfPath = attributes.value("", "filename");
+                if(!pdfPath.isEmpty()){
+                    m_pdfPath = pdfPath.toString();
+                    m_pdfDoc.reset(Poppler::Document::load(m_pdfPath));
+                    m_pdfDoc->setRenderHint(Poppler::Document::Antialiasing);
+                    m_pdfDoc->setRenderHint(Poppler::Document::TextAntialiasing);
+                }
+                QStringRef pdfPageNumStr = attributes.value("", "pageno");
+                int pdfPageNum = pdfPageNumStr.toInt();
+                Poppler::Page* page = m_pdfDoc->page(pdfPageNum-1);
+                pages.last().setPdf(page, pdfPageNum-1, false);
+
+                continue;
+            }
+            QStringRef color = attributes.value("", "color");
+            QColor newColor = stringToColor(color.toString());
+            pages.last().setBackgroundColor(newColor);
+        }
+        if (reader.name() == "text" && reader.tokenType() == QXmlStreamReader::StartElement){
+            QXmlStreamAttributes attributes = reader.attributes();
+            QStringRef fontString = attributes.value("", "font");
+            QFont font = QFont(fontString.toString());
+            QStringRef sizeString = attributes.value("", "size");
+            font.setPointSize(sizeString.toFloat());
+            QStringRef xString = attributes.value("", "x");
+            QStringRef yString = attributes.value("", "y");
+            QStringRef colorString = attributes.value("", "color");
+            QColor color = stringToColor(colorString.toString());
+            QString text = reader.readElementText();
+            //QPointF point(xString.toFloat(), yString.toFloat());
+            QRectF rect(xString.toDouble(), yString.toDouble(), 0, 0);
+            pages.last().appendText(rect, font, color, text);
+        }
+        if (reader.name() == "stroke" && reader.tokenType() == QXmlStreamReader::StartElement)
+        {
+            QXmlStreamAttributes attributes = reader.attributes();
+            QStringRef tool = attributes.value("", "tool");
+            if (tool == "pen" || tool == "highlighter")
+            {
+                Stroke newStroke;
+                newStroke.pattern = MrDoc::solidLinePattern;
+                QStringRef color = attributes.value("", "color");
+                if(tool == "highlighter"){
+                    newStroke.isHighlighter = true;
+                    QColor highlighterColor = stringToColor(color.toString());
+                    highlighterColor.setAlpha(127);
+                    newStroke.color = highlighterColor;
+                }
+                else{
+                    newStroke.color = stringToColor(color.toString());
+                }
+                QStringRef strokeWidth = attributes.value("", "width");
+                QStringList strokeWidthList = strokeWidth.toString().split(" ");
+                newStroke.penWidth = strokeWidthList.at(0).toDouble();
+                newStroke.pressures.append(newStroke.penWidth / strokeWidthList.at(0).toDouble());
+                for (int i = 1; i < strokeWidthList.size(); ++i)
+                {
+                    newStroke.pressures.append(2 * strokeWidthList.at(i).toDouble() / newStroke.penWidth - newStroke.pressures.at(i - 1));
+                }
+                QString elementText = reader.readElementText();
+                QStringList elementTextList = elementText.split(" ");
+                for (int i = 0; i + 1 < elementTextList.size(); i = i + 2)
+                {
+                    newStroke.points.append(QPointF(elementTextList.at(i).toDouble(), elementTextList.at(i + 1).toDouble()));
+                }
+                while (newStroke.points.size() > newStroke.pressures.size())
+                {
+                    newStroke.pressures.append(1.0);
+                }
+                pages.last().appendStroke(newStroke);
+                strokeCount++;
+                qDebug() << strokeCount;
+            }
+        }
     }
-    if (reader.name() == "background" && reader.tokenType() == QXmlStreamReader::StartElement)
+
+    //    QFileInfo fileInfo(file);
+    file.close();
+
+    for (auto &page : pages)
     {
-      QXmlStreamAttributes attributes = reader.attributes();
-      QStringRef color = attributes.value("", "color");
-      QColor newColor = stringToColor(color.toString());
-      pages.last().setBackgroundColor(newColor);
+        page.clearDirtyRect();
     }
-    if (reader.name() == "stroke" && reader.tokenType() == QXmlStreamReader::StartElement)
+
+    if (reader.hasError())
     {
-      QXmlStreamAttributes attributes = reader.attributes();
-      QStringRef tool = attributes.value("", "tool");
-      if (tool == "pen")
-      {
-        Stroke newStroke;
-        newStroke.pattern = MrDoc::solidLinePattern;
-        QStringRef color = attributes.value("", "color");
-        newStroke.color = stringToColor(color.toString());
-        QStringRef strokeWidth = attributes.value("", "width");
-        QStringList strokeWidthList = strokeWidth.toString().split(" ");
-        newStroke.penWidth = strokeWidthList.at(0).toDouble();
-        newStroke.pressures.append(newStroke.penWidth / strokeWidthList.at(0).toDouble());
-        for (int i = 1; i < strokeWidthList.size(); ++i)
-        {
-          newStroke.pressures.append(2 * strokeWidthList.at(i).toDouble() / newStroke.penWidth - newStroke.pressures.at(i - 1));
-        }
-        QString elementText = reader.readElementText();
-        QStringList elementTextList = elementText.split(" ");
-        for (int i = 0; i + 1 < elementTextList.size(); i = i + 2)
-        {
-          newStroke.points.append(QPointF(elementTextList.at(i).toDouble(), elementTextList.at(i + 1).toDouble()));
-        }
-        while (newStroke.points.size() > newStroke.pressures.size())
-        {
-          newStroke.pressures.append(1.0);
-        }
-        pages.last().appendStroke(newStroke);
-        strokeCount++;
-        qDebug() << strokeCount;
-      }
+        return false;
     }
-  }
-
-  //    QFileInfo fileInfo(file);
-  file.close();
-
-  for (auto &page : pages)
-  {
-    page.clearDirtyRect();
-  }
-
-  if (reader.hasError())
-  {
-    return false;
-  }
-  else
-  {
-    setDocumentChanged(true);
-    return true;
-  }
+    else
+    {
+        setDocumentChanged(true);
+        return true;
+    }
 }
 
 bool Document::saveXOJ(QString fileName)
@@ -254,23 +440,56 @@ bool Document::saveXOJ(QString fileName)
   writer.writeCharacters("Xournal document - see http://math.mit.edu/~auroux/software/xournal/");
   writer.writeEndElement();
 
+  bool pdfFileNameSet = false;
+
   for (int i = 0; i < pages.size(); ++i)
   {
     writer.writeStartElement("page");
     writer.writeAttribute(QXmlStreamAttribute("width", QString::number(pages[i].width())));
     writer.writeAttribute(QXmlStreamAttribute("height", QString::number(pages[i].height())));
     writer.writeEmptyElement("background");
-    writer.writeAttribute(QXmlStreamAttribute("type", "solid"));
-    writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(pages[i].backgroundColor().name(QColor::HexArgb))));
-    writer.writeAttribute(QXmlStreamAttribute("style", "plain"));
+
+    if(pages[i].isPdf()){
+        writer.writeAttribute(QXmlStreamAttribute("type", "pdf"));
+        if(!pdfFileNameSet){
+            writer.writeAttribute(QXmlStreamAttribute("domain", "absolute"));
+            writer.writeAttribute(QXmlStreamAttribute("filename", m_pdfPath));
+            pdfFileNameSet = true;
+        }
+        writer.writeAttribute(QXmlStreamAttribute("pageno", QString::number(pages[i].pageNum()+1)));
+    }
+    else{
+        writer.writeAttribute(QXmlStreamAttribute("type", "solid"));
+        writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(pages[i].backgroundColor().name(QColor::HexArgb))));
+        writer.writeAttribute(QXmlStreamAttribute("style", "plain"));
+    }
+
     writer.writeStartElement("layer");
 
+    for (auto t : pages[i].texts()){
+        writer.writeStartElement("text");
+        writer.writeAttribute(QXmlStreamAttribute("font", std::get<1>(t).key()));
+        writer.writeAttribute(QXmlStreamAttribute("size", QString::number(std::get<1>(t).pointSize())));
+        writer.writeAttribute(QXmlStreamAttribute("x", QString::number(std::get<0>(t).x())));
+        writer.writeAttribute(QXmlStreamAttribute("y", QString::number(std::get<0>(t).y())));
+        writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(std::get<2>(t).name(QColor::HexArgb))));
+        writer.writeCharacters(std::get<3>(t));
+        writer.writeEndElement();
+    }
     //    for (int j = 0; j < pages[i].m_strokes.size(); ++j)
     for (auto strokes : pages[i].strokes())
     {
       writer.writeStartElement("stroke");
-      writer.writeAttribute(QXmlStreamAttribute("tool", "pen"));
-      writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(strokes.color.name(QColor::HexArgb))));
+      if(strokes.isHighlighter){
+          writer.writeAttribute(QXmlStreamAttribute("tool", "highlighter"));
+          QColor highlighterColor = strokes.color;
+          highlighterColor.setAlpha(127);
+          writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(highlighterColor.name(QColor::HexArgb))));
+      }
+      else{
+          writer.writeAttribute(QXmlStreamAttribute("tool", "pen"));
+          writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(strokes.color.name(QColor::HexArgb))));
+      }
       qreal width = strokes.penWidth;
       QString widthString;
       widthString.append(QString::number(width));
@@ -357,8 +576,6 @@ bool Document::loadMOJ(QString fileName)
 
   pages.clear();
 
-  int strokeCount = 0;
-
   while (!reader.atEnd())
   {
     reader.readNext();
@@ -385,17 +602,77 @@ bool Document::loadMOJ(QString fileName)
     if (reader.name() == "background" && reader.tokenType() == QXmlStreamReader::StartElement)
     {
       QXmlStreamAttributes attributes = reader.attributes();
+      QStringRef type = attributes.value("", "type");
+      if(type == "pdf"){
+          QStringRef pdfPath = attributes.value("", "filename");
+          if(!pdfPath.isEmpty()){
+              m_pdfPath = pdfPath.toString();
+              m_pdfDoc.reset(Poppler::Document::load(m_pdfPath));
+              m_pdfDoc->setRenderHint(Poppler::Document::Antialiasing);
+              m_pdfDoc->setRenderHint(Poppler::Document::TextAntialiasing);
+          }
+          QStringRef pdfPageNumStr = attributes.value("", "pageno");
+          int pdfPageNum = pdfPageNumStr.toInt();
+          Poppler::Page* page = m_pdfDoc->page(pdfPageNum-1);
+          pages.last().setPdf(page, pdfPageNum-1, false);
+
+          continue;
+      }
       QStringRef color = attributes.value("", "color");
       QColor newColor = stringToColor(color.toString());
       pages.last().setBackgroundColor(newColor);
+
+      QStringRef backgroundTypeString = attributes.value("", "backgroundType");
+      MrDoc::Page::backgroundType backgroundType = MrDoc::Page::backgroundType::PLAIN;
+      if(backgroundTypeString.toString() == QString("plain")){
+          backgroundType = MrDoc::Page::backgroundType::PLAIN;
+      }
+      else if(backgroundTypeString.toString() == QString("squared")){
+          backgroundType = MrDoc::Page::backgroundType::SQUARED;
+      }
+      else if(backgroundTypeString.toString() == QString("ruled")){
+          backgroundType = MrDoc::Page::backgroundType::RULED;
+      }
+      pages.last().setBackgroundType(backgroundType);
+    }
+    if (reader.name() == "text" && reader.tokenType() == QXmlStreamReader::StartElement){
+        QXmlStreamAttributes attributes = reader.attributes();
+        QStringRef fontString = attributes.value("", "font");
+        QFont font = QFont(fontString.toString());
+        QStringRef sizeString = attributes.value("", "size");
+        font.setPointSize(sizeString.toFloat());
+        QStringRef xString = attributes.value("", "x");
+        QStringRef yString = attributes.value("", "y");
+        QStringRef colorString = attributes.value("", "color");
+        QColor color = stringToColor(colorString.toString());
+        QString text = reader.readElementText();
+        //QPointF point(xString.toFloat(), yString.toFloat());
+        QRectF rect(xString.toDouble(), yString.toDouble(), 0, 0);
+        pages.last().appendText(rect, font, color, text);
+    }
+    if (reader.name() == "markdown" && reader.tokenType() == QXmlStreamReader::StartElement){
+        QXmlStreamAttributes attributes = reader.attributes();
+        QStringRef xString = attributes.value("", "x");
+        QStringRef yString = attributes.value("", "y");
+        QStringRef widthString = attributes.value("", "width");
+        QStringRef heightString = attributes.value("", "height");
+        int x = xString.toInt();
+        int y = yString.toInt();
+        qreal width = static_cast<qreal>(widthString.toDouble());
+        qreal height = static_cast<qreal>(heightString.toDouble());
+        QString text = reader.readElementText();
+        pages.last().appendMarkdown(QRectF(x, y, width, height), text);
     }
     if (reader.name() == "stroke" && reader.tokenType() == QXmlStreamReader::StartElement)
     {
       QXmlStreamAttributes attributes = reader.attributes();
       QStringRef tool = attributes.value("", "tool");
-      if (tool == "pen")
+      if (tool == "pen" || tool == "highlighter")
       {
         Stroke newStroke;
+        if(tool == "highlighter"){
+            newStroke.isHighlighter = true;
+        }
         newStroke.pattern = MrDoc::solidLinePattern;
         QStringRef color = attributes.value("", "color");
         newStroke.color = stringToColor(color.toString());
@@ -446,8 +723,6 @@ bool Document::loadMOJ(QString fileName)
           return false;
         }
         pages.last().appendStroke(newStroke);
-        strokeCount++;
-        qDebug() << strokeCount;
       }
     }
   }
@@ -500,22 +775,72 @@ bool Document::saveMOJ(QString fileName)
   writer.writeCharacters("MrWriter document - see http://unruhschuh.com/mrwriter/");
   writer.writeEndElement();
 
+  bool pdfFileNameSet = false;
+
   for (int i = 0; i < pages.size(); ++i)
   {
     writer.writeStartElement("page");
     writer.writeAttribute(QXmlStreamAttribute("width", QString::number(pages[i].width())));
     writer.writeAttribute(QXmlStreamAttribute("height", QString::number(pages[i].height())));
     writer.writeEmptyElement("background");
-    writer.writeAttribute(QXmlStreamAttribute("type", "solid"));
-    writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(pages[i].backgroundColor().name(QColor::HexArgb))));
-    writer.writeAttribute(QXmlStreamAttribute("style", "plain"));
+
+    if(pages[i].isPdf()){
+        writer.writeAttribute(QXmlStreamAttribute("type", "pdf"));
+        if(!pdfFileNameSet){
+            writer.writeAttribute(QXmlStreamAttribute("domain", "absolute"));
+            writer.writeAttribute(QXmlStreamAttribute("filename", m_pdfPath));
+            pdfFileNameSet = true;
+        }
+        writer.writeAttribute(QXmlStreamAttribute("pageno", QString::number(pages[i].pageNum()+1)));
+    }
+    else{
+        writer.writeAttribute(QXmlStreamAttribute("type", "solid"));
+        writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(pages[i].backgroundColor().name(QColor::HexArgb))));
+        writer.writeAttribute(QXmlStreamAttribute("style", "plain"));
+    }
+
+    QString backgroundTypeString;
+    switch(pages[i].getBackgroundType()){
+        case MrDoc::Page::backgroundType::PLAIN : backgroundTypeString = "plain"; break;
+        case MrDoc::Page::backgroundType::SQUARED : backgroundTypeString = "squared"; break;
+        case MrDoc::Page::backgroundType::RULED : backgroundTypeString = "ruled"; break;
+    }
+    writer.writeAttribute(QXmlStreamAttribute("backgroundType", backgroundTypeString));
+
+//    writer.writeAttribute(QXmlStreamAttribute("type", "solid"));
+//    writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(pages[i].backgroundColor().name(QColor::HexArgb))));
+//    writer.writeAttribute(QXmlStreamAttribute("style", "plain"));
+
     writer.writeStartElement("layer");
+
+    for (auto t : pages[i].texts()){
+        writer.writeStartElement("text");
+        writer.writeAttribute(QXmlStreamAttribute("font", std::get<1>(t).key()));
+        writer.writeAttribute(QXmlStreamAttribute("size", QString::number(std::get<1>(t).pointSize())));
+        writer.writeAttribute(QXmlStreamAttribute("x", QString::number(std::get<0>(t).x())));
+        writer.writeAttribute(QXmlStreamAttribute("y", QString::number(std::get<0>(t).y())));
+        writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(std::get<2>(t).name(QColor::HexArgb))));
+        writer.writeCharacters(std::get<3>(t));
+        writer.writeEndElement();
+    }
+    for (auto t : pages[i].markdowns()){
+        writer.writeStartElement("markdown");
+        writer.writeAttribute(QXmlStreamAttribute("x", QString::number(std::get<0>(t).x())));
+        writer.writeAttribute(QXmlStreamAttribute("y", QString::number(std::get<0>(t).y())));
+        writer.writeAttribute(QXmlStreamAttribute("width", QString::number(std::get<0>(t).width())));
+        writer.writeAttribute(QXmlStreamAttribute("height", QString::number(std::get<0>(t).height())));
+        writer.writeCharacters(std::get<1>(t));
+        writer.writeEndElement();
+    }
 
     //    for (int j = 0; j < pages[i].m_strokes.size(); ++j)
     for (auto strokes : pages[i].strokes())
     {
       writer.writeStartElement("stroke");
-      writer.writeAttribute(QXmlStreamAttribute("tool", "pen"));
+      if(strokes.isHighlighter)
+          writer.writeAttribute(QXmlStreamAttribute("tool", "highlighter"));
+      else
+        writer.writeAttribute(QXmlStreamAttribute("tool", "pen"));
       writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(strokes.color.name(QColor::HexArgb))));
       QString patternString;
       if (strokes.pattern == MrDoc::solidLinePattern)
@@ -585,6 +910,27 @@ bool Document::saveMOJ(QString fileName)
     m_docName = fileInfo.completeBaseName();
     return true;
   }
+}
+
+bool Document::loadPDF(QString fileName){
+    pages.clear();
+    if(!fileName.isEmpty()){
+        m_pdfPath = fileName;
+        m_pdfDoc.reset(Poppler::Document::load(m_pdfPath));
+        if(m_pdfDoc->isLocked()){
+            return false;
+        }
+        m_pdfDoc->setRenderHint(Poppler::Document::Antialiasing);
+        m_pdfDoc->setRenderHint(Poppler::Document::TextAntialiasing);
+        int numPages = m_pdfDoc->numPages();
+        for(int i = 0; i < numPages; ++i){
+            Poppler::Page* page = m_pdfDoc->page(i);
+            pages.append(Page());
+            pages.last().setPdf(page, i, true);
+        }
+        return true;
+    }
+    return false;
 }
 
 bool Document::setDocName(QString docName)

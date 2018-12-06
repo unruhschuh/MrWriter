@@ -45,7 +45,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
   connect(mainWidget, SIGNAL(modified()), this, SLOT(modified()));
 
-  scrollArea = new QScrollArea(this);
+  scrollArea = new ZoomScrollArea(this);
   scrollArea->setWidget(mainWidget);
   scrollArea->setAlignment(Qt::AlignHCenter);
   //    scrollArea->setPalette(QPalette(QColor(130,255,130)));
@@ -64,6 +64,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
   sep1->setFixedWidth(10);
   QWidget *sep2 = new QWidget();
   sep2->setFixedWidth(10);
+
+  //possible memory leak?
+  searchBar = new SearchBar();
+  connect(searchBar, &SearchBar::searchNext, this->mainWidget, &Widget::searchPdfNext);
+  connect(searchBar, &SearchBar::searchPrev, this->mainWidget, &Widget::searchPdfPrev);
+  connect(searchBar, &SearchBar::clearSearch, this->mainWidget, &Widget::clearPdfSearch);
 
   statusBar()->addPermanentWidget(&colorStatus);
   statusBar()->addPermanentWidget(sep1);
@@ -127,6 +133,11 @@ void MainWindow::createActions()
   connect(newFileAct, SIGNAL(triggered()), this, SLOT(newFile()));
   this->addAction(newFileAct); // add to make shortcut work if menubar is hidden
 
+  annotatePdfAct = new QAction(tr("&Annotate PDF"), this);
+  annotatePdfAct->setStatusTip(tr("Annotate PDF"));
+  connect(annotatePdfAct, &QAction::triggered, this, &MainWindow::openPdf);
+  this->addAction(annotatePdfAct);
+
   openFileAct = new QAction(QIcon(":/images/openIcon.png"), tr("&Open file"), this);
   openFileAct->setShortcuts(QKeySequence::Open);
   openFileAct->setStatusTip(tr("Open File"));
@@ -185,6 +196,16 @@ void MainWindow::createActions()
   connect(redoAct, SIGNAL(triggered()), mainWidget, SLOT(redo()));
   //    disconnect(redoAct, SIGNAL(triggered()), mainWidget->undoStack, SLOT(redo()));
   this->addAction(redoAct); // add to make shortcut work if menubar is hidden
+
+  pageHistoryForward = new QAction(this);
+  pageHistoryForward->setShortcut(QKeySequence::Forward);
+  connect(pageHistoryForward, &QAction::triggered, mainWidget, &Widget::pageHistoryForward);
+  this->addAction(pageHistoryForward);
+
+  pageHistoryBackward = new QAction(this);
+  pageHistoryBackward->setShortcut(QKeySequence::Back);
+  connect(pageHistoryBackward, &QAction::triggered, mainWidget, &Widget::pageHistoryBackward);
+  this->addAction(pageHistoryBackward);
 
   selectAllAct = new QAction(tr("Select &All"), this);
   selectAllAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_A));
@@ -295,9 +316,17 @@ void MainWindow::createActions()
   connect(penAct, SIGNAL(triggered()), this, SLOT(pen()));
   this->addAction(penAct); // add to make shortcut work if menubar is hidden
 
+  highlighterAct = new QAction(tr("Highlighter"), this);
+  highlighterAct->setStatusTip(tr("Highlighting Tool"));
+  highlighterAct->setShortcut(QKeySequence(Qt::Key_2));
+  highlighterAct->setCheckable(true);
+  highlighterAct->setChecked(false);
+  connect(highlighterAct, &QAction::triggered, this, &MainWindow::highlighter);
+  this->addAction(highlighterAct);
+
   rulerAct = new QAction(QIcon(":/images/rulerIcon.png"), tr("Ruler"), this);
   rulerAct->setStatusTip(tr("Ruler Tool"));
-  rulerAct->setShortcut(QKeySequence(Qt::Key_2));
+  rulerAct->setShortcut(QKeySequence(Qt::Key_3));
   rulerAct->setCheckable(true);
   rulerAct->setChecked(false);
   connect(rulerAct, SIGNAL(triggered()), this, SLOT(ruler()));
@@ -305,7 +334,7 @@ void MainWindow::createActions()
 
   circleAct = new QAction(QIcon(":/images/circleIcon.png"), tr("circle"), this);
   circleAct->setStatusTip(tr("circle Tool"));
-  circleAct->setShortcut(QKeySequence(Qt::Key_3));
+  circleAct->setShortcut(QKeySequence(Qt::Key_4));
   circleAct->setCheckable(true);
   circleAct->setChecked(false);
   connect(circleAct, SIGNAL(triggered()), this, SLOT(circle()));
@@ -313,24 +342,40 @@ void MainWindow::createActions()
 
   eraserAct = new QAction(QIcon(":/images/eraserIcon.png"), tr("Eraser"), this);
   eraserAct->setStatusTip(tr("Eraser Tool"));
-  eraserAct->setShortcut(QKeySequence(Qt::Key_4));
+  eraserAct->setShortcut(QKeySequence(Qt::Key_5));
   eraserAct->setCheckable(true);
   connect(eraserAct, SIGNAL(triggered()), this, SLOT(eraser()));
   this->addAction(eraserAct); // add to make shortcut work if menubar is hidden
 
   selectAct = new QAction(QIcon(":/images/selectIcon.png"), tr("Select"), this);
   selectAct->setStatusTip(tr("Select Tool"));
-  selectAct->setShortcut(QKeySequence(Qt::Key_5));
+  selectAct->setShortcut(QKeySequence(Qt::Key_6));
   selectAct->setCheckable(true);
   connect(selectAct, SIGNAL(triggered()), this, SLOT(select()));
   this->addAction(selectAct); // add to make shortcut work if menubar is hidden
 
   handAct = new QAction(QIcon(":/images/handIcon.png"), tr("Hand"), this);
   handAct->setStatusTip(tr("Hand Tool"));
-  handAct->setShortcut(QKeySequence(Qt::Key_6));
+  handAct->setShortcut(QKeySequence(Qt::Key_7));
   handAct->setCheckable(true);
   connect(handAct, SIGNAL(triggered()), this, SLOT(hand()));
   this->addAction(handAct); // add to make shortcut work if menubar is hidden
+
+  textAct = new QAction(tr("Text"), this);
+  textAct->setStatusTip(tr("Insert text"));
+  textAct->setShortcut(QKeySequence(Qt::Key_8));
+  textAct->setCheckable(true);
+  textAct->setChecked(false);
+  connect(textAct, &QAction::triggered, this, &MainWindow::text);
+  this->addAction(textAct);
+
+  markdownAct = new QAction(tr("Markdown"), this);
+  markdownAct->setStatusTip(tr("Insert Markdown text"));
+  markdownAct->setShortcut(QKeySequence(Qt::Key_9));
+  markdownAct->setCheckable(true);
+  markdownAct->setChecked(false);
+  connect(markdownAct, &QAction::triggered, this, &MainWindow::markdown);
+  this->addAction(markdownAct);
 
   solidPatternAct = new QAction(QIcon(":/images/solidPatternIcon.png"), tr("solid line"), this);
   solidPatternAct->setStatusTip(tr("solid line"));
@@ -413,6 +458,20 @@ void MainWindow::createActions()
   connect(maximizeAct, SIGNAL(triggered()), this, SLOT(maximize()));
   this->addAction(maximizeAct);
 
+  horizontalViewAct = new QAction(tr("HView"), this);
+  horizontalViewAct->setStatusTip(tr("Horizontal view"));
+  horizontalViewAct->setCheckable(true);
+  horizontalViewAct->setChecked(false);
+  connect(horizontalViewAct, &QAction::triggered, this, &MainWindow::horizontalView);
+  this->addAction(horizontalViewAct);
+
+  verticalViewAct = new QAction(tr("VView"), this);
+  verticalViewAct->setStatusTip(tr("Vertical view"));
+  verticalViewAct->setCheckable(true);
+  verticalViewAct->setChecked(true);
+  connect(verticalViewAct, &QAction::triggered, this, &MainWindow::verticalView);
+  this->addAction(verticalViewAct);
+
   // colorActions
   blackAct = new QAction(QIcon(":/images/blackIcon.png"), tr("black"), this);
   blackAct->setShortcut(QKeySequence(Qt::Key_Q));
@@ -484,6 +543,14 @@ void MainWindow::createActions()
   connect(rotateAct, SIGNAL(triggered()), this, SLOT(rotate()));
   this->addAction(rotateAct); // add to make shortcut work if menubar is hidden
 
+  fontAct = new QAction(tr("Sans 12"), this);
+  fontAct->setText(tr("Select font"));
+  fontAct->setIconText(mainWidget->getCurrentFont().family() + ", " + QString::number(mainWidget->getCurrentFont().pointSize()));
+  fontAct->setStatusTip(tr("Set font"));
+  fontAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Modifier::SHIFT + Qt::Key_F));
+  connect(fontAct, &QAction::triggered, this, &MainWindow::selectFont);
+  this->addAction(fontAct);
+
   helpAct = new QAction(tr("&Help"), this);
   helpAct->setShortcut(QKeySequence(Qt::Key_F1));
   connect(helpAct, SIGNAL(triggered()), this, SLOT(help()));
@@ -494,7 +561,8 @@ void MainWindow::createActions()
   aboutQtAct = new QAction(tr("About &Qt"), this);
   connect(aboutQtAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 
-  QObject::connect(scrollArea->verticalScrollBar(), SIGNAL(valueChanged(int)), this, SLOT(verticalScrolling()));
+  QObject::connect(scrollArea->verticalScrollBar(), SIGNAL(valueChanged(int)), this, SLOT(scrolling()));
+  QObject::connect(scrollArea->horizontalScrollBar(), &QScrollBar::valueChanged, this, &MainWindow::scrolling);
 }
 
 void MainWindow::createMenus()
@@ -505,6 +573,7 @@ void MainWindow::createMenus()
   fileMenu->addAction(closeWindowAct);
   fileMenu->addSeparator();
   fileMenu->addAction(newFileAct);
+  fileMenu->addAction(annotatePdfAct);
   fileMenu->addAction(openFileAct);
   fileMenu->addAction(saveFileAct);
   fileMenu->addAction(saveFileAsAct);
@@ -525,6 +594,8 @@ void MainWindow::createMenus()
   editMenu->addAction(selectAllAct);
   editMenu->addSeparator();
   editMenu->addAction(rotateAct);
+  editMenu->addSeparator();
+  editMenu->addAction(fontAct);
 
   pageMenu = menuBar()->addMenu(tr("&Page"));
   pageMenu->addAction(pageAddBeforeAct);
@@ -538,11 +609,14 @@ void MainWindow::createMenus()
 
   toolsMenu = menuBar()->addMenu(tr("&Tools"));
   toolsMenu->addAction(penAct);
+  toolsMenu->addAction(highlighterAct);
   toolsMenu->addAction(rulerAct);
   toolsMenu->addAction(circleAct);
   toolsMenu->addAction(eraserAct);
   toolsMenu->addAction(selectAct);
   toolsMenu->addAction(handAct);
+  toolsMenu->addAction(textAct);
+  toolsMenu->addAction(markdownAct);
   toolsMenu->addSeparator();
 
   penWidthMenu = toolsMenu->addMenu(tr("Pen Width"));
@@ -560,6 +634,10 @@ void MainWindow::createMenus()
   patternMenu->addAction(dashDotPatternAct);
   patternMenu->addAction(dotPatternAct);
 
+  viewOrientationMenu = new QMenu(tr("View orientation"), this);
+  viewOrientationMenu->addAction(verticalViewAct);
+  viewOrientationMenu->addAction(horizontalViewAct);
+
   viewMenu = menuBar()->addMenu(tr("&View"));
   viewMenu->addAction(zoomInAct);
   viewMenu->addAction(zoomOutAct);
@@ -569,6 +647,7 @@ void MainWindow::createMenus()
   viewMenu->addAction(toolbarAct);
   viewMenu->addAction(statusbarAct);
   viewMenu->addAction(fullscreenAct);
+  viewMenu->addMenu(viewOrientationMenu);
   viewMenu->addSeparator();
   viewMenu->addAction(saveMyStateAct);
   viewMenu->addAction(loadMyStateAct);
@@ -620,6 +699,8 @@ void MainWindow::createToolBars()
   editToolBar->addAction(copyAct);
   editToolBar->addAction(pasteAct);
   editToolBar->addSeparator();
+  editToolBar->addAction(fontAct);
+  editToolBar->addSeparator();
   editToolBar->addAction(undoAct);
   editToolBar->addAction(redoAct);
   editToolBar->setIconSize(iconSize);
@@ -636,19 +717,27 @@ void MainWindow::createToolBars()
   viewToolBar->addAction(zoomFitHeightAct);
   viewToolBar->addAction(zoomInAct);
   viewToolBar->addSeparator();
+  viewToolBar->addAction(verticalViewAct);
+  viewToolBar->addAction(horizontalViewAct);
+  viewToolBar->addSeparator();
   viewToolBar->addAction(fullscreenAct);
   viewToolBar->setIconSize(iconSize);
+
+  viewToolBar->addWidget(searchBar);
 
   addToolBarBreak();
 
   toolsToolBar = addToolBar(tr("Tools"));
   toolsToolBar->setObjectName("toolsToolBar");
   toolsToolBar->addAction(penAct);
+  toolsToolBar->addAction(highlighterAct);
   toolsToolBar->addAction(rulerAct);
   toolsToolBar->addAction(circleAct);
   toolsToolBar->addAction(eraserAct);
   toolsToolBar->addAction(selectAct);
   toolsToolBar->addAction(handAct);
+  toolsToolBar->addAction(textAct);
+  toolsToolBar->addAction(markdownAct);
 
   toolsToolBar->addSeparator();
 
@@ -692,6 +781,40 @@ void MainWindow::newFile()
   {
     // ignore
   }
+}
+
+void MainWindow::openPdf(){
+    if(!maybeSave()){
+        return;
+    }
+
+    QString dir;
+    if(mainWidget->currentDocument.path().isEmpty()){
+        dir = QDir::homePath();
+    }
+    else{
+        dir = mainWidget->currentDocument.path();
+    }
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open PDF"), dir, tr("PDF Files (*.pdf)"));
+    if(fileName.isNull()){
+        return;
+    }
+
+    MrDoc::Document openDocument;
+
+    if (openDocument.loadPDF(fileName))
+    {
+      mainWidget->letGoSelection();
+      mainWidget->setDocument(openDocument);
+      setTitle();
+      modified();
+    }
+    else
+    {
+      QMessageBox errMsgBox;
+      errMsgBox.setText("Couldn't open file");
+      errMsgBox.exec();
+    }
 }
 
 void MainWindow::openFile()
@@ -922,6 +1045,11 @@ void MainWindow::pen()
   updateGUI();
 }
 
+void MainWindow::highlighter(){
+    mainWidget->setCurrentTool(Widget::tool::HIGHLIGHTER);
+    updateGUI();
+}
+
 void MainWindow::ruler()
 {
   mainWidget->setCurrentTool(Widget::tool::RULER);
@@ -950,6 +1078,30 @@ void MainWindow::hand()
 {
   mainWidget->setCurrentTool(Widget::tool::HAND);
   updateGUI();
+}
+
+void MainWindow::text(){
+    mainWidget->setCurrentTool(Widget::tool::TEXT);
+    updateGUI();
+}
+
+void MainWindow::markdown(){
+    mainWidget->setCurrentTool(Widget::tool::MARKDOWN);
+    updateGUI();
+}
+
+void MainWindow::selectFont(){
+    bool ok;
+    QFont font = QFontDialog::getFont(
+                &ok, QFont("Sans", 12), this);
+    if(ok){
+        mainWidget->setCurrentFont(font);
+        fontAct->setIconText(font.family() + ", " + QString::number(font.pointSize()));
+    }
+    else{
+        mainWidget->setCurrentFont(font);
+        fontAct->setIconText(font.family() + ", " + QString::number(font.pointSize()));
+    }
 }
 
 void MainWindow::modified()
@@ -1124,7 +1276,7 @@ void MainWindow::fullscreen()
   }
 }
 
-void MainWindow::verticalScrolling()
+void MainWindow::scrolling()
 {
   QSize size = scrollArea->size();
   QPoint globalMousePos = QPoint(size.width() / 2.0, size.height() / 2.0) + scrollArea->pos() + this->pos();
@@ -1178,6 +1330,18 @@ void MainWindow::closeEvent(QCloseEvent *event)
   }
 }
 
+void MainWindow::keyReleaseEvent(QKeyEvent *event){
+    if(event->key() == Qt::Key_Control){
+        qDebug() << "release";
+        mainWidget->ctrlZoom = false;
+        if(mainWidget->dismissedCleanZoom){
+            mainWidget->updateAllPageBuffers();
+            mainWidget->update();
+            mainWidget->updateAllPageBuffers();
+        }
+    }
+}
+
 bool MainWindow::maybeSave()
 {
   if (mainWidget->currentDocument.documentChanged())
@@ -1196,6 +1360,8 @@ bool MainWindow::maybeSave()
 
 void MainWindow::updateGUI()
 {
+    QFont currentFont = mainWidget->getCurrentFont();
+    fontAct->setIconText(currentFont.family() + ", " + QString::number(currentFont.pointSize()));
   QColor currentColor = mainWidget->getCurrentColor();
 
   blackAct->setChecked(currentColor == MrDoc::black);
@@ -1213,11 +1379,14 @@ void MainWindow::updateGUI()
   Widget::tool currentTool = mainWidget->getCurrentTool();
 
   penAct->setChecked(currentTool == Widget::tool::PEN);
+  highlighterAct->setChecked(currentTool == Widget::tool::HIGHLIGHTER);
   rulerAct->setChecked(currentTool == Widget::tool::RULER);
   circleAct->setChecked(currentTool == Widget::tool::CIRCLE);
   eraserAct->setChecked(currentTool == Widget::tool::ERASER);
   selectAct->setChecked(currentTool == Widget::tool::SELECT);
   handAct->setChecked(currentTool == Widget::tool::HAND);
+  textAct->setChecked(currentTool == Widget::tool::TEXT);
+  markdownAct->setChecked(currentTool == Widget::tool::MARKDOWN);
 
   qreal currentPenWidth = mainWidget->getCurrentPenWidth();
 
@@ -1246,6 +1415,9 @@ void MainWindow::updateGUI()
   fullscreenAct->setChecked(isFullScreen());
   statusbarAct->setChecked(statusBar()->isVisible());
 
+  verticalViewAct->setChecked(mainWidget->getCurrentView() == Widget::view::VERTICAL);
+  horizontalViewAct->setChecked(mainWidget->getCurrentView() == Widget::view::HORIZONTAL);
+
   if (mainWidget->getCurrentState() == Widget::state::SELECTED)
   {
     cutAct->setEnabled(true);
@@ -1264,8 +1436,11 @@ void MainWindow::updateGUI()
 
   penWidthStatus.setText(QString::number(mainWidget->currentPenWidth));
 
-  verticalScrolling();
+  scrolling();
   setTitle();
+  if(currentTool != Widget::tool::TEXT){
+      mainWidget->closeTextBox();
+  }
 }
 
 void MainWindow::rotate()
@@ -1287,7 +1462,7 @@ void MainWindow::cloneWindow()
   MainWindow *window = new MainWindow();
   window->mainWidget->currentDocument = mainWidget->currentDocument;
   window->mainWidget->currentDocument.setDocName("");
-  window->mainWidget->pageBuffer = mainWidget->pageBuffer;
+  window->mainWidget->pageBufferPtr = mainWidget->pageBufferPtr;
   window->mainWidget->currentSelection = mainWidget->currentSelection;
   window->mainWidget->setCurrentState(mainWidget->getCurrentState());
   //  window->mainWidget->zoomTo(mainWidget->zoom);
@@ -1311,6 +1486,16 @@ void MainWindow::maximize()
   showMaximized();
 }
 
+void MainWindow::horizontalView(){
+    mainWidget->setCurrentView(Widget::view::HORIZONTAL);
+    updateGUI();
+}
+
+void MainWindow::verticalView(){
+    mainWidget->setCurrentView(Widget::view::VERTICAL);
+    updateGUI();
+}
+
 bool MainWindow::loadXOJ(QString fileName)
 {
   return mainWidget->currentDocument.loadXOJ(fileName);
@@ -1323,19 +1508,37 @@ bool MainWindow::loadMOJ(QString fileName)
   updateGUI();
 }
 
+bool MainWindow::loadPDF(QString fileName){
+
+    MrDoc::Document openDocument;
+
+    if (openDocument.loadPDF(fileName))
+    {
+      mainWidget->letGoSelection();
+      mainWidget->setDocument(openDocument);
+      setTitle();
+      modified();
+      return true;
+    }
+    else
+    {
+      return false;
+    }
+}
+
 void MainWindow::pageSettings()
 {
   int pageNum = mainWidget->getCurrentPage();
   qreal width = mainWidget->currentDocument.pages[pageNum].width();
   qreal height = mainWidget->currentDocument.pages[pageNum].height();
-  PageSettingsDialog *pageDialog = new PageSettingsDialog(QSizeF(width, height), mainWidget->currentDocument.pages[pageNum].backgroundColor(), this);
+  PageSettingsDialog *pageDialog = new PageSettingsDialog(QSizeF(width, height), mainWidget->currentDocument.pages[pageNum].backgroundColor(), mainWidget->currentDocument.pages[pageNum].getBackgroundType(), this);
   pageDialog->setWindowModality(Qt::WindowModal);
   if (pageDialog->exec() == QDialog::Accepted)
   {
     if (pageDialog->currentPageSize.isValid())
     {
       qDebug() << "valid";
-      ChangePageSettingsCommand *cpsCommand = new ChangePageSettingsCommand(mainWidget, pageNum, pageDialog->currentPageSize, pageDialog->backgroundColor);
+      ChangePageSettingsCommand *cpsCommand = new ChangePageSettingsCommand(mainWidget, pageNum, pageDialog->currentPageSize, pageDialog->backgroundColor, pageDialog->m_backgroundType);
       mainWidget->undoStack.push(cpsCommand);
     }
   }
@@ -1373,4 +1576,16 @@ void MainWindow::loadMyGeometry()
 void MainWindow::exit()
 {
   static_cast<TabletApplication *>(qApp)->exit();
+}
+
+ZoomScrollArea::ZoomScrollArea(QWidget *parent)
+    : QScrollArea(parent) {}
+
+void ZoomScrollArea::wheelEvent(QWheelEvent *event){
+    if(event->modifiers().testFlag(Qt::ControlModifier)){
+        event->ignore();
+    }
+    else{
+        QScrollArea::wheelEvent(event);
+    }
 }

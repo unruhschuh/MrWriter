@@ -6,9 +6,10 @@
 #include <QDebug>
 #include <QVector>
 
-PageSettingsDialog::PageSettingsDialog(const QSizeF &newPageSize, const QColor &newBackgroundColor, QWidget *parent) : QDialog(parent)
+PageSettingsDialog::PageSettingsDialog(const QSizeF &newPageSize, const QColor &newBackgroundColor, const MrDoc::Page::backgroundType newBackgroundType, QWidget *parent) : QDialog(parent)
 {
   backgroundColor = newBackgroundColor;
+  m_backgroundType = newBackgroundType;
 
   standardPaperSizesComboBox = new QComboBox(this);
 
@@ -57,6 +58,27 @@ PageSettingsDialog::PageSettingsDialog(const QSizeF &newPageSize, const QColor &
   colorButton->setColor(backgroundColor);
   connect(colorButton, SIGNAL(clicked()), this, SLOT(chooseBackgroundColor()));
 
+  backgroundTypesComboBox = new QComboBox(this);
+
+  backgroundTypes << MrDoc::Page::backgroundType::PLAIN << MrDoc::Page::backgroundType::SQUARED << MrDoc::Page::backgroundType::RULED;
+  backgroundTypeNames << tr("Plain paper") << tr("Squared paper") << tr("Ruled paper");
+
+  //backgroundTypes.insert(std::pair<MrDoc::Page::backgroundType, QString>(MrDoc::Page::backgroundType::PLAIN, tr("Plain paper")));
+  //backgroundTypes.insert(std::pair<MrDoc::Page::backgroundType, QString>(MrDoc::Page::backgroundType::SQUARED, tr("Squared paper")));
+  //backgroundTypes.insert(std::pair<MrDoc::Page::backgroundType, QString>(MrDoc::Page::backgroundType::RULED, tr("Ruled paper")));
+
+  for(int i = 0; i < backgroundTypes.size(); ++i){
+      backgroundTypesComboBox->addItem(backgroundTypeNames[i], i);
+  }
+
+  backgroundTypesComboBox->setCurrentIndex(0);
+  for(int i = 0; i < backgroundTypes.size(); ++i){
+      if(backgroundTypes.at(i) == m_backgroundType)
+          backgroundTypesComboBox->setCurrentIndex(i);
+  }
+
+  connect(backgroundTypesComboBox, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int index){ m_backgroundType = backgroundTypes.at(index); } );
+
   okButton = new QPushButton(tr("OK"), this);
   okButton->setDefault(true);
   cancelButton = new QPushButton(tr("Cancel"), this);
@@ -73,6 +95,7 @@ PageSettingsDialog::PageSettingsDialog(const QSizeF &newPageSize, const QColor &
   formLayout->addRow(tr("&Height (pt):"), heightLineEdit);
   formLayout->addRow(tr("Orientation:"), swapWidthHeightButton);
   formLayout->addRow(tr("Background Color:"), colorButton);
+  formLayout->addRow(tr("Background Type:"), backgroundTypesComboBox);
   formLayout->addWidget(scaleContentCheckBox);
   formLayout->addWidget(applyToAllCheckBox);
   formLayout->addRow(okButton, cancelButton);

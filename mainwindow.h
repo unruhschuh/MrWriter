@@ -5,8 +5,15 @@
 #include <QLabel>
 #include <QToolButton>
 #include <QScrollArea>
+#include <QFontDialog>
 
 #include "widget.h"
+#include "searchbar.h"
+
+/**
+ * @brief ZoomScrollArea is a custom QScrollArea. It's necessary to support scrolling by mouse wheel.
+ */
+class ZoomScrollArea;
 
 class MainWindow : public QMainWindow
 {
@@ -20,10 +27,13 @@ public:
   void setTitle();
   bool loadXOJ(QString fileName);
   bool loadMOJ(QString fileName);
+  bool loadPDF(QString fileName);
 
 protected:
   void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
   void showEvent(QShowEvent *event) Q_DECL_OVERRIDE;
+
+  void keyReleaseEvent(QKeyEvent* event) override;
 
 public slots:
   void updateGUI();
@@ -32,6 +42,7 @@ private slots:
   void newWindow();
   void cloneWindow();
   void newFile();
+  void openPdf();
   void openFile();
 
   bool saveFileAs();
@@ -48,12 +59,20 @@ private slots:
   void zoomFitWidth();
   void zoomFitHeight();
 
+  /**
+   * @brief pen gets called when the tool pen is selected
+   */
   void pen();
+  void highlighter();
   void ruler();
   void circle();
   void eraser();
   void select();
   void hand();
+  void text();
+  void markdown();
+
+  void selectFont();
 
   void modified();
 
@@ -61,6 +80,8 @@ private slots:
   void statusbar();
   void fullscreen();
   void maximize();
+  void horizontalView();
+  void verticalView();
 
   void pageSettings();
 
@@ -87,7 +108,7 @@ private slots:
   void saveMyGeometry();
   void loadMyGeometry();
 
-  void verticalScrolling();
+  void scrolling();
 
   bool maybeSave();
 
@@ -106,11 +127,14 @@ private:
   QLabel penWidthStatus;
   QLabel colorStatus;
 
+  SearchBar* searchBar;
+
   // actions
   QAction *newWindowAct;
   QAction *cloneWindowAct;
   QAction *closeWindowAct;
   QAction *newFileAct;
+  QAction *annotatePdfAct;
   QAction *openFileAct;
   QAction *saveFileAct;
   QAction *saveFileAsAct;
@@ -122,6 +146,9 @@ private:
 
   QAction *undoAct;
   QAction *redoAct;
+
+  QAction *pageHistoryForward;
+  QAction *pageHistoryBackward;
 
   QAction *selectAllAct;
   QAction *copyAct;
@@ -148,6 +175,7 @@ private:
   QAction *pageSettingsAct;
 
   QAction *penAct;
+  QAction *highlighterAct;
   QAction *rulerAct;
   QAction *circleAct;
   QAction *eraserAct;
@@ -161,6 +189,11 @@ private:
 
   QAction *rotateAct;
 
+  QAction *textAct;
+  QAction *fontAct;
+
+  QAction *markdownAct;
+
   QAction *veryFinePenWidthAct;
   QAction *finePenWidthAct;
   QAction *mediumPenWidthAct;
@@ -171,6 +204,9 @@ private:
   QAction *statusbarAct;
   QAction *fullscreenAct;
   QAction *maximizeAct;
+  QAction *horizontalViewAct;
+  QAction *verticalViewAct;
+  QMenu *viewOrientationMenu;
 
   // color actions
   QAction *blackAct;
@@ -211,6 +247,13 @@ private:
   // for android
   QToolButton *mainMenuButton;
   QMenu *mainMenu;
+};
+
+class ZoomScrollArea : public QScrollArea{
+public:
+    ZoomScrollArea(QWidget* parent = nullptr);
+protected:
+    void wheelEvent(QWheelEvent* event) override;
 };
 
 #endif // MAINWINDOW_H

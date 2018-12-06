@@ -20,6 +20,7 @@ int main(int argc, char *argv[])
   const QStringList args = parser.positionalArguments();
 
   MainWindow *w = new MainWindow();
+  w->setWindowIcon(QIcon(":/images/Icon1024.png"));
   a.mainWindows.append(w);
 
   if (args.size() == 1)
@@ -34,6 +35,9 @@ int main(int argc, char *argv[])
     else if (fileNameSplitted.last().compare(QString("moj"), Qt::CaseInsensitive) == 0)
     {
       success = w->loadMOJ(fileName);
+    }
+    else if (fileNameSplitted.last().compare(QString("pdf"), Qt::CaseInsensitive) == 0){
+        success = w->loadPDF(fileName);
     }
     if (!success)
     {

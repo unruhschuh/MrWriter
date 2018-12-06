@@ -12,7 +12,6 @@
 #include <QScrollArea>
 #include <QScrollBar>
 #include <QDebug>
-#include <QtConcurrent>
 #include <QSettings>
 #include <QTimer>
 #include <qmath.h>
@@ -23,9 +22,27 @@
 #include <QPainter>
 #include <QRectF>
 
-Widget::Widget(QWidget *parent) : QWidget(parent)
+Widget::Widget(QWidget *parent)
+    : QWidget(parent),
+      currentMarkdownSelection{std::make_tuple<QRectF, QString>(QRectF(0,0,0,0), QString(""))}
 // Widget::Widget(QWidget *parent) : QOpenGLWidget(parent)
 {
+    textBox = new TextBox(this);
+    textBox->setWordWrapMode(QTextOption::WordWrap);
+    textBox->setWindowFlags(Qt::SubWindow);
+    QSizeGrip* sizeGrip = new QSizeGrip(textBox);
+    QGridLayout* layout = new QGridLayout(textBox);
+    layout->addWidget(sizeGrip, 0,0,1,1, Qt::AlignBottom|Qt::AlignRight);
+    textBox->hide();
+
+    markdownBox = new MarkdownBox(this);
+    markdownBox->setWordWrapMode(QTextOption::WordWrap);
+    markdownBox->setWindowFlags(Qt::SubWindow);
+    QSizeGrip* sizeGrip2 = new QSizeGrip(markdownBox);
+    QGridLayout* layout2 = new QGridLayout(markdownBox);
+    layout2->addWidget(sizeGrip2, 0,0,1,1, Qt::AlignBottom|Qt::AlignRight);
+    markdownBox->hide();
+
   QSettings settings;
   //    qDebug() << settings.applicationVersion();
 
@@ -57,10 +74,15 @@ Widget::Widget(QWidget *parent) : QWidget(parent)
   realEraser = false;
   setCursor(penCursorBitmap);
 
+  currentView = view::VERTICAL;
+
+  updateAllPageBuffersTimer = new QTimer(this);
+
   currentDocument = MrDoc::Document();
 
   currentPenWidth = 1.41;
   currentColor = QColor(0, 0, 0);
+  currentFont = QFont("Sans", 12);
   zoom = 1.0;
 
   currentCOSPos.setX(0.0);
@@ -77,89 +99,399 @@ Widget::Widget(QWidget *parent) : QWidget(parent)
   updateDirtyTimer = new QTimer(this);
   connect(updateDirtyTimer, SIGNAL(timeout()), this, SLOT(updateAllDirtyBuffers()));
   updateDirtyTimer->setInterval(15);
+
+  scrollTimer = new QTimer(this);
+  connect(scrollTimer, &QTimer::timeout, this, &Widget::updatePageAfterScrollTimer);
+  //scrollTimer->setInterval(30);
+
+  connect(updateAllPageBuffersTimer, &QTimer::timeout, this, &Widget::updatePageAfterZoomTimer);
 }
 
 void Widget::updateAllPageBuffers()
 {
-  QVector<QFuture<void>> future;
-  pageImageBuffer.clear();
-  for (int buffNum = 0; buffNum < currentDocument.pages.size(); ++buffNum)
-  {
-    pageImageBuffer.append(QImage());
-  }
+    if(updateThread->isRunning()){
+        updateThread->requestInterruption();
+    }
 
-  for (int buffNum = 0; buffNum < currentDocument.pages.size(); ++buffNum)
-  {
-    future.append(QtConcurrent::run(this, &Widget::updateImageBuffer, buffNum));
-  }
-  pageBuffer.clear();
-  for (int buffNum = 0; buffNum < currentDocument.pages.size(); ++buffNum)
-  {
-    future[buffNum].waitForFinished();
-    pageBuffer.append(QPixmap::fromImage(pageImageBuffer.at(buffNum)));
+    if(prevZoom != zoom || pageBufferPtr.size() != currentDocument.pages.size() || pageBufferPtr.isEmpty()){
+        if(ctrlZoom){
+            dismissedCleanZoom = true;
+            return;
+        }
+        dismissedCleanZoom = false;
+        QMutexLocker locker1(&overallBufferMutex);
 
-    // safe some memory
-    pageImageBufferMutex.lock();
-    pageImageBuffer[buffNum] = QImage();
-    pageImageBufferMutex.unlock();
-  }
-  pageImageBuffer.clear();
+        QVector<QFuture<void>> future;
+        pageBufferPtr.clear();
+        basePixmapMap.clear();
+
+        for (int buffNum = 0; buffNum < currentDocument.pages.size(); ++buffNum)
+        {
+            QMutexLocker locker(&pageBufferPtrMutex);
+            pageBufferPtr.append(std::make_shared<std::shared_ptr<QPixmap>>(std::make_shared<QPixmap>()));
+        }
+
+        QSet<int> allPages;
+        for(int i = 0; i < currentDocument.pages.size(); ++i){
+            allPages.insert(i);
+        }
+        QSet<int> visiblePages = getVisiblePages();
+        QSet<int> nonVisiblePages = allPages.subtract(visiblePages);
+        for(int buffNum : visiblePages){
+            future.append(QtConcurrent::run(this, &Widget::updateBuffer, buffNum));
+        }
+        for(int buffNum : nonVisiblePages){
+            future.append(QtConcurrent::run(this, &Widget::updateBufferWithPlaceholder, buffNum));
+        }
+
+        for (int buffNum = 0; buffNum < currentDocument.pages.size(); ++buffNum)
+        {
+            future[buffNum].waitForFinished();
+        }
+        prevZoom = zoom;
+    }
+    else{
+        UpdateWorker* worker = new UpdateWorker(this);
+        worker->moveToThread(updateThread);
+        connect(worker, &UpdateWorker::finished, updateThread, &QThread::quit);
+        connect(updateThread, &QThread::started, worker, &UpdateWorker::process);
+        connect(updateThread, &QThread::finished, this, [this](){update();}, Qt::QueuedConnection);
+        updateThread->start();
+        //QtConcurrent::run(this, &Widget::updateNecessaryPagesBuffer);
+    }
+    dirtyZoom = false;
 }
 
-void Widget::updateImageBuffer(int buffNum)
-{
-  MrDoc::Page const &page = currentDocument.pages.at(buffNum);
-  int pixelWidth = zoom * page.width() * devicePixelRatio();
-  int pixelHeight = zoom * page.height() * devicePixelRatio();
-  QImage image(pixelWidth, pixelHeight, QImage::Format_ARGB32_Premultiplied);
-  image.setDevicePixelRatio(devicePixelRatio());
+void Widget::updateAllPageBuffersDirtyZoom(){
+    if(dirtyZoom){
+        if(updateThread->isRunning()){
+            updateThread->requestInterruption();
+        }
 
-  image.fill(page.backgroundColor());
+        if(currentDocument.pages.size() != pageBufferPtr.size()){
+            updateAllPageBuffers();
+            return;
+        }
+        QMutexLocker locker1(&overallBufferMutex);
 
-  QPainter painter;
-  painter.begin(&image);
-  painter.setRenderHint(QPainter::Antialiasing, true);
+        QVector<QFuture<void>> future;
+        //basePixmapMap.clear();
 
-  currentDocument.pages[buffNum].paint(painter, zoom);
+        QSet<int> allPages;
+        for(int i = 0; i < currentDocument.pages.size(); ++i){
+            allPages.insert(i);
+        }
+        QSet<int> visiblePages = getVisiblePages();
+        QSet<int> nonVisiblePages = allPages.subtract(visiblePages);
+        for(int buffNum : visiblePages){
+            future.append(QtConcurrent::run(this, &Widget::updateBufferDirtyZoom, buffNum));
+        }
+        for(int buffNum : nonVisiblePages){
+            future.append(QtConcurrent::run(this, &Widget::updateBufferWithPlaceholder, buffNum));
+        }
 
-  painter.end();
+        for (int buffNum = 0; buffNum < currentDocument.pages.size(); ++buffNum)
+        {
+            future[buffNum].waitForFinished();
+        }
+        repaint();
+        updateAllPageBuffersTimer->start(33);
+    }
+    dirtyZoom = false;
 
-  pageImageBufferMutex.lock();
-  pageImageBuffer.replace(buffNum, image);
-  pageImageBufferMutex.unlock();
+}
+
+void Widget::updateNecessaryPagesBuffer(){
+//    QVector<QFuture<void>> future;
+
+//    int startingPage = std::max(0, getCurrentPage()-6);
+//    int endPage = std::min(currentDocument.pages.size(), getCurrentPage()+6);
+//    for(int buffNum = startingPage; buffNum < endPage; ++buffNum){
+//        pageBufferPtr.replace(buffNum, std::make_shared<QPixmap>());
+//    }
+//    for(int buffNum = startingPage; buffNum < endPage; ++buffNum){
+//        future.append(QtConcurrent::run(this, &Widget::updateBuffer, buffNum));
+//    }
+//    for(int buffNum = 0; buffNum < future.size(); ++buffNum){
+//        future[buffNum].waitForFinished();
+//    }
+
+//    if(scrollingBecauseOfZooming){
+//        scrollingBecauseOfZooming = false;
+//        return;
+//    }
+    QMutexLocker locker1(&overallBufferMutex);
+    QVector<QFuture<void>> future;
+
+    int startingPage = std::max(0, getCurrentPage()-6);
+    int endPage = std::min(currentDocument.pages.size(), getCurrentPage()+6);
+
+    for(int buffNum = startingPage; buffNum < endPage; ++buffNum){
+        if(QThread::currentThread()->isInterruptionRequested()){
+            for(int i = 0; i < future.size(); ++i){
+                future[i].waitForFinished();
+            }
+            locker1.unlock();
+            return;
+        }
+        const MrDoc::Page& buffPage = currentDocument.pages[buffNum];
+        int pageWidth = zoom * buffPage.width() * devicePixelRatio();
+        int pageHight = zoom * buffPage.height() * devicePixelRatio();
+
+        BasicPageSize p;
+        p.pageHeight = pageHight;
+        p.pageWidth = pageWidth;
+
+        auto basePixmapIter = basePixmapMap.find(p);
+        if(basePixmapIter != basePixmapMap.end()){
+            if((*(*(basePixmapIter->second))).toImage() == (*(*(pageBufferPtr.at(buffNum)))).toImage()){
+                future.append(QtConcurrent::run(this, &Widget::updateBuffer, buffNum));
+                //updateBuffer(buffNum);
+            }
+        }
+    }
+    for(int i = 0; i < future.size(); ++i){
+        future[i].waitForFinished();
+    }
+
+//    QVector<QFuture<void>> futureUrgent;
+//    QVector<QFuture<void>> future;
+
+//    qDebug() << "updateNecessary";
+//    int startingPage = std::max(0, getCurrentPage()-6);
+//    int endPage = std::min(currentDocument.pages.size(), getCurrentPage()+6);
+//    QVector<int> toUpdateUrgent;
+//    QVector<int> toUpdate;
+
+//    int currentPageNum = getCurrentPage();
+//    int visiblePages = getVisiblePages();
+
+//    for(int buffNum = startingPage; buffNum < endPage; ++buffNum){
+
+//        //qDebug() << (*pageBufferPtr.at(buffNum))->rect() << "vs" << basePixmap->rect();
+//        qDebug() << buffNum << ":" << (*pageBufferPtr.at(buffNum)).use_count() << "vs" << basePixmap.use_count();
+//        qDebug() << buffNum << ":" << pageBufferPtr.at(buffNum).use_count();
+
+//        const MrDoc::Page& buffPage = currentDocument.pages[buffNum];
+//        int pageWidth = zoom * buffPage.width() * devicePixelRatio();
+//        int pageHight = zoom * buffPage.height() * devicePixelRatio();
+//        BasicPageSize p;
+//        p.pageHeight = pageHight;
+//        p.pageWidth = pageWidth;
+//        auto basePixmapIter = basePixmapMap.find(p);
+//        if(basePixmapIter != basePixmapMap.end()){
+
+////        }
+////        if(*pageBufferPtr.at(buffNum) == *basePixmap){
+//            qDebug() << "replace" << buffNum;
+//            {
+//                QMutexLocker locker(&pageBufferPtrMutex);
+//                pageBufferPtr.replace(buffNum, std::make_shared<std::shared_ptr<QPixmap>>(std::make_shared<QPixmap>()));
+//            }
+//            if(abs(buffNum - currentPageNum) < 2*visiblePages){
+//                qDebug() << "urgent:" << buffNum;
+//                toUpdateUrgent.append(buffNum);
+//            }
+//            else{
+//                toUpdate.append(buffNum);
+//            }
+//        }
+//    }
+//    for(int i = 0; i < toUpdateUrgent.size(); ++i){
+//        futureUrgent.append(QtConcurrent::run(this, &Widget::updateBuffer, toUpdateUrgent.at(i)));
+//    }
+//    for(int i = 0; i < toUpdate.size(); ++i){
+//        future.append(QtConcurrent::run(this, &Widget::updateBuffer, toUpdate.at(i)));
+//    }
+//    for(int buffNum = 0; buffNum < futureUrgent.size(); ++buffNum){
+//        futureUrgent[buffNum].waitForFinished();
+//    }
+//    for(int i = 0; i < future.size(); ++i){
+//        future[i].waitForFinished();
+//    }
+//    //update();
 }
 
 void Widget::updateBuffer(int buffNum)
 {
+//  MrDoc::Page const &page = currentDocument.pages.at(buffNum);
+//  int pixelWidth = zoom * page.width() * devicePixelRatio();
+//  int pixelHeight = zoom * page.height() * devicePixelRatio();
+
+//  //qDebug() << "visible Pages: " << getVisiblePages();
+//  if(abs(buffNum - getCurrentPage()) < 2*getVisiblePages()){
+//      std::shared_ptr<std::shared_ptr<QPixmap>> newPixmap = std::make_shared<std::shared_ptr<QPixmap>>(std::make_shared<QPixmap>(pixelWidth, pixelHeight));
+//      (*newPixmap)->setDevicePixelRatio(devicePixelRatio());
+//      (*newPixmap)->fill(page.backgroundColor());
+//      QPainter painter;
+//      painter.begin(newPixmap.get()->get());
+//      painter.setRenderHint(QPainter::Antialiasing, true);
+
+//      currentDocument.pages[buffNum].paint(painter, zoom);
+//      painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+
+//      painter.end();
+//      pageBufferPtr.replace(buffNum, newPixmap);
+//      //newPixmap->save("/home/alexander/testPixmap.png");
+//  }
+//  else{
+//      //TODO: use lockguard
+//      basePixmapMutex.lock();
+//      if((*basePixmap)->height() != pixelHeight || (*basePixmap)->width() != pixelWidth){
+//          //basePixmap->scaled(pixelWidth, pixelHeight);
+//          *basePixmap = std::make_shared<QPixmap>(pixelWidth, pixelHeight);
+//      }
+//      (*basePixmap)->setDevicePixelRatio(devicePixelRatio());
+//      (*basePixmap)->fill(page.backgroundColor());
+
+//      QPainter painter;
+
+//      painter.begin((*basePixmap).get());
+//      painter.end();
+//      pageBufferPtr.replace(buffNum, basePixmap);
+//      //pageBufferPtr[buffNum] = std::make_shared<std::shared_ptr<QPixmap>>(basePixmap);
+//      //*pageBufferPtr[buffNum] = basePixmap;
+
+//      basePixmapMutex.unlock();
+//  }
+
   MrDoc::Page const &page = currentDocument.pages.at(buffNum);
   int pixelWidth = zoom * page.width() * devicePixelRatio();
   int pixelHeight = zoom * page.height() * devicePixelRatio();
-  QPixmap pixmap(pixelWidth, pixelHeight);
-  pixmap.setDevicePixelRatio(devicePixelRatio());
 
-  pixmap.fill(page.backgroundColor());
+  //qDebug() << "visible Pages: " << getVisiblePages();
+  //if(abs(buffNum - getCurrentPage()) < 2*getVisiblePages()){
+      std::shared_ptr<std::shared_ptr<QPixmap>> newPixmap = std::make_shared<std::shared_ptr<QPixmap>>(std::make_shared<QPixmap>(pixelWidth, pixelHeight));
+      (*newPixmap)->setDevicePixelRatio(devicePixelRatio());
+      (*newPixmap)->fill(page.backgroundColor());
+      QPainter painter;
+      painter.begin(newPixmap.get()->get());
+      painter.setRenderHint(QPainter::Antialiasing, true);
 
-  QPainter painter;
-  painter.begin(&pixmap);
-  painter.setRenderHint(QPainter::Antialiasing, true);
+      currentDocument.pages[buffNum].paint(painter, zoom);
+      painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
 
-  currentDocument.pages[buffNum].paint(painter, zoom);
+      painter.end();
+      {
+          QMutexLocker locker(&pageBufferPtrMutex);
+          pageBufferPtr.replace(buffNum, newPixmap);
+      }
+  //}
+}
 
-  painter.end();
+void Widget::updateBufferWithPlaceholder(int buffNum){
+    MrDoc::Page const &page = currentDocument.pages.at(buffNum);
+    int pixelWidth = zoom * page.width() * devicePixelRatio();
+    int pixelHeight = zoom * page.height() * devicePixelRatio();
 
-  pageBuffer.replace(buffNum, pixmap);
+    //basePixmapMutex.lock();
+    QPainter painter;
+    BasicPageSize p;
+    p.pageWidth = pixelWidth;
+    p.pageHeight = pixelHeight;
+
+
+//    try{
+//        auto bP = basePixmapMap.at(p);
+//        painter.begin((*bP).get());
+//        painter.end();
+//        pageBufferPtr.replace(buffNum, bP);
+//        basePixmapMutex.unlock();
+//    }
+//    catch(std::out_of_range e){
+//        auto bP = std::make_shared<std::shared_ptr<QPixmap>>(std::make_shared<QPixmap>(pixelWidth, pixelHeight));
+//        (*bP)->setDevicePixelRatio(devicePixelRatio());
+//        (*bP)->fill(page.backgroundColor());
+//        basePixmapMap.insert({p, bP});
+//        painter.begin((*bP).get());
+//        painter.end();
+//        pageBufferPtr.replace(buffNum, bP);
+//        basePixmapMutex.unlock();
+//    }
+
+    std::shared_ptr<std::shared_ptr<QPixmap>> bP;
+    auto pixmapIter = basePixmapMap.find(p);
+    if(pixmapIter == basePixmapMap.end()){
+        bP = std::make_shared<std::shared_ptr<QPixmap>>(std::make_shared<QPixmap>(pixelWidth, pixelHeight));
+        (*bP)->setDevicePixelRatio(devicePixelRatio());
+        (*bP)->fill(page.backgroundColor());
+        {
+            QMutexLocker pixmapLocker(&basePixmapMutex);
+            basePixmapMap.insert({p, bP});
+            painter.begin((*bP).get());
+            painter.end();
+        }
+        {
+            QMutexLocker locker(&pageBufferPtrMutex);
+            pageBufferPtr.replace(buffNum, bP);
+        }
+        //basePixmapMutex.unlock();
+    }
+    else{
+        {
+            QMutexLocker pixmapLocker(&basePixmapMutex);
+            bP = pixmapIter->second;
+            painter.begin((*bP).get());
+            painter.end();
+        }
+        {
+            QMutexLocker locker(&pageBufferPtrMutex);
+            pageBufferPtr.replace(buffNum, bP);
+        }
+        //basePixmapMutex.unlock();
+    }
+//    if((*basePixmap)->height() != pixelHeight || (*basePixmap)->width() != pixelWidth){
+//        //basePixmap->scaled(pixelWidth, pixelHeight);
+//        *basePixmap = std::make_shared<QPixmap>(pixelWidth, pixelHeight);
+//    }
+//    (*basePixmap)->setDevicePixelRatio(devicePixelRatio());
+//    (*basePixmap)->fill(page.backgroundColor());
+
+//    QPainter painter;
+
+//    painter.begin((*basePixmap).get());
+//    painter.end();
+//    pageBufferPtr.replace(buffNum, basePixmap);
+//    //pageBufferPtr[buffNum] = std::make_shared<std::shared_ptr<QPixmap>>(basePixmap);
+//    //*pageBufferPtr[buffNum] = basePixmap;
+
+//    basePixmapMutex.unlock();
+}
+
+void Widget::updateBufferDirtyZoom(int buffNum){
+    MrDoc::Page const &page = currentDocument.pages.at(buffNum);
+    int pixelWidth = zoom * page.width() * devicePixelRatio();
+    int pixelHeight = zoom * page.height() * devicePixelRatio();
+
+    std::shared_ptr<std::shared_ptr<QPixmap>> newPixmap = std::make_shared<std::shared_ptr<QPixmap>>(std::make_shared<QPixmap>(pixelWidth, pixelHeight));
+    (*newPixmap)->setDevicePixelRatio(devicePixelRatio());
+    (*newPixmap)->fill(page.backgroundColor());
+    QPainter painter;
+    painter.begin(newPixmap.get()->get());
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    //painter.scale(zoom/prevZoom, zoom/prevZoom);
+
+    {
+        QMutexLocker locker(&pageBufferPtrMutex);
+        painter.drawPixmap(0,0,pixelWidth,pixelHeight, *(*(pageBufferPtr[buffNum])));
+    }
+
+    painter.end();
+    {
+        QMutexLocker locker(&pageBufferPtrMutex);
+        pageBufferPtr.replace(buffNum, newPixmap);
+    }
 }
 
 void Widget::updateBufferRegion(int buffNum, QRectF const &clipRect)
 {
   QPainter painter;
-  painter.begin(&pageBuffer[buffNum]);
+  painter.begin(pageBufferPtr[buffNum].get()->get());
   painter.setRenderHint(QPainter::Antialiasing, true);
   painter.setClipRect(clipRect);
   painter.setClipping(true);
 
   painter.fillRect(clipRect, currentDocument.pages.at(buffNum).backgroundColor());
-  //    painter.fillRect(clipRect, Qt::red);
 
   QRectF paintRect = QRectF(clipRect.topLeft() / zoom, clipRect.bottomRight() / zoom);
   currentDocument.pages[buffNum].paint(painter, zoom, paintRect);
@@ -182,82 +514,171 @@ void Widget::updateAllDirtyBuffers()
   update();
 }
 
+void Widget::updatePageAfterScrolling(int value){
+    if(currentView == view::VERTICAL){
+        if(abs(value-previousVerticalValueRendered) > scrollArea->verticalScrollBar()->maximum()/currentDocument.pages.size()){
+            scrollTimer->start(15);
+            previousVerticalValueMaybeRendered = value;
+        }
+    }
+    else{
+        if(abs(value-previousHorizontalValueRendered) > scrollArea->horizontalScrollBar()->maximum()/currentDocument.pages.size()){
+            scrollTimer->start(15);
+            previousHorizontalValueMaybeRendered = value;
+        }
+    }
+}
+
+void Widget::updatePageAfterScrollTimer(){
+    if(currentView == view::VERTICAL){
+        if(!scrollArea->verticalScrollBar()->isSliderDown()){
+            updateAllPageBuffers();
+            scrollTimer->stop();
+            //update();
+            previousVerticalValueRendered = previousVerticalValueMaybeRendered;
+        }
+    }
+    else{
+        if(!scrollArea->horizontalScrollBar()->isSliderDown()){
+            updateAllPageBuffers();
+            scrollTimer->stop();
+            //update();
+            previousHorizontalValueRendered = previousHorizontalValueMaybeRendered;
+        }
+    }
+}
+
+void Widget::updatePageAfterZoomTimer(){
+    updateAllPageBuffersTimer->stop();
+    updateAllPageBuffers();
+    update();
+}
+
 void Widget::drawOnBuffer(bool last)
 {
-  QPainter painter;
-  painter.begin(&pageBuffer[drawingOnPage]);
-  painter.setRenderHint(QPainter::Antialiasing, true);
+    QPainter painter;
+    painter.begin(pageBufferPtr[drawingOnPage].get()->get());
+    painter.setRenderHint(QPainter::Antialiasing, true);
 
-  currentStroke.paint(painter, zoom, last);
+    //currentStroke.paint(painter, zoom, last);
+    //currentStroke.paint(painter, QRect(0,0, pageBufferPtr[drawingOnPage]->width(), pageBufferPtr[drawingOnPage]->height()), zoom, last);
+    //currentStroke.paint(painter, QRect(currentStroke.boundingRect().x()*zoom, currentStroke.boundingRect().y()*zoom, currentStroke.boundingRect().width()*zoom, currentStroke.boundingRect().height()), zoom, last);
+    currentStroke.paint(painter, zoom, last);
+    //painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
 }
 
 QRect Widget::getWidgetGeometry()
 {
-  int width = 0;
-  int height = 0;
-  for (int i = 0; i < pageBuffer.size(); ++i)
-  {
-    height += pageBuffer[i].height()/devicePixelRatio() + PAGE_GAP;
-    if (pageBuffer[i].width()/devicePixelRatio() > width)
-      width = pageBuffer[i].width()/devicePixelRatio();
-  }
-  height -= PAGE_GAP;
-  return QRect(0, 0, width, height);
+    if(currentView == view::VERTICAL){
+        int width = 0;
+        int height = 0;
+//        for (int i = 0; i < pageBufferPtr.size(); ++i)
+//        {
+//            height += (*pageBufferPtr[i])->height()/devicePixelRatio() + PAGE_GAP;
+//            if ((*pageBufferPtr[i])->width()/devicePixelRatio() > width)
+//                width = (*pageBufferPtr[i])->width()/devicePixelRatio();
+//        }
+//        height -= PAGE_GAP;
+//        return QRect(0, 0, width, height);
+
+        for (int i = 0; i < currentDocument.pages.size(); ++i){
+            height += currentDocument.pages[i].height()*zoom + PAGE_GAP;
+            if (currentDocument.pages[i].width()*zoom > width)
+                width = currentDocument.pages[i].width()*zoom;
+        }
+        height -= PAGE_GAP;
+        return QRect(0,0,width,height);
+    }
+    else{ //view::HORIZONTAL
+        int width = 0;
+        int height = 0;
+
+//        for (int i = 0; i < pageBufferPtr.size(); ++i)
+//        {
+//            width += (*(pageBufferPtr[i]))->width()/devicePixelRatio() + PAGE_GAP;
+//            if ((*(pageBufferPtr[i]))->height()/devicePixelRatio() > height)
+//                height = (*pageBufferPtr[i])->height()/devicePixelRatio();
+//        }
+//        width -= PAGE_GAP;
+//        return QRect(0, 0, width, height);
+
+        for (int i = 0; i < currentDocument.pages.size(); ++i){
+            width += currentDocument.pages[i].width()*zoom + PAGE_GAP;
+            if(currentDocument.pages[i].height()*zoom > height)
+                height = currentDocument.pages[i].height()*zoom;
+        }
+        width -= PAGE_GAP;
+        return QRect(0,0,width,height);
+    }
 }
 
 void Widget::paintEvent(QPaintEvent *event)
 {
-  //    QRect widgetGeometry = getWidgetGeometry();
-  QPalette p(palette());
-  setAutoFillBackground(true);
-  setPalette(p);
+    //    QRect widgetGeometry = getWidgetGeometry();
+    QPalette p(palette());
+    setAutoFillBackground(true);
+    setPalette(p);
 
-  QPainter painter(this);
+    QPainter painter(this);
 
-  if (currentState == state::DRAWING)
-  {
-    QRectF rectSource;
-    QTransform trans;
-    for (int i = 0; i < drawingOnPage; ++i)
+    if (currentState == state::DRAWING)
     {
-      trans = trans.translate(0, -(pageBuffer.at(i).height() + PAGE_GAP*devicePixelRatio()));
-    }
-    trans = trans.scale(devicePixelRatio(),devicePixelRatio());
-    rectSource = trans.mapRect(event->rect());
+        QRectF rectSource;
+        QTransform trans;
+        if(currentView == view::VERTICAL){
+            for (int i = 0; i < drawingOnPage; ++i)
+            {
+                trans = trans.translate(0, -((*pageBufferPtr.at(i))->height() + PAGE_GAP*devicePixelRatio()));
+            }
+        }
+        else{
+            for(int i = 0; i < drawingOnPage; ++i){
+                trans = trans.translate(-((*pageBufferPtr.at(i))->width() + PAGE_GAP*devicePixelRatio()), 0);
+            }
+        }
+        trans = trans.scale(devicePixelRatio(),devicePixelRatio());
+        rectSource = trans.mapRect(event->rect());
 
-    //        QPixmap tmp = QPixmap::fromImage(pageBuffer.at(drawingOnPage));
-    painter.drawPixmap(event->rect(), pageBuffer[drawingOnPage], rectSource);
+        //        QPixmap tmp = QPixmap::fromImage(pageBuffer.at(drawingOnPage));
+        painter.drawPixmap(event->rect(), *(*pageBufferPtr[drawingOnPage]), rectSource);
 
-    //        painter.drawImage(event->rect(), pageBuffer.at(drawingOnPage), rectSource);
-    return;
-  }
-
-  //    painter.setRenderHint(QPainter::Antialiasing, true);
-
-  for (int i = 0; i < pageBuffer.size(); ++i)
-  {
-    QRectF rectSource;
-    rectSource.setTopLeft(QPointF(0.0, 0.0));
-    rectSource.setWidth(pageBuffer.at(i).width());
-    rectSource.setHeight(pageBuffer.at(i).height());
-
-    QRectF rectTarget;
-    //        rectTarget.setTopLeft(QPointF(0.0, currentYPos));
-    rectTarget.setTopLeft(QPointF(0.0, 0.0));
-    rectTarget.setWidth(pageBuffer.at(i).width()/devicePixelRatio());
-    rectTarget.setHeight(pageBuffer.at(i).height()/devicePixelRatio());
-
-    painter.drawPixmap(rectTarget, pageBuffer.at(i), rectSource);
-
-    if ((currentState == state::SELECTING || currentState == state::SELECTED || currentState == state::MOVING_SELECTION ||
-         currentState == state::RESIZING_SELECTION || currentState == state::ROTATING_SELECTION) &&
-        i == currentSelection.pageNum())
-    {
-      currentSelection.paint(painter, zoom);
+        //        painter.drawImage(event->rect(), pageBuffer.at(drawingOnPage), rectSource);
+        return;
     }
 
-    painter.translate(QPointF(0.0, rectSource.height()/devicePixelRatio() + PAGE_GAP));
-  }
+    //    painter.setRenderHint(QPainter::Antialiasing, true);
+
+    for (int i = 0; i < pageBufferPtr.size(); ++i)
+    {
+        QRectF rectSource;
+        rectSource.setTopLeft(QPointF(0.0, 0.0));
+        rectSource.setWidth((*pageBufferPtr.at(i))->width());
+        rectSource.setHeight((*pageBufferPtr.at(i))->height());
+
+        QRectF rectTarget;
+        //        rectTarget.setTopLeft(QPointF(0.0, currentYPos));
+        rectTarget.setTopLeft(QPointF(0.0, 0.0));
+        rectTarget.setWidth((*pageBufferPtr.at(i))->width()/devicePixelRatio());
+        rectTarget.setHeight((*pageBufferPtr.at(i))->height()/devicePixelRatio());
+
+        painter.drawPixmap(rectTarget, *(*pageBufferPtr.at(i)), rectSource);
+
+        if ((currentState == state::SELECTING || currentState == state::SELECTED || currentState == state::MOVING_SELECTION ||
+             currentState == state::RESIZING_SELECTION || currentState == state::ROTATING_SELECTION) &&
+                i == currentSelection.pageNum())
+        {
+            currentSelection.paint(painter, zoom);
+        }
+        else if ((currentState == state::MARKDOWN_SELECTED || currentState == state::MARKDOWN_MOVING) && i == currentMarkdownSelection.pageNum()){
+            currentMarkdownSelection.paint(painter,zoom);
+        }
+
+        if(currentView == view::VERTICAL)
+            painter.translate(QPointF(0.0, rectSource.height()/devicePixelRatio() + PAGE_GAP));
+        else
+            painter.translate(QPointF(rectSource.width()/devicePixelRatio() + PAGE_GAP, 0.0));
+    }
+
 }
 
 void Widget::updateWhileDrawing()
@@ -343,6 +764,35 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
       return;
     }
     return;
+  }
+
+  if (currentState == state::MARKDOWN_SELECTED){
+      if (eventType == QEvent::MouseButtonPress){
+          using GrabZone = MrDoc::MarkdownSelection::GrabZone;
+          GrabZone grabZone = currentMarkdownSelection.grabZone(pagePos);
+          if(grabZone == GrabZone::None){
+              letGoMarkdownSelection();
+              return;
+          }
+          else if(grabZone == GrabZone::Move){
+              startMovingMarkdownSelection(mousePos);
+              return;
+          }
+          else{
+              qDebug() << "Resize";
+          }
+      }
+  }
+
+  if (currentState == state::MARKDOWN_MOVING){
+      if (eventType == QEvent::MouseMove){
+          continueMovingMarkdownSelection(mousePos);
+          return;
+      }
+      if (eventType == QEvent::MouseButtonRelease){
+          setCurrentState(state::MARKDOWN_SELECTED);
+          return;
+      }
   }
 
   if (currentState == state::SELECTED)
@@ -508,7 +958,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
     {
       if (pointerType == QTabletEvent::Pen)
       {
-        if (currentTool == tool::PEN)
+        if (currentTool == tool::PEN || currentTool == tool::HIGHLIGHTER) //treat highlighter basically the same as pen
         {
           startDrawing(mousePos, pressure);
           return;
@@ -566,6 +1016,18 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
         previousMousePos = mousePos;
       }
     }
+    /*//Test for finger is moving the sheet
+    if (eventType == QEvent::TouchUpdate){
+        int dx = 1 * (mousePos.x() - previousMousePos.x());
+        int dy = 1 * (mousePos.y() - previousMousePos.y());
+
+        scrollArea->horizontalScrollBar()->setValue(scrollArea->horizontalScrollBar()->value() - dx);
+        scrollArea->verticalScrollBar()->setValue(scrollArea->verticalScrollBar()->value() - dy);
+
+        mousePos -= QPointF(dx, dy);
+
+        previousMousePos = mousePos;
+    }*/
     if (eventType == QEvent::MouseButtonRelease)
     {
       setPreviousTool();
@@ -607,6 +1069,105 @@ void Widget::tabletEvent(QTabletEvent *event)
 
 void Widget::mousePressEvent(QMouseEvent *event)
 {
+    if(currentState == state::IDLE){
+        if(event->button() == Qt::ForwardButton){
+            pageHistoryForward();
+            return;
+        }
+        else if(event->button() == Qt::BackButton){
+            pageHistoryBackward();
+            return;
+        }
+        else{
+            int pageNum = getPageFromMousePos(event->pos());
+            QPointF point = getPagePosFromMousePos(event->pos(), pageNum);
+            Poppler::LinkGoto* gotoLink = currentDocument.pages[pageNum].linkFromMouseClick(point.x(), point.y());
+            if(gotoLink){
+                if(!gotoLink->isExternal()){
+                    int gotoNum = gotoLink->destination().pageNumber()-1;
+                    appendToPageHistory(getCurrentPage());
+                    scrollDocumentToPageNum(gotoNum);
+                    appendToPageHistory(gotoNum);
+                    return;
+                }
+            }
+        }
+    }
+
+    if(currentTool == tool::TEXT){
+        int pageNum = getPageFromMousePos(event->pos());
+        QPointF point = getPagePosFromMousePos(event->pos(), pageNum);
+        int textIndex = currentDocument.pages[pageNum].textIndexFromMouseClick(point.x(), point.y());
+        if(textBoxOpen){
+            closeTextBox();
+            return;
+        }
+        else if(textIndex != -1){ //clicked on text
+            textBox->setPage(&(currentDocument.pages[pageNum]));
+            textBox->setPageNum(pageNum);
+            textBox->setTextIndex(textIndex);
+            QRect textRect = currentDocument.pages[pageNum].textRectByIndex(textIndex).toAlignedRect().adjusted(0,0,50,50);
+            textBox->setGeometry(event->x(), event->y(), textRect.width(), textRect.height());
+            textBox->setText(currentDocument.pages[pageNum].textByIndex(textIndex));
+            textBox->setPrevText(textBox->toPlainText());
+            textBox->setPrevColor(currentDocument.pages[pageNum].textColorByIndex(textIndex));
+            textBox->setPrevFont(currentDocument.pages[pageNum].textFontByIndex(textIndex));
+            textBox->show();
+
+            textBoxOpen = true;
+            textChanged = true;
+
+            setCurrentColor(currentDocument.pages[pageNum].textColorByIndex(textIndex));
+            setCurrentFont(currentDocument.pages[pageNum].textFontByIndex(textIndex));
+        }
+        else if(textIndex == -1){ //clicked not on text
+            textBox->setGeometry(event->x(), event->y(), 250,100);
+            textBox->setPageNum(pageNum);
+            textBox->setPage(&(currentDocument.pages[pageNum]));
+            textBox->setTextIndex(-1);
+            textBox->setBoundingRect(QRectF(point.x(), point.y(), 0,0));
+            textBox->setTextColor(getCurrentColor());
+            textBox->setTextFont(currentFont);
+            textBox->show();
+            textBoxOpen = true;
+        }
+        setCurrentState(state::TEXTTYPING);
+    }
+
+    if(currentTool == tool::MARKDOWN && currentState != state::MARKDOWN_SELECTED){
+        qDebug() << "markdown";
+        if(markdownBoxOpen){
+            closeTextBox();
+            return;
+        }
+        int pageNum = getPageFromMousePos(event->pos());
+        QPointF point = getPagePosFromMousePos(event->pos(), pageNum);
+        int textIndex = currentDocument.pages[pageNum].markdownIndexFromMouseClick(point.x(), point.y());
+        if(textIndex != -1){
+            markdownBox->setPage(&(currentDocument.pages[pageNum]));
+            markdownBox->setPageNum(pageNum);
+            markdownBox->setTextIndex(textIndex);
+            QRectF textRect = currentDocument.pages[pageNum].markdownRectByIndex(textIndex);
+            markdownBox->setGeometry(event->x(), event->y(), textRect.width()+50, textRect.height()+50);
+            markdownBox->setText(currentDocument.pages[pageNum].markdownByIndex(textIndex));
+            markdownBox->setPrevText(markdownBox->toPlainText());
+            markdownBox->setBoundingRect(textRect);
+            markdownBox->show();
+
+            markdownBoxOpen = true;
+            markdownChanged = true;
+        }
+        else{
+            markdownBox->setGeometry(event->x(), event->y(), 300,200);
+            markdownBox->setPageNum(pageNum);
+            markdownBox->setPage(&(currentDocument.pages[pageNum]));
+            markdownBox->setTextIndex(-1);
+            markdownBox->setBoundingRect(QRectF(point.x(),point.y(),0,0));
+            markdownBox->show();
+            markdownBoxOpen = true;
+        }
+        setCurrentState(state::MARKDOWNTYPING);
+    }
   bool usingTablet = static_cast<TabletApplication *>(qApp)->isUsingTablet();
 
   if (!usingTablet)
@@ -655,6 +1216,98 @@ void Widget::mouseReleaseEvent(QMouseEvent *event)
     }
   }
   penDown = false;
+}
+
+void Widget::mouseDoubleClickEvent(QMouseEvent *event){
+    int pageNum = getPageFromMousePos(event->pos());
+    QPointF pagePos = getPagePosFromMousePos(event->pos(), pageNum);
+    if(currentState == state::MARKDOWNTYPING){
+        int index = currentDocument.pages[pageNum].markdownIndexFromMouseClick(pagePos.x(), pagePos.y());
+        if(index > -1){
+            MrDoc::MarkdownSelection newSelection = MrDoc::MarkdownSelection(std::make_tuple<QRectF, QString>(currentDocument.pages[pageNum].markdownRectByIndex(index), currentDocument.pages[pageNum].markdownByIndex(index)));
+            newSelection.setPageNum(pageNum);
+
+            CreateMarkdownSelection* createMarkdownSelection = new CreateMarkdownSelection(this, pageNum, index, newSelection);
+            undoStack.push(createMarkdownSelection);
+            markdownBox->applyText();
+            markdownBoxOpen = false;
+            markdownChanged = false;
+
+            updateBuffer(pageNum);
+            update();
+        }
+    }
+}
+
+void Widget::keyPressEvent(QKeyEvent *event){
+    if(textBoxOpen){
+        if(event->key() == Qt::Key_Escape){
+            closeTextBox();
+        }
+        else{
+            QWidget::keyPressEvent(event);
+        }
+    }
+    else{
+        QWidget::keyPressEvent(event);
+    }
+}
+
+void Widget::wheelEvent(QWheelEvent *event){
+    if(event->modifiers().testFlag(Qt::ControlModifier)){
+        event->ignore();
+        ctrlZoom = true;
+        zoomTo(zoom + ((qreal)(event->angleDelta().y()/360.0)));
+    }
+    else{
+        QWidget::wheelEvent(event);
+    }
+
+}
+void Widget::closeTextBox(){
+    if(textBoxOpen){
+        textBox->setTextColor(getCurrentColor());
+        if(textChanged){
+            ChangeTextCommand* changeTextCommand = new ChangeTextCommand(this, textBox->getPageNum(), textBox->getPage(), textBox->getTextIndex(), textBox->getPrevColor(),
+                                                                         getCurrentColor(), textBox->getPrevFont(), getCurrentFont(),
+                                                                         textBox->getPrevText(), textBox->toPlainText());
+            undoStack.push(changeTextCommand);
+            textChanged = false;
+        }
+        else{
+            TextCommand* textCommand = new TextCommand(this, textBox->getPageNum(), textBox->getPage(), QRectF(textBox->getTextX(), textBox->getTextY(), 0, 0),
+                                                       getCurrentColor(), textBox->getFont(), textBox->toPlainText());
+            undoStack.push(textCommand);
+        }
+        textBox->applyText();
+
+        emit modified();
+        textBoxOpen = false;
+        currentDocument.setDocumentChanged(true);
+
+        setCurrentState(state::IDLE);
+    }
+    else if(markdownBoxOpen){
+        qDebug() << "markdown open";
+        if(markdownChanged){
+            ChangeMarkdownCommand* changeMarkdownCommand = new ChangeMarkdownCommand(this, markdownBox->getPageNum(), markdownBox->getPage(), markdownBox->getTextIndex(),
+                                                                                    markdownBox->getPrevText(), markdownBox->toPlainText(), markdownBox->getBoundingRect());
+            undoStack.push(changeMarkdownCommand);
+            markdownChanged = false;
+        }
+        else{
+            MarkdownCommand* markdownCommand = new MarkdownCommand(this, markdownBox->getPageNum(), markdownBox->getPage(),
+                                                                   QPointF(markdownBox->getTextX(), markdownBox->getTextY()), markdownBox->toPlainText());
+            undoStack.push(markdownCommand);
+        }
+        markdownBox->applyText();
+
+        emit modified();
+        markdownBoxOpen = false;
+        currentDocument.setDocumentChanged(true);
+
+        setCurrentState(state::IDLE);
+    }
 }
 
 void Widget::setPreviousTool()
@@ -749,12 +1402,26 @@ void Widget::letGoSelection()
   }
 }
 
+void Widget::letGoMarkdownSelection(){
+    if (currentState == state::MARKDOWN_SELECTED){
+        int pageNum = currentMarkdownSelection.pageNum();
+
+        ReleaseMarkdownSelectionCommand* releaseMardownCommand = new ReleaseMarkdownSelectionCommand(this, pageNum);
+        undoStack.push(releaseMardownCommand);
+        updateBuffer(pageNum);
+
+        setCurrentState(state::IDLE);
+        update();
+    }
+}
+
 void Widget::startRuling(QPointF mousePos)
 {
   currentDocument.setDocumentChanged(true);
   emit modified();
 
   int pageNum = getPageFromMousePos(mousePos);
+  qDebug() << pageNum;
   QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
 
   MrDoc::Stroke newStroke;
@@ -927,6 +1594,12 @@ void Widget::startDrawing(QPointF mousePos, qreal pressure)
   newStroke.pressures.append(pressure);
   newStroke.penWidth = currentPenWidth;
   newStroke.color = currentColor;
+  if(currentTool == tool::HIGHLIGHTER){
+      newStroke.isHighlighter = true;
+      newStroke.penWidth *= 4.5;
+      //newStroke.color = QColor(255-currentColor.red(), 255-currentColor.green(), 255-currentColor.blue(), 127);
+      newStroke.color.setAlpha(127);
+  }
   currentStroke = newStroke;
   //    drawing = true;
   currentState = state::DRAWING;
@@ -1319,21 +1992,62 @@ void Widget::stopResizingSelection(QPointF mousePos)
   setCurrentState(state::SELECTED);
 }
 
+void Widget::startMovingMarkdownSelection(QPointF mousePos){
+    currentDocument.setDocumentChanged(true);
+    emit modified();
+
+    int pageNum = getPageFromMousePos(mousePos);
+    previousMarkdownPagePos = getPagePosFromMousePos(mousePos, pageNum);
+    previousMarkdownPageNum = pageNum;
+    markdownDelta = previousMarkdownPagePos - currentMarkdownSelection.boundingRect().topLeft();
+    setCurrentState(state::MARKDOWN_MOVING);
+}
+
+void Widget::continueMovingMarkdownSelection(QPointF mousePos){
+    int pageNum = getPageFromMousePos(mousePos);
+    QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
+
+    //QPointF delta = (pagePos - previousMarkdownPagePos);
+    QPointF delta = pagePos - currentSelection.boundingRect().topLeft();
+
+    MoveMarkdownCommand* moveMarkdownCommand = new MoveMarkdownCommand(this, previousMarkdownPageNum, pageNum, previousMarkdownPagePos, pagePos, -markdownDelta);
+    undoStack.push(moveMarkdownCommand);
+
+    previousMarkdownPagePos = pagePos;
+}
+
 int Widget::getPageFromMousePos(QPointF mousePos)
 {
-  qreal y = mousePos.y(); // - currentCOSPos.y();
-  int pageNum = 0;
-  while (y > (floor(currentDocument.pages[pageNum].height() * zoom)) + PAGE_GAP)
-  {
-    y -= (floor(currentDocument.pages[pageNum].height() * zoom)) + PAGE_GAP;
-    pageNum += 1;
-    if (pageNum >= currentDocument.pages.size())
-    {
-      pageNum = currentDocument.pages.size() - 1;
-      break;
+    if(currentView == view::VERTICAL){
+        qreal y = mousePos.y(); // - currentCOSPos.y();
+        int pageNum = 0;
+        while (y > (floor(currentDocument.pages[pageNum].height() * zoom)) + PAGE_GAP)
+        {
+            y -= (floor(currentDocument.pages[pageNum].height() * zoom)) + PAGE_GAP;
+            pageNum += 1;
+            if (pageNum >= currentDocument.pages.size())
+            {
+                pageNum = currentDocument.pages.size() - 1;
+                break;
+            }
+        }
+        return pageNum;
     }
-  }
-  return pageNum;
+    else{ //view::HORIZONTAL
+        qreal x = mousePos.x(); // - currentCOSPos.y();
+        int pageNum = 0;
+        while (x > (floor(currentDocument.pages[pageNum].width() * zoom)) + PAGE_GAP)
+        {
+            x -= (floor(currentDocument.pages[pageNum].width() * zoom)) + PAGE_GAP;
+            pageNum += 1;
+            if (pageNum >= currentDocument.pages.size())
+            {
+                pageNum = currentDocument.pages.size() - 1;
+                break;
+            }
+        }
+        return pageNum;
+    }
 }
 
 int Widget::getCurrentPage()
@@ -1346,21 +2060,70 @@ int Widget::getCurrentPage()
   //    return getPageFromMousePos(QPointF(0.0, 2.0));
 }
 
+QSet<int> Widget::getVisiblePages(){
+    QSet<int> visiblePages;
+    if(currentView == view::VERTICAL){
+        QPoint globalMousePosTop = parentWidget()->mapToGlobal(QPoint(0,0)) + QPoint(parentWidget()->size().width()/2, parentWidget()->size().height()/2);
+        QPoint posTop = this->mapFromGlobal(QPoint(globalMousePosTop));
+        posTop -= QPoint(0,parentWidget()->size().height()/2);
+        QPoint globalMousePosBottom = parentWidget()->mapToGlobal(QPoint(0,0)) + QPoint(parentWidget()->size().width()/2, parentWidget()->size().height()/2);
+        QPoint posBottom = this->mapFromGlobal(globalMousePosBottom);
+        posBottom += QPoint(0,parentWidget()->size().height()/2);
+        int beginPage = getPageFromMousePos(posTop);
+        int endPage = getPageFromMousePos(posBottom);
+        for(int i = beginPage; i <= endPage; ++i){
+            visiblePages.insert(i);
+        }
+    }
+    else{
+        QPoint globalMousePosLeft = parentWidget()->mapToGlobal(QPoint(0, 0)) + QPoint(parentWidget()->size().width()/2, parentWidget()->size().height()/2);
+        QPoint posLeft = this->mapFromGlobal(globalMousePosLeft);
+        posLeft -= QPoint(parentWidget()->size().width()/2,0);
+        QPoint globalMousePosRight = parentWidget()->mapToGlobal(QPoint(0,0)) + QPoint(parentWidget()->size().width()/2, parentWidget()->size().height()/2);
+        QPoint posRight = this->mapFromGlobal(globalMousePosRight);
+        posRight += QPoint(parentWidget()->size().width()/2,0);
+        int beginPage = getPageFromMousePos(posLeft);
+        int endPage = getPageFromMousePos(posRight);
+        for(int i = beginPage; i <= endPage; ++i){
+            visiblePages.insert(i);
+        }
+    }
+    return visiblePages;
+
+//    int visiblePages;
+//    if(currentView == view::VERTICAL)
+//        visiblePages = currentDocument.pages.at(getCurrentPage()).height()/parentWidget()->size().height()/zoom + 1;
+//    else
+//        visiblePages = currentDocument.pages.at(getCurrentPage()).width()/parentWidget()->size().width()/zoom + 1;
+//    return visiblePages;
+}
+
 QPointF Widget::getPagePosFromMousePos(QPointF mousePos, int pageNum)
 {
-  qreal x = mousePos.x();
-  qreal y = mousePos.y();
-  for (int i = 0; i < pageNum; ++i)
-  {
-    //        y -= (currentDocument.pages[i].height() * zoom + PAGE_GAP); // THIS DOESN'T WORK PROPERLY (should be floor(...height(), or just use
-    //        pageBuffer[i].height()/devicePixelRatio())
-    y -= (pageBuffer[i].height()/devicePixelRatio() + PAGE_GAP);
-  }
-  //    y -= (pageNum) * (currentDocument.pages[0].height() * zoom + PAGE_GAP);
+    if(currentView == view::VERTICAL){
+        qreal x = mousePos.x();
+        qreal y = mousePos.y();
+        for (int i = 0; i < pageNum; ++i)
+        {
+            //        y -= (currentDocument.pages[i].height() * zoom + PAGE_GAP); // THIS DOESN'T WORK PROPERLY (should be floor(...height(), or just use
+            //        pageBuffer[i].height()/devicePixelRatio())
+            y -= ((*pageBufferPtr[i])->height()/devicePixelRatio() + PAGE_GAP);
+        }
+        //    y -= (pageNum) * (currentDocument.pages[0].height() * zoom + PAGE_GAP);
 
-  QPointF pagePos = (QPointF(x, y)) / zoom;
+        QPointF pagePos = (QPointF(x, y)) / zoom;
 
-  return pagePos;
+        return pagePos;
+    }
+    else{
+        qreal x = mousePos.x();
+        qreal y = mousePos.y();
+        for(int i = 0; i < pageNum; ++i){
+            x -= ((*pageBufferPtr[i])->width()/devicePixelRatio() + PAGE_GAP);
+        }
+        QPointF pagePos = QPointF(x, y) / zoom;
+        return pagePos;
+    }
 }
 
 QPointF Widget::getAbsolutePagePosFromMousePos(QPointF mousePos)
@@ -1371,7 +2134,7 @@ QPointF Widget::getAbsolutePagePosFromMousePos(QPointF mousePos)
   qreal y = 0.0;
   for (int i = 0; i < pageNum; ++i)
   {
-    y += (pageBuffer[i].height()/devicePixelRatio() + PAGE_GAP);
+    y += ((*pageBufferPtr[i])->height()/devicePixelRatio() + PAGE_GAP);
   }
   y *= zoom;
 
@@ -1385,7 +2148,7 @@ void Widget::newFile()
   letGoSelection();
 
   currentDocument = MrDoc::Document();
-  pageBuffer.clear();
+  pageBufferPtr.clear();
   undoStack.clear();
   updateAllPageBuffers();
   QRect widgetGeometry = getWidgetGeometry();
@@ -1429,7 +2192,9 @@ void Widget::zoomTo(qreal newZoom)
   {
     return;
   }
-
+  if(prevZoom > 0)
+    dirtyZoom = true;
+  prevZoom = zoom;
   zoom = newZoom;
 
   int prevHMax = scrollArea->horizontalScrollBar()->maximum();
@@ -1438,9 +2203,10 @@ void Widget::zoomTo(qreal newZoom)
   int prevH = scrollArea->horizontalScrollBar()->value();
   int prevV = scrollArea->verticalScrollBar()->value();
 
-  updateAllPageBuffers();
-  currentSelection.updateBuffer(zoom);
   setGeometry(getWidgetGeometry());
+  //updateAllPageBuffers();
+  currentSelection.updateBuffer(zoom);
+  //setGeometry(getWidgetGeometry());
 
   int newHMax = scrollArea->horizontalScrollBar()->maximum();
   int newVMax = scrollArea->verticalScrollBar()->maximum();
@@ -1453,7 +2219,10 @@ void Widget::zoomTo(qreal newZoom)
   }
   else
   {
-    newH = newHMax / 2;
+      if(currentView == view::HORIZONTAL)
+          newH = 0;
+      else
+          newH = newHMax / 2;
   }
   if (prevVMax != 0)
   {
@@ -1461,12 +2230,24 @@ void Widget::zoomTo(qreal newZoom)
   }
   else
   {
-    newV = newVMax / 2;
+      if(currentView == view::VERTICAL)
+          newV = 0;
+      else
+          newV = newVMax / 2;
   }
 
   scrollArea->horizontalScrollBar()->setValue(newH);
   scrollArea->verticalScrollBar()->setValue(newV);
 
+  //updateAllPageBuffers();
+  if(dirtyZoom)
+      updateAllPageBuffersDirtyZoom();
+  else
+      updateAllPageBuffers();
+
+  //scrollArea->verticalScrollBar()->setTracking(false);
+  connect(scrollArea->verticalScrollBar(), &QScrollBar::valueChanged, this, &Widget::updatePageAfterScrolling, Qt::UniqueConnection);
+  connect(scrollArea->horizontalScrollBar(), &QScrollBar::valueChanged, this, &Widget::updatePageAfterScrolling, Qt::UniqueConnection);
   update();
 }
 
@@ -1581,6 +2362,24 @@ void Widget::pageRemove()
   }
 }
 
+void Widget::appendToPageHistory(int pageNum){
+    for(int i = pageHistory.size()-1; i > pageHistoryPosition; --i){
+        pageHistory.removeLast();
+    }
+    if(pageHistoryPosition < pageHistory.size()){
+        if(pageHistoryPosition >= 0){
+            if(pageHistory[pageHistoryPosition] != pageNum){
+                pageHistory.append(pageNum);
+                ++pageHistoryPosition;
+            }
+        }
+        else{
+            pageHistory.append(pageNum);
+            ++pageHistoryPosition;
+        }
+    }
+}
+
 void Widget::scrollDocumentToPageNum(int pageNum)
 {
   if (pageNum >= currentDocument.pages.size())
@@ -1591,14 +2390,28 @@ void Widget::scrollDocumentToPageNum(int pageNum)
   {
     pageNum = 0;
   }
-  qreal y = 0.0;
-  //    qreal x = currentCOSPos.x();
-  for (int i = 0; i < pageNum; ++i)
-  {
-    y += (currentDocument.pages[i].height()) * zoom + PAGE_GAP;
-  }
 
-  scrollArea->verticalScrollBar()->setValue(y);
+  //    qreal x = currentCOSPos.x();
+
+  if(currentView == view::VERTICAL){
+      qreal y = 0.0;
+      for (int i = 0; i < pageNum; ++i)
+      {
+          y += (currentDocument.pages[i].height()) * zoom + PAGE_GAP;
+      }
+      y -= PAGE_GAP;
+
+      scrollArea->verticalScrollBar()->setValue(y);
+  }
+  else{
+      qreal x = 0.0;
+      for(int i = 0; i < pageNum; ++i){
+          x += (currentDocument.pages[i].width() * zoom + PAGE_GAP);
+      }
+      x -= PAGE_GAP;
+
+      scrollArea->horizontalScrollBar()->setValue(x);
+  }
 
   //    currentCOSPos = QPointF(x, y);
   //    updateAllPageBuffers();
@@ -1616,6 +2429,8 @@ void Widget::setCurrentTool(tool toolID)
     currentTool = toolID;
     if (toolID == tool::PEN)
       setCursor(penCursor);
+    if (toolID == tool::HIGHLIGHTER)
+        setCursor(penCursor);
     if (toolID == tool::RULER)
       setCursor(rulerCursor);
     if (toolID == tool::CIRCLE)
@@ -1626,6 +2441,10 @@ void Widget::setCurrentTool(tool toolID)
       setCursor(Qt::CrossCursor);
     if (toolID == tool::HAND)
       setCursor(Qt::OpenHandCursor);
+    if (toolID == tool::TEXT)
+        setCursor(Qt::ArrowCursor);
+    if (toolID == tool::MARKDOWN)
+        setCursor(Qt::ArrowCursor);
   }
 }
 
@@ -1633,8 +2452,10 @@ void Widget::setDocument(const MrDoc::Document &newDocument)
 {
   currentDocument = newDocument;
   undoStack.clear();
-  pageBuffer.clear();
+  pageBufferPtr.clear();
+  prevZoom = -1.0;  //this is a workaround, so that all pages get rendered and updateNecessaryPagesBuffer is not called
   zoom = 0.0; // otherwise zoomTo() doesn't do anything if zoom == newZoom
+  dirtyZoom = false;
   zoomFitWidth();
   pageFirst();
 }
@@ -1726,7 +2547,7 @@ void Widget::cut()
 
 void Widget::undo()
 {
-  if (undoStack.canUndo() && (currentState == state::IDLE || currentState == state::SELECTED))
+  if (undoStack.canUndo() && (currentState == state::IDLE || currentState == state::SELECTED || currentState == state::MARKDOWN_SELECTED))
   {
     undoStack.undo();
     currentSelection.updateBuffer(zoom);
@@ -1736,7 +2557,7 @@ void Widget::undo()
 
 void Widget::redo()
 {
-  if (undoStack.canRedo() && (currentState == state::IDLE || currentState == state::SELECTED))
+  if (undoStack.canRedo() && (currentState == state::IDLE || currentState == state::SELECTED || currentState == state::MARKDOWN_SELECTED))
   {
     undoStack.redo();
     currentSelection.updateBuffer(zoom);
@@ -1763,6 +2584,21 @@ Widget::state Widget::getCurrentState()
   return currentState;
 }
 
+void Widget::setCurrentView(view newView){
+    int currentPage = getCurrentPage();
+    currentView = newView;
+
+    qreal oldZoom = zoom;
+    zoom = 0.0;
+    zoomTo(oldZoom);
+    scrollDocumentToPageNum(currentPage);
+
+}
+
+Widget::view Widget::getCurrentView(){
+    return currentView;
+}
+
 void Widget::setCurrentColor(QColor newColor)
 {
   currentColor = newColor;
@@ -1773,11 +2609,21 @@ void Widget::setCurrentColor(QColor newColor)
     currentSelection.updateBuffer(zoom);
     update();
   }
+  emit updateGUI();
 }
 
 QColor Widget::getCurrentColor()
 {
   return currentColor;
+}
+
+void Widget::setCurrentFont(QFont newFont){
+    currentFont = newFont;
+    emit updateGUI();
+}
+
+QFont Widget::getCurrentFont(){
+    return currentFont;
 }
 
 void Widget::veryFine()
@@ -1873,4 +2719,86 @@ void Widget::setCurrentPenWidth(qreal penWidth)
     currentSelection.updateBuffer(zoom);
     update();
   }
+}
+
+void Widget::searchAllPdf(const QString& text){
+    QVector<QFuture<bool>> future;
+    for(int i = 0; i < currentDocument.pages.size(); ++i){
+        future.append(QtConcurrent::run(&currentDocument.pages[i], &MrDoc::Page::searchPdfNext, text));
+    }
+    for(int i = 0; i < currentDocument.pages.size(); ++i){
+        future[i].waitForFinished();
+    }
+    searchPageNums.clear();
+    for(int i = 0; i < future.size(); ++i){
+        if(future.at(i).result()){
+            searchPageNums.append(i);
+        }
+    }
+}
+
+void Widget::searchPdfNext(const QString& text){
+    if(text != previousSearchText){
+        searchAllPdf(text);
+        previousSearchPageIndex = -1;
+    }
+    if(searchPageNums.isEmpty()){
+       return;
+    }
+    previousSearchText = text;
+    previousSearchPageIndex = (previousSearchPageIndex + 1)%searchPageNums.size();
+    prevZoom = -1.0;  //this is a workaround, so that all pages get rendered and updateNecessaryPagesBuffer is not called
+    updateAllPageBuffers();
+    scrollDocumentToPageNum(searchPageNums.at(previousSearchPageIndex));
+    update();
+}
+
+void Widget::searchPdfPrev(const QString &text){
+    if(text != previousSearchText){
+        searchAllPdf(text);
+        previousSearchPageIndex = -1;
+        //updateAllPageBuffers();
+    }
+    if(searchPageNums.isEmpty()){
+       return;
+    }
+    previousSearchText = text;
+    previousSearchPageIndex = (previousSearchPageIndex - 1 + searchPageNums.size())%searchPageNums.size(); //no negative numbers
+    prevZoom = -1.0;  //this is a workaround, so that all pages get rendered and updateNecessaryPagesBuffer is not called
+    updateAllPageBuffers();
+    scrollDocumentToPageNum(searchPageNums.at(previousSearchPageIndex));
+    update();
+}
+
+void Widget::clearPdfSearch(){
+    for(int i = 0; i < currentDocument.pages.size(); ++i){
+        currentDocument.pages[i].clearPdfSearch();
+    }
+    previousSearchText = "";
+    previousSearchPageIndex = -1;
+    prevZoom = -1.0;  //this is a workaround, so that all pages get rendered and updateNecessaryPagesBuffer is not called
+    updateAllPageBuffers();
+    update();
+}
+
+void Widget::pageHistoryForward(){
+    pageHistoryPosition = std::min(pageHistoryPosition+1, pageHistory.size()-1);
+    if(pageHistoryPosition >= 0){
+        scrollDocumentToPageNum(pageHistory.at(pageHistoryPosition));
+    }
+}
+
+void Widget::pageHistoryBackward(){
+    pageHistoryPosition = std::max(pageHistoryPosition-1, -1); //-1 because it should be possible to delete whole pageHistory
+    if(pageHistoryPosition >= 0 && pageHistoryPosition < pageHistory.size()){
+        scrollDocumentToPageNum(pageHistory.at(pageHistoryPosition));
+    }
+}
+
+UpdateWorker::UpdateWorker(Widget* widget)
+    : widgetPtr{widget} {}
+
+void UpdateWorker::process(){
+    widgetPtr->updateNecessaryPagesBuffer();
+    emit finished();
 }

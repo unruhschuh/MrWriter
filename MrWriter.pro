@@ -24,7 +24,12 @@ HEADERS  += version.h \
     pagesettingsdialog.h \
     colorbutton.h \
     stroke.h \
-    mrdoc.h
+    mrdoc.h \
+    textbox.h \
+    searchbar.h \
+    markdownbox.h \
+    abstracttextbox.h \
+    markdownselection.h
 
 #VERSION_MAJOR = MY_MAJOR_VERSION
 #VERSION_MINOR = MY_MINOR_VERSION
@@ -40,7 +45,12 @@ SOURCES += main.cpp\
     tabletapplication.cpp \
     pagesettingsdialog.cpp \
     colorbutton.cpp \
-    stroke.cpp
+    stroke.cpp \
+    textbox.cpp \
+    searchbar.cpp \
+    abstracttextbox.cpp \
+    markdownbox.cpp \
+    markdownselection.cpp
 
 HEADERS  += mainwindow.h \
     widget.h \
@@ -53,12 +63,18 @@ HEADERS  += mainwindow.h \
     tabletapplication.h \
     version.h
 
-FORMS    +=
+FORMS    += \
+    searchbar.ui
 
 RESOURCES += \
     myresource.qrc
 
+INCLUDEPATH  += /usr/include/poppler/qt5
+LIBS         += -L/usr/lib -lpoppler-qt5
 LIBS += -lz
+LIBS += -lmarkdown
+
+QMAKE_LFLAGS += -lmarkdown
 
 ICON = MyIcon.icns
 
@@ -70,7 +86,7 @@ DISTFILES += \
     Info.plist \
     COPYING
 
-CONFIG += c++11
+CONFIG += c++17
 
 #QMAKE_CXXFLAGS_RELEASE -= -O
 #QMAKE_CXXFLAGS_RELEASE -= -O1
