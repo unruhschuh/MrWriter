@@ -1,8 +1,10 @@
 language: cpp
 
-os:
-  - linux
-  - osx
+matrix:
+  include:
+    - os: linux
+      dist: xenial
+    - os: osx
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update ; fi
