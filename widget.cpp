@@ -106,6 +106,9 @@ void Widget::updateAllPageBuffers()
   pageImageBuffer.clear();
 }
 
+/**
+ * @brief Widget::updateImageBuffer for concurrent update with QFuture in Widget::updateAllPageBuffers() since QPixmap cannot be used concurrently
+ */
 void Widget::updateImageBuffer(int buffNum)
 {
   MrDoc::Page const &page = currentDocument.pages.at(buffNum);
@@ -274,7 +277,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
   // everywhere.
   keyboardModifiers = qApp->queryKeyboardModifiers();
 
-  // bencmark
+  // benchmark
   if (eventType == QEvent::MouseButtonPress)
   {
     timer.start();
