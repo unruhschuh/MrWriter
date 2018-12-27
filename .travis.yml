@@ -1,8 +1,12 @@
-sudo: required
-dist: xenial
+language: c++
+
+os:
+  - linux
+  - osx
 
 install:
-  - sudo apt-get -y install qt5-default 
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; brew install qt
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; sudo apt-get -y install qt5-default 
 
 script:
   - qmake
