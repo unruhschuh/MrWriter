@@ -1,0 +1,9 @@
+sudo: required
+dist: xenial
+
+install:
+  - sudo apt-get -y install qt5-default 
+
+script:
+  - qmake
+  - make
