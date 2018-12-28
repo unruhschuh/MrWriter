@@ -15,3 +15,5 @@ install:
 script:
   - qmake
   - make
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then macdeployqt MrWriter.app -dmg ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then curl --upload-file MrWriter.dmg https://transfer.sh/MrWriter.dmg ; fi
