@@ -13,45 +13,45 @@ QT       += concurrent
 #QT       += svg
 #QT       += webenginewidgets
 
-system(touch version.h)
+system(touch src/version.h)
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = MrWriter
 TEMPLATE = app
 
-HEADERS  += version.h \
-    pagesettingsdialog.h \
-    colorbutton.h \
-    stroke.h \
-    mrdoc.h
-
 #VERSION_MAJOR = MY_MAJOR_VERSION
 #VERSION_MINOR = MY_MINOR_VERSION
 
-SOURCES += main.cpp\
-        mainwindow.cpp \
-    widget.cpp \
-    document.cpp \
-    page.cpp \
-    qcompressor.cpp \
-    selection.cpp \
-    commands.cpp \
-    tabletapplication.cpp \
-    pagesettingsdialog.cpp \
-    colorbutton.cpp \
-    stroke.cpp
+SOURCES += \
+    src/main.cpp\
+    src/mainwindow.cpp \
+    src/widget.cpp \
+    src/document.cpp \
+    src/page.cpp \
+    src/qcompressor.cpp \
+    src/selection.cpp \
+    src/commands.cpp \
+    src/tabletapplication.cpp \
+    src/pagesettingsdialog.cpp \
+    src/colorbutton.cpp \
+    src/stroke.cpp
 
-HEADERS  += mainwindow.h \
-    widget.h \
-    document.h \
-    page.h \
-    qcompressor.h \
-    selection.h \
-    commands.h \
-    tictoc.h \
-    tabletapplication.h \
-    version.h
+HEADERS  += \
+    src/pagesettingsdialog.h \
+    src/colorbutton.h \
+    src/stroke.h \
+    src/mrdoc.h \
+    src/mainwindow.h \
+    src/widget.h \
+    src/document.h \
+    src/page.h \
+    src/qcompressor.h \
+    src/selection.h \
+    src/commands.h \
+    src/tictoc.h \
+    src/tabletapplication.h \
+    src/version.h
 
 FORMS    +=
 
