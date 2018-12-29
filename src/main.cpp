@@ -9,6 +9,8 @@ int main(int argc, char *argv[])
 {
   TabletApplication a(argc, argv);
 
+  a.setWindowIcon(QIcon(":/MrWriter.png"));
+
   QCommandLineParser parser;
 
   parser.addHelpOption();

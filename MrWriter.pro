@@ -60,7 +60,7 @@ RESOURCES += \
 
 LIBS += -lz
 
-ICON = MyIcon.icns
+ICON = MrWriter.icns
 
 RC_ICONS = MyIcon.ico
 
@@ -68,7 +68,8 @@ DISTFILES += \
     images/openIcon.png \
     images/newIcon.png \
     Info.plist \
-    COPYING
+    COPYING \
+    MrWriter.icns
 
 CONFIG += c++11
 
