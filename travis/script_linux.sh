@@ -2,6 +2,7 @@
 
 set -x
 
-qmake
+source /opt/qt*/bin/qt*-env.sh
+qmake CONFIG+=release
 make
 
