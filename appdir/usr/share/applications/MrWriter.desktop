@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=MrWriter
+Comment=Note taking application
+Icon=MrWriter
+Exec=MrWriter %F
+Terminal=false
+Categories=Office;

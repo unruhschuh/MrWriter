@@ -20,6 +20,15 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = MrWriter
 TEMPLATE = app
 
+unix {
+    isEmpty(PREFIX) {
+        PREFIX = /usr
+    }
+    target.path = $$PREFIX/bin
+
+    INSTALLS += target
+}
+
 #VERSION_MAJOR = MY_MAJOR_VERSION
 #VERSION_MINOR = MY_MINOR_VERSION
 
