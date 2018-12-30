@@ -15,10 +15,8 @@ build_script:
   - cd ..
   - qmake "INCLUDEPATH+=\"C:/Program Files (x86)/zlib/include\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/bin\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/lib\"" MrWriter.pro
   - mingw32-make
-  - dir
-  - dir debug
-  - dir release
   - md MrWriter
   - copy release\MrWriter.exe MrWriter\
   - windeployqt MrWriter
-  - dir MrWriter
+  - 7z a MrWriter.zip MrWriter
+  - curl --upload-file MrWriter.zip https://transfer.sh/MrWriter.zip
