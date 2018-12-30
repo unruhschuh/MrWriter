@@ -14,5 +14,5 @@ build_script:
   - copy zconf.h ..
   - cd ..
   - cd ..
-  - qmake MrWriter.pro
+  - qmake "INCLUDEPATH+=C:/Program Files (x86)/zlib/include" MrWriter.pro
   - mingw32-make
