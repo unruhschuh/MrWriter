@@ -18,6 +18,7 @@ build_script:
   - dir
   - dir debug
   - dir release
-    #  - md MrWriter
-    #  - copy MrWriter.exe MrWriter\
-    #  - windeployqt MrWriter
+  - md MrWriter
+  - copy release\MrWriter.exe MrWriter\
+  - windeployqt MrWriter
+  - dir MrWriter
