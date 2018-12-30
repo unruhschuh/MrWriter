@@ -1,5 +1,5 @@
 install:
-  - set QTDIR=C:\Qt\5.11.2\msvc2017_64
+  - set QTDIR=C:\Qt\5.11
   - set PATH=%PATH%;%QTDIR%\bin
 build_script:
   - qmake MrWriter.pro
