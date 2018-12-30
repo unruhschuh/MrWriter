@@ -71,7 +71,7 @@ LIBS += -lz
 
 ICON = MrWriter.icns
 
-RC_ICONS = MyIcon.ico
+RC_ICONS = MrWriter.ico
 
 DISTFILES += \
     images/openIcon.png \
