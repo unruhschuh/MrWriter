@@ -1,7 +1,6 @@
 install:
   - set QTDIR=C:\Qt\5.11\mingw53_32
   - set PATH=%PATH%;%QTDIR%\bin;C:\MinGW\bin
-  - set PATH=%PATH:C:\Program Files (x86)\Git\bin;=% # Workaround for CMake not wanting sh.exe on PATH for MinGW
 build_script:
   - appveyor DownloadFile http://zlib.net/zlib-1.2.11.tar.gz -FileName zlib-1.2.11.tar.gz
   - 7z x zlib-1.2.11.tar.gz > NUL
@@ -9,7 +8,7 @@ build_script:
   - cd zlib-1.2.11
   - md build
   - cd build
-  - cmake -G "MinGW Makefiles" ..
+  - cmake -G "MinGW Makefiles" .. -DCMAKE_SH="CMAKE_SH-NOTFOUND"
   - mingw32-make
   - copy zconf.h ..
   - cd ..
