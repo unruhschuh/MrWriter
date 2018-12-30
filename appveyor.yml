@@ -11,8 +11,10 @@ build_script:
   - cmake -G "MinGW Makefiles" .. -DCMAKE_SH="CMAKE_SH-NOTFOUND"
   - mingw32-make
   - mingw32-make install
-  - copy zconf.h ..
   - cd ..
   - cd ..
   - qmake "INCLUDEPATH+=\"C:/Program Files (x86)/zlib/include\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/bin\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/lib\"" MrWriter.pro
   - mingw32-make
+  - md MrWriter
+  - copy MrWriter.exe MrWriter\
+  - windeployqt MrWriter
