@@ -16,6 +16,8 @@ build_script:
   - qmake "INCLUDEPATH+=\"C:/Program Files (x86)/zlib/include\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/bin\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/lib\"" MrWriter.pro
   - mingw32-make
   - dir
-  - md MrWriter
-  - copy MrWriter.exe MrWriter\
-  - windeployqt MrWriter
+  - dir debug
+  - dir release
+    #  - md MrWriter
+    #  - copy MrWriter.exe MrWriter\
+    #  - windeployqt MrWriter
