@@ -1,6 +1,6 @@
 = MrWriter
 
-image:https://badges.gitter.im/unruhschuh/MrWriter.svg[link="https://gitter.im/unruhschuh/MrWriter?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge"] image:https://travis-ci.com/unruhschuh/MrWriter.svg?branch=master["Build Status", link="https://travis-ci.com/unruhschuh/MrWriter"]
+image:https://badges.gitter.im/unruhschuh/MrWriter.svg[link="https://gitter.im/unruhschuh/MrWriter?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge"] image:https://travis-ci.com/unruhschuh/MrWriter.svg?branch=master["Build Status", link="https://travis-ci.com/unruhschuh/MrWriter"] image:https://ci.appveyor.com/api/projects/status/09p26mck1aa1fbha?svg=true["Build Status", link="https://ci.appveyor.com/project/unruhschuh/mrwriter"]
 
 == About
 Notetaking and blackboard replacement application. Inspired by Xournal. Written in C++/Qt for Linux / Windows / Mac.
