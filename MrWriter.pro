@@ -67,7 +67,12 @@ FORMS    +=
 RESOURCES += \
     myresource.qrc
 
-LIBS += -lz
+unix {
+    LIBS += -lz
+}
+win32 {
+    LIBS += -lzlib
+}
 
 ICON = MrWriter.icns
 
