@@ -10,8 +10,9 @@ build_script:
   - cd build
   - cmake -G "MinGW Makefiles" .. -DCMAKE_SH="CMAKE_SH-NOTFOUND"
   - mingw32-make
+  - mingw32-make install
   - copy zconf.h ..
   - cd ..
   - cd ..
-  - qmake MrWriter.pro -DZLIB_LIBRARY=%APPVEYOR_BUILD_FOLDER%\zlib-1.2.11\build\Release\zlib.lib -DZLIB_INCLUDE_DIR=%APPVEYOR_BUILD_FOLDER%\zlib-1.2.11
+  - qmake MrWriter.pro
   - mingw32-make
