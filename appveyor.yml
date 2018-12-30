@@ -13,5 +13,5 @@ build_script:
   - copy zconf.h ..
   - cd ..
   - cd ..
-  - qmake MrWriter.pro
+  - qmake MrWriter.pro -DZLIB_LIBRARY=%APPVEYOR_BUILD_FOLDER%\zlib-1.2.11\build\Release\zlib.lib -DZLIB_INCLUDE_DIR=%APPVEYOR_BUILD_FOLDER%\zlib-1.2.11
   - mingw32-make
