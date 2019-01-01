@@ -63,6 +63,10 @@ Widget::Widget(QWidget *parent) : QWidget(parent)
   currentColor = QColor(0, 0, 0);
   zoom = 1.0;
 
+  showGrid = true;
+  snapToGrid = true;
+  gridWidth = 14.1732;
+
   currentCOSPos.setX(0.0);
   currentCOSPos.setY(0.0);
   updateAllPageBuffers();
@@ -112,8 +116,8 @@ void Widget::updateAllPageBuffers()
 void Widget::updateImageBuffer(int buffNum)
 {
   MrDoc::Page const &page = currentDocument.pages.at(buffNum);
-  int pixelWidth = zoom * page.width() * devicePixelRatio();
-  int pixelHeight = zoom * page.height() * devicePixelRatio();
+  int pixelWidth = static_cast<int>(zoom * page.width() * devicePixelRatio());
+  int pixelHeight = static_cast<int>(zoom * page.height() * devicePixelRatio());
   QImage image(pixelWidth, pixelHeight, QImage::Format_ARGB32_Premultiplied);
   image.setDevicePixelRatio(devicePixelRatio());
 
@@ -122,6 +126,11 @@ void Widget::updateImageBuffer(int buffNum)
   QPainter painter;
   painter.begin(&image);
   painter.setRenderHint(QPainter::Antialiasing, true);
+
+  if (showGrid)
+  {
+    drawGrid(painter, buffNum);
+  }
 
   currentDocument.pages[buffNum].paint(painter, zoom);
 
@@ -135,8 +144,8 @@ void Widget::updateImageBuffer(int buffNum)
 void Widget::updateBuffer(int buffNum)
 {
   MrDoc::Page const &page = currentDocument.pages.at(buffNum);
-  int pixelWidth = zoom * page.width() * devicePixelRatio();
-  int pixelHeight = zoom * page.height() * devicePixelRatio();
+  int pixelWidth = static_cast<int>(zoom * page.width() * devicePixelRatio());
+  int pixelHeight = static_cast<int>(zoom * page.height() * devicePixelRatio());
   QPixmap pixmap(pixelWidth, pixelHeight);
   pixmap.setDevicePixelRatio(devicePixelRatio());
 
@@ -145,6 +154,11 @@ void Widget::updateBuffer(int buffNum)
   QPainter painter;
   painter.begin(&pixmap);
   painter.setRenderHint(QPainter::Antialiasing, true);
+
+  if (showGrid)
+  {
+    drawGrid(painter, buffNum);
+  }
 
   currentDocument.pages[buffNum].paint(painter, zoom);
 
@@ -162,6 +176,11 @@ void Widget::updateBufferRegion(int buffNum, QRectF const &clipRect)
   painter.setClipping(true);
 
   painter.fillRect(clipRect, currentDocument.pages.at(buffNum).backgroundColor());
+
+  if (showGrid)
+  {
+    drawGrid(painter, buffNum);
+  }
   //    painter.fillRect(clipRect, Qt::red);
 
   QRectF paintRect = QRectF(clipRect.topLeft() / zoom, clipRect.bottomRight() / zoom);
@@ -183,6 +202,35 @@ void Widget::updateAllDirtyBuffers()
     }
   }
   update();
+}
+
+void Widget::drawGrid(QPainter &painter, int buffNum)
+{
+  MrDoc::Page const &page = currentDocument.pages.at(buffNum);
+  int pixelWidth = static_cast<int>(zoom * page.width() * devicePixelRatio());
+  int pixelHeight = static_cast<int>(zoom * page.height() * devicePixelRatio());
+
+  int gridPixelWidth = static_cast<int>(zoom * gridWidth * devicePixelRatio());
+
+  int numGridLinesX = static_cast<int>(pixelWidth / gridPixelWidth);
+  int numGridLinesY = static_cast<int>(pixelHeight / gridPixelWidth);
+
+  QPen pen;
+  pen.setColor(MrDoc::gridColor);
+  pen.setCapStyle(Qt::FlatCap);
+  pen.setWidthF(0.5 * devicePixelRatioF());
+  painter.setPen(pen);
+  qDebug() << "gridWidth:    " << gridWidth;
+  qDebug() << "page.width(): " << page.width();
+  qDebug() << "zoom:         " << zoom;
+  for (int i = 0; i < numGridLinesY; i++)
+  {
+    painter.drawLine(0, (i+1) * gridWidth * zoom, pixelWidth, (i+1) * gridWidth * zoom);
+  }
+  for (int i = 0; i < numGridLinesX; i++)
+  {
+    painter.drawLine((i+1) * gridWidth * zoom, 0, (i+1) * gridWidth * zoom, pixelHeight);
+  }
 }
 
 void Widget::drawOnBuffer(bool last)
@@ -752,6 +800,14 @@ void Widget::letGoSelection()
   }
 }
 
+QPointF Widget::pagePosToGrid(QPointF pagePos)
+{
+  QPointF pagePosOnGrid;
+  pagePosOnGrid.setX(round(pagePos.x() / gridWidth) * gridWidth);
+  pagePosOnGrid.setY(round(pagePos.y() / gridWidth) * gridWidth);
+  return pagePosOnGrid;
+}
+
 void Widget::startRuling(QPointF mousePos)
 {
   currentDocument.setDocumentChanged(true);
@@ -759,6 +815,11 @@ void Widget::startRuling(QPointF mousePos)
 
   int pageNum = getPageFromMousePos(mousePos);
   QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
+
+  if (snapToGrid)
+  {
+    pagePos = pagePosToGrid(pagePos);
+  }
 
   MrDoc::Stroke newStroke;
   newStroke.pattern = currentPattern;
@@ -780,6 +841,12 @@ void Widget::continueRuling(QPointF mousePos)
   QPointF previousPagePos = getPagePosFromMousePos(previousMousePos, drawingOnPage);
 
   QPointF firstPagePos = currentStroke.points.at(0);
+
+  if (snapToGrid)
+  {
+    pagePos = pagePosToGrid(pagePos);
+    previousPagePos = pagePosToGrid(previousPagePos);
+  }
 
   QPointF oldPagePos = pagePos;
 
@@ -803,6 +870,7 @@ void Widget::continueRuling(QPointF mousePos)
   updateBufferRegion(drawingOnPage, clipRect);
   drawOnBuffer();
 
+  /*
   QRect updateRect(firstMousePos.toPoint(), mousePos.toPoint());
   QRect oldUpdateRect(firstMousePos.toPoint(), previousMousePos.toPoint());
   updateRect = updateRect.normalized().united(oldUpdateRect.normalized());
@@ -810,6 +878,8 @@ void Widget::continueRuling(QPointF mousePos)
   updateRect = updateRect.normalized().adjusted(-rad, -rad, +rad, +rad);
 
   update(updateRect);
+  */
+  update();
 
   previousMousePos = mousePos;
 }
@@ -817,6 +887,11 @@ void Widget::continueRuling(QPointF mousePos)
 void Widget::stopRuling(QPointF mousePos)
 {
   QPointF pagePos = getPagePosFromMousePos(mousePos, drawingOnPage);
+
+  if (snapToGrid)
+  {
+    pagePos = pagePosToGrid(pagePos);
+  }
 
   if (currentStroke.points.length() > 1)
   {
@@ -867,6 +942,12 @@ void Widget::continueCircling(QPointF mousePos)
 {
   QPointF pagePos = getPagePosFromMousePos(mousePos, drawingOnPage);
   QPointF firstPagePos = getPagePosFromMousePos(firstMousePos, drawingOnPage);
+
+  if (snapToGrid)
+  {
+    pagePos = pagePosToGrid(pagePos);
+    firstPagePos = pagePosToGrid(firstPagePos);
+  }
 
   currentDashOffset = 0.0;
 

@@ -80,6 +80,7 @@ public:
   void updateImageBuffer(int buffNum);
   void updateBuffer(int i);
   void updateBufferRegion(int buffNum, QRectF const &clipRect);
+  void drawGrid(QPainter &painter, int buffNum);
   void drawOnBuffer(bool last = false);
   int getPageFromMousePos(QPointF mousePos);
   QPointF getPagePosFromMousePos(QPointF mousePos, int pageNum);
@@ -160,6 +161,10 @@ private:
   tool previousTool;
   bool realEraser;
 
+  bool showGrid;
+  bool snapToGrid;
+  qreal gridWidth;
+
   qreal currentDashOffset;
 
   qreal minWidthMultiplier = 0.0;
@@ -170,6 +175,9 @@ private:
   QPointF previousMousePos;
   QPointF previousPagePos;
   MrDoc::Selection::GrabZone m_grabZone = MrDoc::Selection::GrabZone::None;
+
+
+  QPointF pagePosToGrid(QPointF pagePos);
 
   void startDrawing(QPointF mousePos, qreal pressure);
   void continueDrawing(QPointF mousePos, qreal pressure);
