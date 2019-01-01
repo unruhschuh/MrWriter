@@ -806,7 +806,7 @@ void Widget::continueRuling(QPointF mousePos)
   QRect updateRect(firstMousePos.toPoint(), mousePos.toPoint());
   QRect oldUpdateRect(firstMousePos.toPoint(), previousMousePos.toPoint());
   updateRect = updateRect.normalized().united(oldUpdateRect.normalized());
-  int rad = currentPenWidth * zoom / 2 + 2;
+  int rad = static_cast<int>(currentPenWidth * zoom / 2) + 2;
   updateRect = updateRect.normalized().adjusted(-rad, -rad, +rad, +rad);
 
   update(updateRect);
@@ -832,6 +832,13 @@ void Widget::stopRuling(QPointF mousePos)
 
   currentState = state::IDLE;
 
+  QTransform scaleTrans;
+  scaleTrans = scaleTrans.scale(zoom, zoom);
+
+  QRect clipRect = scaleTrans.mapRect(currentStroke.points.boundingRect()).toRect();
+  int clipRad = static_cast<int>(zoom * currentPenWidth / 2) + 2;
+  clipRect = clipRect.normalized().adjusted(-clipRad, -clipRad, clipRad, clipRad);
+  updateBufferRegion(drawingOnPage, clipRect);
   update();
 }
 
@@ -887,7 +894,7 @@ void Widget::continueCircling(QPointF mousePos)
   QRect clipRect = scaleTrans.mapRect(currentStroke.points.boundingRect()).toRect();
   QRect oldClipRect = scaleTrans.mapRect(oldStroke.points.boundingRect()).toRect();
   clipRect = clipRect.normalized().united(oldClipRect.normalized());
-  int clipRad = zoom * currentPenWidth / 2 + 2;
+  int clipRad = static_cast<int>(zoom * currentPenWidth / 2) + 2;
   clipRect = clipRect.normalized().adjusted(-clipRad, -clipRad, clipRad, clipRad);
   updateBufferRegion(drawingOnPage, clipRect);
 

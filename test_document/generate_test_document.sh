@@ -13,6 +13,7 @@ else
 fi
 
 filename=Testdoc.nogit.moj
+filename_all_colors=Testdoc_all_colors.nogit.moj
 
 echo Generating test document with $N pages ...
 
@@ -28,5 +29,18 @@ gzip "$filename"
 
 echo Renaming ...
 mv "$filename.gz" "$filename"
+
+cat parts/header.part.moj > "$filename_all_colors"
+for (( i=1; i<=$N; i++))
+do
+  cat parts/page_all_colors.part.moj >> "$filename_all_colors"
+done
+cat parts/footer.part.moj >> "$filename_all_colors"
+
+echo Gzipping ...
+gzip "$filename_all_colors"
+
+echo Renaming ...
+mv "$filename_all_colors.gz" "$filename_all_colors"
 
 echo Done.
