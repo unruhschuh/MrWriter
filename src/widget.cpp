@@ -1225,6 +1225,11 @@ void Widget::startMovingSelection(QPointF mousePos)
 
   int pageNum = getPageFromMousePos(mousePos);
   previousPagePos = getPagePosFromMousePos(mousePos, pageNum);
+  if (snapToGrid)
+  {
+    previousPagePos = pagePosToGrid(previousPagePos);
+  }
+
   setCurrentState(state::MOVING_SELECTION);
 }
 
@@ -1233,6 +1238,11 @@ void Widget::continueMovingSelection(QPointF mousePos)
   int pageNum = getPageFromMousePos(mousePos);
   QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
   //    currentSelection.move(1 * (pagePos - previousPagePos));
+
+  if (snapToGrid)
+  {
+    pagePos = pagePosToGrid(pagePos);
+  }
 
   QPointF delta = (pagePos - previousPagePos);
 
@@ -1265,6 +1275,10 @@ void Widget::continueRotatingSelection(QPointF mousePos)
   QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
 
   m_currentAngle = QLineF(currentSelection.boundingRect().center(), pagePos).angleTo(QLineF(currentSelection.boundingRect().center(), previousPagePos));
+  if (snapToGrid)
+  {
+    m_currentAngle = floor(m_currentAngle / 5.0) * 5.0;
+  }
   currentSelection.setAngle(m_currentAngle);
 }
 
