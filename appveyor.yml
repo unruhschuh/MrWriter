@@ -2,25 +2,25 @@ install:
   - set QTDIR=C:\Qt\5.11\mingw53_32
   - set PATH=%PATH%;%QTDIR%\bin;C:\MinGW\bin
 build_script:
-  - dir C:\Qt\5.11\mingw53_32
-  - dir C:\Qt\5.11\mingw53_32\bin
-    #  - appveyor DownloadFile http://zlib.net/zlib-1.2.11.tar.gz -FileName zlib-1.2.11.tar.gz
-    #  - 7z x zlib-1.2.11.tar.gz > NUL
-    #  - 7z x zlib-1.2.11.tar > NUL
-    #  - cd zlib-1.2.11
-    #  - md build
-    #  - cd build
-    #  - cmake -G "MinGW Makefiles" .. -DCMAKE_SH="CMAKE_SH-NOTFOUND"
-    #  - mingw32-make
-    #  - mingw32-make install
-    #  - cd ..
-    #  - cd ..
-    #  - qmake "INCLUDEPATH+=\"C:/Program Files (x86)/zlib/include\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/bin\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/lib\"" MrWriter.pro
-    #  - mingw32-make
-    #  - md MrWriter
-    #  - copy release\MrWriter.exe MrWriter\
-    #  - windeployqt MrWriter
-    #  - copy "C:\Program Files (x86)\zlib\bin\libzlib.dll" MrWriter
-    #  - copy "C:\Qt\5.11\mingw53_32\bin\libwinpthread-1.dll" MrWriter
-    #  - 7z a MrWriter.zip MrWriter
-    #  - curl --upload-file MrWriter.zip https://transfer.sh/MrWriter.zip
+#  - dir C:\Qt\5.11\mingw53_32
+#  - dir C:\Qt\5.11\mingw53_32\bin
+  - appveyor DownloadFile http://zlib.net/zlib-1.2.11.tar.gz -FileName zlib-1.2.11.tar.gz
+  - 7z x zlib-1.2.11.tar.gz > NUL
+  - 7z x zlib-1.2.11.tar > NUL
+  - cd zlib-1.2.11
+  - md build
+  - cd build
+  - cmake -G "MinGW Makefiles" .. -DCMAKE_SH="CMAKE_SH-NOTFOUND"
+  - mingw32-make
+  - mingw32-make install
+  - cd ..
+  - cd ..
+  - qmake "INCLUDEPATH+=\"C:/Program Files (x86)/zlib/include\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/bin\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/lib\"" MrWriter.pro
+  - mingw32-make
+  - md MrWriter
+  - copy release\MrWriter.exe MrWriter\
+  - C:\Qt\5.11\mingw53_32\bin\windeployqt.exe MrWriter
+  - copy "C:\Program Files (x86)\zlib\bin\libzlib.dll" MrWriter
+  - copy "C:\Qt\5.11\mingw53_32\bin\libwinpthread-1.dll" MrWriter
+  - 7z a MrWriter.zip MrWriter
+  - curl --upload-file MrWriter.zip https://transfer.sh/MrWriter.zip
