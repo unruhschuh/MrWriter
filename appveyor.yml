@@ -1,6 +1,6 @@
 install:
   - set QTDIR=C:\Qt\5.11\mingw53_32
-  - set PATH=%QTDIR\bin;C:\Qt\Tools\mingw530_32\bin;%PATH%
+  - set PATH=%QTDIR%\bin;C:\Qt\Tools\mingw530_32\bin;%PATH%
 #  - set PATH=%PATH%;%QTDIR%\bin;C:\MinGW\bin
 build_script:
   - echo %PATH%
