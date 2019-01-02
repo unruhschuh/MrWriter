@@ -1,9 +1,8 @@
 install:
-  - set QTDIR=C:\Qt\5.10\mingw53_32
+  - set QTDIR=C:\Qt\5.11\mingw53_32
   - set PATH=%QTDIR\bin;C:\Qt\Tools\mingw530_32\bin;%PATH%
 #  - set PATH=%PATH%;%QTDIR%\bin;C:\MinGW\bin
 build_script:
-  - dir C:\Qt\5.11\mingw53_32\bin
   - appveyor DownloadFile http://zlib.net/zlib-1.2.11.tar.gz -FileName zlib-1.2.11.tar.gz
   - 7z x zlib-1.2.11.tar.gz > NUL
   - 7z x zlib-1.2.11.tar > NUL
@@ -15,7 +14,7 @@ build_script:
   - mingw32-make install
   - cd ..
   - cd ..
-  - qmake.exe "INCLUDEPATH+=\"C:/Program Files (x86)/zlib/include\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/bin\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/lib\"" MrWriter.pro
+  - qmake "INCLUDEPATH+=\"C:/Program Files (x86)/zlib/include\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/bin\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/lib\"" MrWriter.pro
   - mingw32-make
   - md MrWriter
   - copy release\MrWriter.exe MrWriter\
