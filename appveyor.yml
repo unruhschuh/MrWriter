@@ -19,6 +19,6 @@ build_script:
   - copy release\MrWriter.exe MrWriter\
   - windeployqt MrWriter
   - copy "C:\Program Files (x86)\zlib\bin\libzlib.dll" MrWriter
-  - copy "C:\Windows\System32\libwinpthread-1.dll" MrWriter
+  - copy "C:\Qt\5.11\mingw53_32\bin\libwinpthread-1.dll" MrWriter
   - 7z a MrWriter.zip MrWriter
   - curl --upload-file MrWriter.zip https://transfer.sh/MrWriter.zip
