@@ -2,7 +2,7 @@ install:
   - set QTDIR=C:\Qt\5.11\mingw53_32
   - set PATH=%PATH%;%QTDIR%\bin;C:\MinGW\bin
 build_script:
-  - cd C:\MinGW
+  - cd C:\
   - dir libwinpthread*.* /s
   - dir C:\MinGW\share
   - dir C:\MinGW\libexec
