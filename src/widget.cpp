@@ -960,9 +960,9 @@ void Widget::continueCircling(QPointF mousePos)
   qreal phi0 = QLineF(firstPagePos, pagePos).angle() * M_PI / 180.0;
 
   int N = 100;
-  for (int i = 0; i < N; ++i)
+  for (int i = 0; i <= N; ++i)
   {
-    qreal phi = phi0 + i * (2.0 * M_PI / (N - 1));
+    qreal phi = phi0 + i * (2.0 * M_PI / N);
     qreal x = firstPagePos.x() + radius * cos(phi);
     qreal y = firstPagePos.y() - radius * sin(phi);
     currentStroke.points.append(QPointF(x, y));
@@ -1554,7 +1554,7 @@ void Widget::zoomTo(qreal newZoom)
 
   if (prevHMax != 0)
   {
-    newH = double(prevH) / prevHMax * newHMax;
+    newH = static_cast<int>(double(prevH) / prevHMax * newHMax);
   }
   else
   {
@@ -1562,7 +1562,7 @@ void Widget::zoomTo(qreal newZoom)
   }
   if (prevVMax != 0)
   {
-    newV = double(prevV) / prevVMax * newVMax;
+    newV = static_cast<int>(double(prevV) / prevVMax * newVMax);
   }
   else
   {
@@ -1793,6 +1793,11 @@ void Widget::paste()
   QPoint globalMousePos = parentWidget()->mapToGlobal(QPoint(0, 0)) + QPoint(parentWidget()->size().width() / 2, parentWidget()->size().height() / 2);
   QPoint mousePos = this->mapFromGlobal(globalMousePos);
   QPointF selectionPos = getPagePosFromMousePos(mousePos, getCurrentPage()) - tmpSelection.boundingRect().center();
+
+  if (snapToGrid)
+  {
+    selectionPos = pagePosToGrid(selectionPos);
+  }
 
   QTransform myTrans;
   myTrans = myTrans.translate(selectionPos.x(), selectionPos.y());

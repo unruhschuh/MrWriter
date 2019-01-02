@@ -759,6 +759,8 @@ bool MainWindow::saveFileAs()
     return false;
   }
 
+  mainWidget->letGoSelection();
+
   if (mainWidget->currentDocument.saveMOJ(fileName))
   {
     modified();
@@ -792,6 +794,8 @@ bool MainWindow::saveFile()
   {
     return false;
   }
+
+  mainWidget->letGoSelection();
 
   if (mainWidget->currentDocument.saveMOJ(fileName))
   {
