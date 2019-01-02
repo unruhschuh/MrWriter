@@ -97,7 +97,7 @@ void RemoveStrokeCommand::undo()
 {
   widget->currentDocument.pages[pageNum].insertStroke(strokeNum, stroke);
 
-  qreal zoom = widget->zoom;
+  qreal zoom = widget->m_zoom;
   QRect updateRect = stroke.points.boundingRect().toRect();
   updateRect = QRect(zoom * updateRect.topLeft(), zoom * updateRect.bottomRight());
   int delta = zoom * 10;
@@ -108,7 +108,7 @@ void RemoveStrokeCommand::redo()
 {
   widget->currentDocument.pages[pageNum].removeStrokeAt(strokeNum);
 
-  qreal zoom = widget->zoom;
+  qreal zoom = widget->m_zoom;
   QRect updateRect = stroke.points.boundingRect().toRect();
   updateRect = QRect(zoom * updateRect.topLeft(), zoom * updateRect.bottomRight());
   int delta = zoom * 10;
@@ -134,7 +134,7 @@ CreateSelectionCommand::CreateSelectionCommand(Widget *widget, int pageNum, MrDo
     m_selection.prependStroke(sAndP.first);
   }
   m_selection.finalize();
-  m_selection.updateBuffer(m_widget->zoom);
+  m_selection.updateBuffer(m_widget->m_zoom);
 }
 
 void CreateSelectionCommand::undo()

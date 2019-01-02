@@ -25,6 +25,16 @@ qreal Page::width() const
   return m_width;
 }
 
+int Page::pixelHeight(const qreal zoom, int devicePixelRatio) const
+{
+  return static_cast<int>(m_height * zoom * devicePixelRatio);
+}
+
+int Page::pixelWidth(const qreal zoom, int devicePixelRatio) const
+{
+  return static_cast<int>(m_width * zoom * devicePixelRatio);
+}
+
 void Page::setHeight(qreal height)
 {
   if (height > 0)

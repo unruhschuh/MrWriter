@@ -1333,7 +1333,7 @@ void MainWindow::cloneWindow()
   window->mainWidget->currentSelection = mainWidget->currentSelection;
   window->mainWidget->setCurrentState(mainWidget->getCurrentState());
   //  window->mainWidget->zoomTo(mainWidget->zoom);
-  window->mainWidget->zoom = mainWidget->zoom;
+  window->mainWidget->m_zoom = mainWidget->m_zoom;
 
   window->show();
 

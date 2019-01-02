@@ -4,6 +4,8 @@
 #define MIN_ZOOM 0.1
 #define MAX_ZOOM 10.0
 
+#define INVISIBLE_BUFFER_FACTOR 10.0
+
 #include <QWidget>
 #include <QOpenGLWidget>
 #include <QVector>
@@ -136,7 +138,7 @@ public:
 
   QUndoStack undoStack;
 
-  qreal zoom;
+  qreal m_zoom;
 
 private:
   QTime timer;
