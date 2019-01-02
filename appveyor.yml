@@ -15,11 +15,11 @@ build_script:
   - mingw32-make install
   - cd ..
   - cd ..
-  - "%QTDIR%\bin\qmake.exe" "INCLUDEPATH+=\"C:/Program Files (x86)/zlib/include\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/bin\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/lib\"" MrWriter.pro
+  - qmake.exe "INCLUDEPATH+=\"C:/Program Files (x86)/zlib/include\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/bin\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/lib\"" MrWriter.pro
   - mingw32-make
   - md MrWriter
   - copy release\MrWriter.exe MrWriter\
-  - "%QTDIR%\bin\windeployqt.exe" -verbose=3 MrWriter
+  - windeployqt -verbose=3 MrWriter
   - copy "C:\Program Files (x86)\zlib\bin\libzlib.dll" MrWriter
   - copy "%QTDIR%\bin\libwinpthread-1.dll" MrWriter
   - 7z a MrWriter.zip MrWriter
