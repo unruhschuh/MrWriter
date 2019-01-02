@@ -3,7 +3,8 @@ install:
   - set PATH=%PATH%;%QTDIR%\bin;C:\MinGW\bin
 build_script:
   - dir C:\Qt\Tools
-  - dir C:\Qt\Tools\mingw53_32
+  - dir C:\Qt\Tools\mingw530_32
+  - dir C:\Qt\5.10
   - dir C:\Qt\5.10\Tools
 #  - dir C:\Qt\5.11\mingw53_32\bin
 #  - appveyor DownloadFile http://zlib.net/zlib-1.2.11.tar.gz -FileName zlib-1.2.11.tar.gz
