@@ -60,6 +60,8 @@ private slots:
   void toolbar();
   void statusbar();
   void fullscreen();
+  void showGrid();
+  void snapToGrid();
   void maximize();
 
   void pageSettings();
@@ -171,6 +173,10 @@ private:
   QAction *statusbarAct;
   QAction *fullscreenAct;
   QAction *maximizeAct;
+
+  // grid actions
+  QAction *showGridAct;
+  QAction *snapToGridAct;
 
   // color actions
   QAction *blackAct;

@@ -106,6 +106,12 @@ public:
   void zoomFitWidth();
   void zoomFitHeight();
 
+  void toggleGrid();
+  void toggleSnapToGrid();
+
+  bool showingGrid();
+  bool snappingToGrid();
+
   void rotateSelection(qreal angle);
 
   MrDoc::Document currentDocument;

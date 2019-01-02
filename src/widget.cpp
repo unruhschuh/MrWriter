@@ -63,8 +63,8 @@ Widget::Widget(QWidget *parent) : QWidget(parent)
   currentColor = QColor(0, 0, 0);
   zoom = 1.0;
 
-  showGrid = true;
-  snapToGrid = true;
+  showGrid = false;
+  snapToGrid = false;
   gridWidth = 14.1732;
 
   currentCOSPos.setX(0.0);
@@ -1593,6 +1593,29 @@ void Widget::zoomFitHeight()
   qreal newZoom = widgetSize.height() / currentDocument.pages[pageNum].height();
 
   zoomTo(newZoom);
+}
+
+void Widget::toggleGrid()
+{
+  showGrid = !showGrid;
+  updateAllPageBuffers();
+  update();
+}
+
+void Widget::toggleSnapToGrid()
+{
+  snapToGrid = !snapToGrid;
+  update();
+}
+
+bool Widget::showingGrid()
+{
+  return showGrid;
+}
+
+bool Widget::snappingToGrid()
+{
+  return snapToGrid;
 }
 
 void Widget::pageFirst()

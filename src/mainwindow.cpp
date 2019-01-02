@@ -413,6 +413,21 @@ void MainWindow::createActions()
   connect(maximizeAct, SIGNAL(triggered()), this, SLOT(maximize()));
   this->addAction(maximizeAct);
 
+  // grid actions
+  showGridAct = new QAction(tr("show grid"), this);
+  showGridAct->setShortcut(QKeySequence(Qt::Key_G));
+  showGridAct->setCheckable(true);
+  showGridAct->setChecked(false);
+  connect(showGridAct, SIGNAL(triggered()), this, SLOT(showGrid()));
+  this->addAction(showGridAct); // add to make shortcut work if menubar is hidden
+
+  snapToGridAct = new QAction(tr("snap to grid"), this);
+  snapToGridAct->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_G));
+  snapToGridAct->setCheckable(true);
+  snapToGridAct->setChecked(false);
+  connect(snapToGridAct, SIGNAL(triggered()), this, SLOT(snapToGrid()));
+  this->addAction(snapToGridAct); // add to make shortcut work if menubar is hidden
+
   // colorActions
   blackAct = new QAction(QIcon(":/images/blackIcon.png"), tr("black"), this);
   blackAct->setShortcut(QKeySequence(Qt::Key_Q));
@@ -570,6 +585,9 @@ void MainWindow::createMenus()
   viewMenu->addAction(statusbarAct);
   viewMenu->addAction(fullscreenAct);
   viewMenu->addSeparator();
+  viewMenu->addAction(showGridAct);
+  viewMenu->addAction(snapToGridAct);
+  viewMenu->addSeparator();
   viewMenu->addAction(saveMyStateAct);
   viewMenu->addAction(loadMyStateAct);
 
@@ -635,6 +653,9 @@ void MainWindow::createToolBars()
   viewToolBar->addAction(zoomFitWidthAct);
   viewToolBar->addAction(zoomFitHeightAct);
   viewToolBar->addAction(zoomInAct);
+  viewToolBar->addSeparator();
+  viewToolBar->addAction(showGridAct);
+  viewToolBar->addAction(snapToGridAct);
   viewToolBar->addSeparator();
   viewToolBar->addAction(fullscreenAct);
   viewToolBar->setIconSize(iconSize);
@@ -1128,6 +1149,20 @@ void MainWindow::fullscreen()
   }
 }
 
+
+void MainWindow::showGrid()
+{
+  mainWidget->toggleGrid();
+  updateGUI();
+}
+
+void MainWindow::snapToGrid()
+{
+  mainWidget->toggleSnapToGrid();
+  updateGUI();
+}
+
+
 void MainWindow::verticalScrolling()
 {
   QSize size = scrollArea->size();
@@ -1249,6 +1284,9 @@ void MainWindow::updateGUI()
 
   fullscreenAct->setChecked(isFullScreen());
   statusbarAct->setChecked(statusBar()->isVisible());
+
+  showGridAct->setChecked(mainWidget->showingGrid());
+  snapToGridAct->setChecked(mainWidget->snappingToGrid());
 
   if (mainWidget->getCurrentState() == Widget::state::SELECTED)
   {
