@@ -2,14 +2,6 @@ install:
   - set QTDIR=C:\Qt\5.11\mingw53_32
   - set PATH=%PATH%;%QTDIR%\bin;C:\MinGW\bin
 build_script:
-  - cd C:\
-  - dir libwinpthread*.* /s
-  - dir C:\MinGW\share
-  - dir C:\MinGW\libexec
-  - dir C:\MinGW\mingw32
-  - dir C:\MinGW\mingw32\lib
-  - dir C:\MinGW\msys
-  - dir C:\MinGW\share\lib
   - appveyor DownloadFile http://zlib.net/zlib-1.2.11.tar.gz -FileName zlib-1.2.11.tar.gz
   - 7z x zlib-1.2.11.tar.gz > NUL
   - 7z x zlib-1.2.11.tar > NUL
@@ -27,9 +19,6 @@ build_script:
   - copy release\MrWriter.exe MrWriter\
   - windeployqt MrWriter
   - copy "C:\Program Files (x86)\zlib\bin\libzlib.dll" MrWriter
-  - dir C:\MinGW
-  - dir C:\MinGW\bin
-  - dir C:\MinGW\lib
-  - copy "C:\MinGW\bin\libwinpthread-1.dll" MrWriter
+  - copy "C:\Windows\System32\libwinpthread-1.dll" MrWriter
   - 7z a MrWriter.zip MrWriter
   - curl --upload-file MrWriter.zip https://transfer.sh/MrWriter.zip
