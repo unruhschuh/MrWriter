@@ -1,5 +1,5 @@
 install:
-  - set QTDIR=C:\Qt\5.11\mingw53_32
+  - set QTDIR=C:\Qt\5.10\mingw53_32
   - set PATH=%PATH%;%QTDIR%\bin;C:\MinGW\bin
 build_script:
 #  - dir C:\Qt\5.11\mingw53_32
@@ -15,12 +15,12 @@ build_script:
   - mingw32-make install
   - cd ..
   - cd ..
-  - C:\Qt\5.11\mingw53_32\bin\qmake "INCLUDEPATH+=\"C:/Program Files (x86)/zlib/include\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/bin\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/lib\"" MrWriter.pro
+  - %QTDIR%\bin\qmake.exe "INCLUDEPATH+=\"C:/Program Files (x86)/zlib/include\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/bin\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/lib\"" MrWriter.pro
   - mingw32-make
   - md MrWriter
   - copy release\MrWriter.exe MrWriter\
-  - C:\Qt\5.11\mingw53_32\bin\windeployqt.exe -verbose=3 MrWriter
+  - %QTDIR%\bin\windeployqt.exe -verbose=3 MrWriter
   - copy "C:\Program Files (x86)\zlib\bin\libzlib.dll" MrWriter
-  - copy "C:\Qt\5.11\mingw53_32\bin\libwinpthread-1.dll" MrWriter
+  - copy "%QTDIR%\bin\libwinpthread-1.dll" MrWriter
   - 7z a MrWriter.zip MrWriter
   - curl --upload-file MrWriter.zip https://transfer.sh/MrWriter.zip
