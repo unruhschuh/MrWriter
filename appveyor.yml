@@ -5,6 +5,7 @@ build_script:
   - dir C:\MinGW\share
   - dir C:\MinGW\libexec
   - dir C:\MinGW\mingw32
+  - dir C:\MinGW\mingw32\lib
   - dir C:\MinGW\msys
   - dir C:\MinGW\share\lib
   - appveyor DownloadFile http://zlib.net/zlib-1.2.11.tar.gz -FileName zlib-1.2.11.tar.gz
