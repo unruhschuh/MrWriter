@@ -173,6 +173,9 @@ private:
   QAction *thickPenWidthAct;
   QAction *veryThickPenWidthAct;
 
+  QAction *pencilIconAct;
+  QAction *dotIconAct;
+
   QAction *toolbarAct;
   QAction *statusbarAct;
   QAction *fullscreenAct;
@@ -217,6 +220,7 @@ private:
   QMenu *patternMenu;
   QMenu *viewMenu;
   QMenu *helpMenu;
+  QMenu *penIconMenu;
 
   // for android
   QToolButton *mainMenuButton;
