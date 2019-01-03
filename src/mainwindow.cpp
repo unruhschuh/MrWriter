@@ -38,7 +38,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
   connect(mainWidget, SIGNAL(pen()), this, SLOT(pen()));
   connect(mainWidget, SIGNAL(ruler()), this, SLOT(ruler()));
   connect(mainWidget, SIGNAL(circle()), this, SLOT(circle()));
+  connect(mainWidget, SIGNAL(rect()), this, SLOT(rect()));
   connect(mainWidget, SIGNAL(eraser()), this, SLOT(eraser()));
+  connect(mainWidget, SIGNAL(strokeEraser()), this, SLOT(strokeEraser()));
   connect(mainWidget, SIGNAL(hand()), this, SLOT(hand()));
 
   connect(mainWidget, SIGNAL(updateGUI()), this, SLOT(updateGUI()));
@@ -304,16 +306,24 @@ void MainWindow::createActions()
   this->addAction(rulerAct); // add to make shortcut work if menubar is hidden
 
   circleAct = new QAction(QIcon(":/images/circleIcon.png"), tr("circle"), this);
-  circleAct->setStatusTip(tr("circle Tool"));
+  circleAct->setStatusTip(tr("Circle Tool"));
   circleAct->setShortcut(QKeySequence(Qt::Key_3));
   circleAct->setCheckable(true);
   circleAct->setChecked(false);
   connect(circleAct, SIGNAL(triggered()), this, SLOT(circle()));
   this->addAction(circleAct); // add to make shortcut work if menubar is hidden
 
+  rectAct = new QAction(/* QIcon(":/images/rectIcon.png"), */ tr("rect"), this);
+  rectAct->setStatusTip(tr("Rectangle Tool"));
+  rectAct->setShortcut(QKeySequence(Qt::Key_4));
+  rectAct->setCheckable(true);
+  rectAct->setChecked(false);
+  connect(rectAct, SIGNAL(triggered()), this, SLOT(rect()));
+  this->addAction(rectAct); // add to make shortcut work if menubar is hidden
+
   eraserAct = new QAction(QIcon(":/images/eraserIcon.png"), tr("Eraser"), this);
   eraserAct->setStatusTip(tr("Eraser Tool"));
-  eraserAct->setShortcut(QKeySequence(Qt::Key_4));
+  eraserAct->setShortcut(QKeySequence(Qt::Key_5));
   eraserAct->setCheckable(true);
   connect(eraserAct, SIGNAL(triggered()), this, SLOT(eraser()));
   this->addAction(eraserAct); // add to make shortcut work if menubar is hidden
@@ -325,7 +335,7 @@ void MainWindow::createActions()
 
   selectAct = new QAction(QIcon(":/images/selectIcon.png"), tr("Select"), this);
   selectAct->setStatusTip(tr("Select Tool"));
-  selectAct->setShortcut(QKeySequence(Qt::Key_5));
+  selectAct->setShortcut(QKeySequence(Qt::Key_6));
   selectAct->setCheckable(true);
   connect(selectAct, SIGNAL(triggered()), this, SLOT(select()));
   this->addAction(selectAct); // add to make shortcut work if menubar is hidden
@@ -560,6 +570,7 @@ void MainWindow::createMenus()
   toolsMenu->addAction(penAct);
   toolsMenu->addAction(rulerAct);
   toolsMenu->addAction(circleAct);
+  toolsMenu->addAction(rectAct);
   toolsMenu->addAction(eraserAct);
   toolsMenu->addAction(strokeEraserAct);
   toolsMenu->addAction(selectAct);
@@ -673,6 +684,7 @@ void MainWindow::createToolBars()
   toolsToolBar->addAction(penAct);
   toolsToolBar->addAction(rulerAct);
   toolsToolBar->addAction(circleAct);
+  toolsToolBar->addAction(rectAct);
   toolsToolBar->addAction(eraserAct);
   toolsToolBar->addAction(strokeEraserAct);
   toolsToolBar->addAction(selectAct);
@@ -963,6 +975,12 @@ void MainWindow::ruler()
 void MainWindow::circle()
 {
   mainWidget->setCurrentTool(Widget::tool::CIRCLE);
+  updateGUI();
+}
+
+void MainWindow::rect()
+{
+  mainWidget->setCurrentTool(Widget::tool::RECT);
   updateGUI();
 }
 
@@ -1267,6 +1285,7 @@ void MainWindow::updateGUI()
   penAct->setChecked(currentTool == Widget::tool::PEN);
   rulerAct->setChecked(currentTool == Widget::tool::RULER);
   circleAct->setChecked(currentTool == Widget::tool::CIRCLE);
+  rectAct->setChecked(currentTool == Widget::tool::RECT);
   eraserAct->setChecked(currentTool == Widget::tool::ERASER);
   strokeEraserAct->setChecked(currentTool == Widget::tool::STROKE_ERASER);
   selectAct->setChecked(currentTool == Widget::tool::SELECT);

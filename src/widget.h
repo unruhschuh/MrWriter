@@ -35,6 +35,7 @@ public:
     PEN,
     RULER,
     CIRCLE,
+    RECT,
     ERASER,
     STROKE_ERASER,
     SELECT,
@@ -46,6 +47,7 @@ public:
     DRAWING,
     RULING,
     CIRCLING,
+    RECTING,
     SELECTING,
     SELECTED,
     MOVING_SELECTION,
@@ -200,6 +202,10 @@ private:
   void continueCircling(QPointF mousePos);
   void stopCircling(QPointF mousePos);
 
+  void startRecting(QPointF mousePos);
+  void continueRecting(QPointF mousePos);
+  void stopRecting(QPointF mousePos);
+
   void startSelecting(QPointF mousePos);
   void continueSelecting(QPointF mousePos);
   void stopSelecting(QPointF mousePos);
@@ -259,6 +265,7 @@ signals:
   void pen();
   void ruler();
   void circle();
+  void rect();
   void eraser();
   void strokeEraser();
   void select();

@@ -557,6 +557,21 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
     }
   }
 
+  if (currentState == state::RECTING)
+  {
+    if (eventType == QEvent::MouseMove)
+    {
+      continueRecting(mousePos);
+      return;
+    }
+    if (eventType == QEvent::MouseButtonRelease)
+    {
+      stopRecting(mousePos);
+      setPreviousTool();
+      return;
+    }
+  }
+
   if (currentState == state::IDLE)
   {
     if (eventType == QEvent::MouseButtonPress)
@@ -576,6 +591,11 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
         if (currentTool == tool::CIRCLE)
         {
           startCircling(mousePos);
+          return;
+        }
+        if (currentTool == tool::RECT)
+        {
+          startRecting(mousePos);
           return;
         }
         if (currentTool == tool::ERASER)
@@ -735,6 +755,10 @@ void Widget::setPreviousTool()
   if (previousTool == tool::CIRCLE)
   {
     emit circle();
+  }
+  if (previousTool == tool::RECT)
+  {
+    emit rect();
   }
   if (previousTool == tool::ERASER)
   {
@@ -1007,6 +1031,85 @@ void Widget::continueCircling(QPointF mousePos)
 void Widget::stopCircling(QPointF mousePos)
 {
   continueCircling(mousePos);
+
+  AddStrokeCommand *addCommand = new AddStrokeCommand(this, drawingOnPage, currentStroke);
+  undoStack.push(addCommand);
+
+  currentState = state::IDLE;
+
+  update();
+}
+
+void Widget::startRecting(QPointF mousePos)
+{
+  currentDocument.setDocumentChanged(true);
+  emit modified();
+
+  int pageNum = getPageFromMousePos(mousePos);
+
+  MrDoc::Stroke newStroke;
+  //    newStroke.points.append(pagePos);
+  //    newStroke.pressures.append(1);
+  newStroke.pattern = currentPattern;
+  newStroke.penWidth = currentPenWidth;
+  newStroke.color = currentColor;
+  currentStroke = newStroke;
+  currentState = state::RECTING;
+
+  previousMousePos = mousePos;
+  firstMousePos = mousePos;
+  drawingOnPage = pageNum;
+}
+
+void Widget::continueRecting(QPointF mousePos)
+{
+  QPointF pagePos = getPagePosFromMousePos(mousePos, drawingOnPage);
+  QPointF firstPagePos = getPagePosFromMousePos(firstMousePos, drawingOnPage);
+
+  if (snapToGrid)
+  {
+    pagePos = pagePosToGrid(pagePos);
+    firstPagePos = pagePosToGrid(firstPagePos);
+  }
+
+  currentDashOffset = 0.0;
+
+  MrDoc::Stroke oldStroke = currentStroke;
+
+  currentStroke.points.clear();
+  currentStroke.pressures.clear();
+
+  currentStroke.points.append(QPointF(firstPagePos.x(), firstPagePos.y()));
+  currentStroke.points.append(QPointF(firstPagePos.x(), pagePos.y()));
+  currentStroke.points.append(QPointF(pagePos.x(), pagePos.y()));
+  currentStroke.points.append(QPointF(pagePos.x(), firstPagePos.y()));
+  currentStroke.points.append(QPointF(firstPagePos.x(), firstPagePos.y()));
+
+  for (int i = 0; i < 5; i++)
+  {
+    currentStroke.pressures.append(1.0);
+  }
+
+  QTransform scaleTrans;
+  scaleTrans = scaleTrans.scale(m_zoom, m_zoom);
+
+  QRect clipRect = scaleTrans.mapRect(currentStroke.points.boundingRect()).toRect();
+  QRect oldClipRect = scaleTrans.mapRect(oldStroke.points.boundingRect()).toRect();
+  clipRect = clipRect.normalized().united(oldClipRect.normalized());
+  int clipRad = static_cast<int>(m_zoom * currentPenWidth / 2) + 2;
+  clipRect = clipRect.normalized().adjusted(-clipRad, -clipRad, clipRad, clipRad);
+  updateBufferRegion(drawingOnPage, clipRect);
+
+  drawOnBuffer();
+
+  update();
+
+  previousMousePos = mousePos;
+}
+
+void Widget::stopRecting(QPointF mousePos)
+{
+  continueRecting(mousePos);
 
   AddStrokeCommand *addCommand = new AddStrokeCommand(this, drawingOnPage, currentStroke);
   undoStack.push(addCommand);
@@ -1766,6 +1869,8 @@ void Widget::setCurrentTool(tool toolID)
       setCursor(rulerCursor);
     if (toolID == tool::CIRCLE)
       setCursor(circleCursor);
+    if (toolID == tool::RECT)
+      setCursor(penCursor); // todo rect cursor
     if (toolID == tool::ERASER)
       setCursor(eraserCursor);
     if (toolID == tool::STROKE_ERASER)

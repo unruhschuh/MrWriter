@@ -51,6 +51,7 @@ private slots:
   void pen();
   void ruler();
   void circle();
+  void rect();
   void eraser();
   void strokeEraser();
   void select();
@@ -153,6 +154,7 @@ private:
   QAction *penAct;
   QAction *rulerAct;
   QAction *circleAct;
+  QAction *rectAct;
   QAction *eraserAct;
   QAction *strokeEraserAct;
   QAction *selectAct;
