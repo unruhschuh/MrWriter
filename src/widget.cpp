@@ -52,9 +52,13 @@ Widget::Widget(QWidget *parent) : QWidget(parent)
   eraserCursorBitmap.setMask(QBitmap(eraserCursorMask));
   eraserCursor = QCursor(eraserCursorBitmap, -1, -1);
 
+  QPixmap strokeEraserCursorBitmap = QPixmap(":/images/strokeEraserCursor.png");
+  QPixmap strokeEraserCursorMask = QPixmap(":/images/strokeEraserCursorMask.png");
+  strokeEraserCursorBitmap.setMask(QBitmap(strokeEraserCursorMask));
+  strokeEraserCursor = QCursor(strokeEraserCursorBitmap, -1, -1);
+
   currentTool = tool::PEN;
   previousTool = tool::NONE;
-  realEraser = false;
   setCursor(penCursorBitmap);
 
   currentDocument = MrDoc::Document();
@@ -580,6 +584,12 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
           erase(mousePos, invertEraser);
           return;
         }
+        if (currentTool == tool::STROKE_ERASER)
+        {
+          undoStack.beginMacro("erase");
+          erase(mousePos, !invertEraser);
+          return;
+        }
         if (currentTool == tool::SELECT)
         {
           startSelecting(mousePos);
@@ -603,6 +613,10 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
       if (pointerType == QTabletEvent::Eraser || currentTool == tool::ERASER)
       {
         erase(mousePos, invertEraser);
+      }
+      if (currentTool == tool::STROKE_ERASER)
+      {
+        erase(mousePos, !invertEraser);
       }
       if (currentTool == tool::HAND)
       {
@@ -725,6 +739,10 @@ void Widget::setPreviousTool()
   if (previousTool == tool::ERASER)
   {
     emit eraser();
+  }
+  if (previousTool == tool::STROKE_ERASER)
+  {
+    emit strokeEraser();
   }
   if (previousTool == tool::SELECT)
   {
@@ -1062,7 +1080,7 @@ void Widget::stopDrawing(QPointF mousePos, qreal pressure)
   update();
 }
 
-void Widget::erase(QPointF mousePos, bool invertEraser)
+void Widget::erase(QPointF mousePos, bool lineEraser)
 {
   int pageNum = getPageFromMousePos(mousePos);
   QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
@@ -1092,7 +1110,7 @@ void Widget::erase(QPointF mousePos, bool invertEraser)
 
   bool intersected;
 
-  if (realEraser || (!realEraser && invertEraser))
+  if (!lineEraser)
   {
     for (int i = strokes.size() - 1; i >= 0; --i)
     {
@@ -1750,6 +1768,8 @@ void Widget::setCurrentTool(tool toolID)
       setCursor(circleCursor);
     if (toolID == tool::ERASER)
       setCursor(eraserCursor);
+    if (toolID == tool::STROKE_ERASER)
+      setCursor(strokeEraserCursor);
     if (toolID == tool::SELECT)
       setCursor(Qt::CrossCursor);
     if (toolID == tool::HAND)

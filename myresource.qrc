@@ -66,5 +66,8 @@
         <file>images/rulerCursorMask.png</file>
         <file>documentation/MrWriterDoc.html</file>
         <file>MrWriter.png</file>
+        <file>images/strokeEraserIcon.png</file>
+        <file>images/strokeEraserCursor.png</file>
+        <file>images/strokeEraserCursorMask.png</file>
     </qresource>
 </RCC>

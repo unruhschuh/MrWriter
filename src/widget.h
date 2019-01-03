@@ -36,6 +36,7 @@ public:
     RULER,
     CIRCLE,
     ERASER,
+    STROKE_ERASER,
     SELECT,
     HAND
   };
@@ -156,6 +157,7 @@ private:
   QCursor circleCursor;
   QCursor rulerCursor;
   QCursor eraserCursor;
+  QCursor strokeEraserCursor;
 
   MrDoc::Stroke currentStroke;
   QRect currentUpdateRect;
@@ -167,7 +169,6 @@ private:
 
   tool currentTool;
   tool previousTool;
-  bool realEraser;
 
   bool showGrid;
   bool snapToGrid;
@@ -259,6 +260,7 @@ signals:
   void ruler();
   void circle();
   void eraser();
+  void strokeEraser();
   void select();
   void hand();
 

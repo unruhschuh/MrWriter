@@ -52,6 +52,7 @@ private slots:
   void ruler();
   void circle();
   void eraser();
+  void strokeEraser();
   void select();
   void hand();
 
@@ -153,6 +154,7 @@ private:
   QAction *rulerAct;
   QAction *circleAct;
   QAction *eraserAct;
+  QAction *strokeEraserAct;
   QAction *selectAct;
   QAction *handAct;
 
