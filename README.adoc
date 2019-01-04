@@ -7,6 +7,8 @@ Notetaking and blackboard replacement application. Inspired by Xournal. Written 
 
 See the http://unruhschuh.github.io/MrWriter/[project homepage] for more informations and screenshots.
 
+https://tooomm.github.io/github-release-stats/?username=unruhschuh&repository=MrWriter[Release stats]
+
 == Build
 * Download and install http://www.qt.io/download/[Qt]
 * Run in the terminal
