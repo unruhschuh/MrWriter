@@ -451,14 +451,14 @@ void MainWindow::createActions()
   this->addAction(maximizeAct);
 
   // grid actions
-  showGridAct = new QAction(tr("show grid"), this);
+  showGridAct = new QAction(QIcon(":/images/gridIcon_48.png"), tr("show grid"), this);
   showGridAct->setShortcut(QKeySequence(Qt::Key_G));
   showGridAct->setCheckable(true);
   showGridAct->setChecked(false);
   connect(showGridAct, SIGNAL(triggered()), this, SLOT(showGrid()));
   this->addAction(showGridAct); // add to make shortcut work if menubar is hidden
 
-  snapToGridAct = new QAction(tr("snap to grid"), this);
+  snapToGridAct = new QAction(QIcon(":/images/snapToGridIcon_48.png"), tr("snap to grid"), this);
   snapToGridAct->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_G));
   snapToGridAct->setCheckable(true);
   snapToGridAct->setChecked(false);

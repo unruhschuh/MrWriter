@@ -70,6 +70,8 @@
         <file>images/rectIcon_48.png</file>
         <file>images/rectSelectIcon_48.png</file>
         <file>images/dotCursor.png</file>
+        <file>images/gridIcon_48.png</file>
+        <file>images/snapToGridIcon_48.png</file>
         <file>documentation/MrWriterDoc.html</file>
         <file>MrWriter.png</file>
     </qresource>
