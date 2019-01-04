@@ -55,6 +55,7 @@ private slots:
   void eraser();
   void strokeEraser();
   void select();
+  void rectSelect();
   void hand();
 
   void modified();
@@ -158,6 +159,7 @@ private:
   QAction *eraserAct;
   QAction *strokeEraserAct;
   QAction *selectAct;
+  QAction *rectSelectAct;
   QAction *handAct;
 
   QAction *solidPatternAct;
@@ -211,6 +213,8 @@ private:
   QToolBar *toolsToolBar;
 
   QToolButton *patternToolButton;
+  QToolButton *eraserToolButton;
+  QToolButton *selectToolButton;
 
   QMenu *fileMenu;
   QMenu *editMenu;

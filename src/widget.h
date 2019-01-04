@@ -39,6 +39,7 @@ public:
     ERASER,
     STROKE_ERASER,
     SELECT,
+    RECT_SELECT,
     HAND
   };
   enum class state
@@ -288,6 +289,7 @@ signals:
   void eraser();
   void strokeEraser();
   void select();
+  void rectSelect();
   void hand();
 
   void updateGUI();

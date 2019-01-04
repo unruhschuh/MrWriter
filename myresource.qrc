@@ -67,6 +67,8 @@
         <file>images/strokeEraserIcon.png</file>
         <file>images/strokeEraserCursor.png</file>
         <file>images/strokeEraserCursorMask.png</file>
+        <file>images/rectIcon_48.png</file>
+        <file>images/rectSelectIcon_48.png</file>
         <file>images/dotCursor.png</file>
         <file>documentation/MrWriterDoc.html</file>
         <file>MrWriter.png</file>

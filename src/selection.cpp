@@ -183,8 +183,8 @@ void Selection::paint(QPainter &painter, qreal zoom, QRectF region __attribute__
   painter.drawImage(scaleTrans.map(m_selectionPolygon).boundingRect(), m_buffer, QRectF(m_buffer.rect()));
 
   QPen pen;
-  //  pen.setStyle(Qt::DashLine);
-  pen.setStyle(Qt::SolidLine);
+  pen.setStyle(Qt::DashLine);
+  //  pen.setStyle(Qt::SolidLine);
   pen.setWidth(2);
   pen.setCapStyle(Qt::RoundCap);
   //  pen.setColor(QColor(0, 180, 0, 255));

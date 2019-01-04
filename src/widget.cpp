@@ -442,8 +442,15 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
   if (currentState == state::IDLE && button == Qt::RightButton)
   {
     previousTool = currentTool;
+    if (keyboardModifiers & Qt::ShiftModifier)
+    {
+      currentTool = Widget::tool::RECT_SELECT;
+      emit rectSelect();
+    } else {
+      currentTool = Widget::tool::SELECT;
+      emit select();
+    }
     startSelecting(mousePos);
-    emit select();
     return;
   }
 
@@ -610,7 +617,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
           erase(mousePos, !invertEraser);
           return;
         }
-        if (currentTool == tool::SELECT)
+        if (currentTool == tool::SELECT || currentTool == tool::RECT_SELECT)
         {
           startSelecting(mousePos);
           return;
@@ -772,6 +779,10 @@ void Widget::setPreviousTool()
   {
     emit select();
   }
+  if (previousTool == tool::RECT_SELECT)
+  {
+    emit rectSelect();
+  }
   if (previousTool == tool::HAND)
   {
     emit hand();
@@ -792,6 +803,8 @@ void Widget::startSelecting(QPointF mousePos)
   newSelection.setHeight(currentDocument.pages[pageNum].height());
   newSelection.appendToSelectionPolygon(pagePos);
 
+  firstMousePos = mousePos;
+
   currentSelection = newSelection;
 
   //    selecting = true;
@@ -803,8 +816,19 @@ void Widget::continueSelecting(QPointF mousePos)
 {
   int pageNum = selectingOnPage;
   QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
+  QPointF firstPagePos = getPagePosFromMousePos(firstMousePos, pageNum);
 
-  currentSelection.appendToSelectionPolygon(pagePos);
+  if (currentTool == Widget::tool::SELECT)
+  {
+    currentSelection.appendToSelectionPolygon(pagePos);
+  } else if (currentTool == Widget::tool::RECT_SELECT) {
+    QPolygonF selectionPolygon;
+    selectionPolygon.append(QPointF(firstPagePos.x(), firstPagePos.y()));
+    selectionPolygon.append(QPointF(pagePos.x(), firstPagePos.y()));
+    selectionPolygon.append(QPointF(pagePos.x(), pagePos.y()));
+    selectionPolygon.append(QPointF(firstPagePos.x(), pagePos.y()));
+    currentSelection.setSelectionPolygon(selectionPolygon);
+  }
 
   update();
 }
@@ -812,9 +836,8 @@ void Widget::continueSelecting(QPointF mousePos)
 void Widget::stopSelecting(QPointF mousePos)
 {
   int pageNum = selectingOnPage;
-  QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
 
-  currentSelection.appendToSelectionPolygon(pagePos);
+  //continueSelecting(mousePos);
 
   if (!currentDocument.pages[pageNum].getStrokes(currentSelection.selectionPolygon()).isEmpty())
   {
@@ -845,8 +868,8 @@ void Widget::letGoSelection()
 QPointF Widget::pagePosToGrid(QPointF pagePos)
 {
   QPointF pagePosOnGrid;
-  pagePosOnGrid.setX(round(pagePos.x() / gridWidth) * gridWidth);
-  pagePosOnGrid.setY(round(pagePos.y() / gridWidth) * gridWidth);
+  pagePosOnGrid.setX(round(pagePos.x() / (gridWidth / 2.0)) * (gridWidth / 2.0));
+  pagePosOnGrid.setY(round(pagePos.y() / (gridWidth / 2.0)) * (gridWidth / 2.0));
   return pagePosOnGrid;
 }
 
@@ -1856,7 +1879,7 @@ void Widget::scrollDocumentToPageNum(int pageNum)
 
 void Widget::setCurrentTool(tool toolID)
 {
-  if (currentState == state::IDLE || currentState == state::SELECTED)
+  if (currentState == state::IDLE || currentState == state::SELECTED || currentState == state::SELECTING)
   {
     if (toolID == tool::SELECT && currentState == state::SELECTED)
     {
