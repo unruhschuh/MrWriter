@@ -333,6 +333,7 @@ void MainWindow::createActions()
 
   strokeEraserAct = new QAction(QIcon(":/images/strokeEraserIcon.png"), tr("Stroke Eraser"), this);
   strokeEraserAct->setStatusTip(tr("Stroke Eraser Tool"));
+  strokeEraserAct->setShortcut(QKeySequence(Qt::Modifier::SHIFT + Qt::Key_5));
   strokeEraserAct->setCheckable(true);
   connect(strokeEraserAct, SIGNAL(triggered()), this, SLOT(strokeEraser()));
 
@@ -352,7 +353,7 @@ void MainWindow::createActions()
 
   handAct = new QAction(QIcon(":/images/handIcon.png"), tr("Hand"), this);
   handAct->setStatusTip(tr("Hand Tool"));
-  handAct->setShortcut(QKeySequence(Qt::Key_6));
+  handAct->setShortcut(QKeySequence(Qt::Key_7));
   handAct->setCheckable(true);
   connect(handAct, SIGNAL(triggered()), this, SLOT(hand()));
   this->addAction(handAct); // add to make shortcut work if menubar is hidden
