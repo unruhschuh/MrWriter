@@ -1272,6 +1272,8 @@ void MainWindow::verticalScrolling()
   QString statusMsg = QString("%1 / %2").arg(QString::number(pageNum + 1), QString::number(Npages));
 
   pageStatus.setText(statusMsg);
+
+  mainWidget->pageVisible(0);
 }
 
 void MainWindow::showEvent(QShowEvent *event)

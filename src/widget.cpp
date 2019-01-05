@@ -87,6 +87,33 @@ Widget::Widget(QWidget *parent) : QWidget(parent)
   updateDirtyTimer->setInterval(15);
 }
 
+int Widget::firstVisiblePage() const
+{
+  int firstVisiblePageNum = getPageFromMousePos(this->mapFromGlobal(scrollArea->mapToGlobal(QPoint(0, 0))));
+  return firstVisiblePageNum;
+}
+
+int Widget::lastVisiblePage() const
+{
+  int lastVisiblePageNum = getPageFromMousePos(this->mapFromGlobal(scrollArea->mapToGlobal(QPoint(0, static_cast<int>(scrollArea->height())))));
+  return lastVisiblePageNum;
+}
+
+bool Widget::pageVisible(int buffNum) const
+{
+  int firstVisiblePangeNum = firstVisiblePage();
+  int lastVisiblePangeNum = lastVisiblePage();
+
+  qDebug() << "firstVisiblePageNum: " << firstVisiblePangeNum << ", lastVisiblePageNum" << lastVisiblePangeNum;
+
+  if (buffNum >= firstVisiblePangeNum && buffNum <= lastVisiblePangeNum)
+  {
+    return true;
+  } else {
+    return false;
+  }
+}
+
 void Widget::updateAllPageBuffers()
 {
   QVector<QFuture<void>> future;
@@ -246,7 +273,7 @@ void Widget::drawOnBuffer(bool last)
   currentStroke.paint(painter, m_zoom, last);
 }
 
-QRect Widget::getWidgetGeometry()
+QRect Widget::getWidgetGeometry() const
 {
   int width = 0;
   int height = 0;
@@ -311,7 +338,10 @@ void Widget::paintEvent(QPaintEvent *event)
       currentSelection.paint(painter, m_zoom);
     }
 
-    painter.translate(QPointF(0.0, rectSource.height()/devicePixelRatio() + PAGE_GAP));
+    MrDoc::Page const &page = currentDocument.pages.at(i);
+    int pixelHeight = page.pixelHeight(m_zoom, devicePixelRatio());
+    painter.translate(QPointF(0.0, pixelHeight + PAGE_GAP * devicePixelRatio()));
+    //painter.translate(QPointF(0.0, rectSource.height()/devicePixelRatio() + PAGE_GAP * devicePixelRatio()));
   }
 }
 
@@ -1568,7 +1598,7 @@ void Widget::stopResizingSelection(QPointF mousePos)
   setCurrentState(state::SELECTED);
 }
 
-int Widget::getPageFromMousePos(QPointF mousePos)
+int Widget::getPageFromMousePos(QPointF mousePos) const
 {
   qreal y = mousePos.y(); // - currentCOSPos.y();
   int pageNum = 0;
@@ -1585,7 +1615,7 @@ int Widget::getPageFromMousePos(QPointF mousePos)
   return pageNum;
 }
 
-int Widget::getCurrentPage()
+int Widget::getCurrentPage() const
 {
   QPoint globalMousePos = parentWidget()->mapToGlobal(QPoint(0, 0)) + QPoint(parentWidget()->size().width() / 2, parentWidget()->size().height() / 2);
   QPoint pos = this->mapFromGlobal(globalMousePos);
@@ -1595,7 +1625,7 @@ int Widget::getCurrentPage()
   //    return getPageFromMousePos(QPointF(0.0, 2.0));
 }
 
-QPointF Widget::getPagePosFromMousePos(QPointF mousePos, int pageNum)
+QPointF Widget::getPagePosFromMousePos(QPointF mousePos, int pageNum) const
 {
   qreal x = mousePos.x();
   qreal y = mousePos.y();
@@ -1612,7 +1642,7 @@ QPointF Widget::getPagePosFromMousePos(QPointF mousePos, int pageNum)
   return pagePos;
 }
 
-QPointF Widget::getAbsolutePagePosFromMousePos(QPointF mousePos)
+QPointF Widget::getAbsolutePagePosFromMousePos(QPointF mousePos) const
 {
   int pageNum = getPageFromMousePos(mousePos);
   QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);

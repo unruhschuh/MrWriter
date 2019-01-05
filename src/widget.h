@@ -92,6 +92,9 @@ public:
   void mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::MouseButtons buttons, Qt::KeyboardModifiers keyboardModifiers,
                            QTabletEvent::PointerType pointerType, QEvent::Type eventType, qreal pressure, bool tabletEvent);
 
+  bool pageVisible(int buffNum) const;
+  int firstVisiblePage() const;
+  int lastVisiblePage() const;
   /**
    * @brief updateAllPageBuffers
    * @todo use std::unique_lock
@@ -102,11 +105,11 @@ public:
   void updateBufferRegion(int buffNum, QRectF const &clipRect);
   void drawGrid(QPainter &painter, int buffNum);
   void drawOnBuffer(bool last = false);
-  int getPageFromMousePos(QPointF mousePos);
-  QPointF getPagePosFromMousePos(QPointF mousePos, int pageNum);
-  QPointF getAbsolutePagePosFromMousePos(QPointF mousePos);
-  QRect getWidgetGeometry();
-  int getCurrentPage();
+  int getPageFromMousePos(QPointF mousePos) const;
+  QPointF getPagePosFromMousePos(QPointF mousePos, int pageNum) const;
+  QPointF getAbsolutePagePosFromMousePos(QPointF mousePos) const;
+  QRect getWidgetGeometry() const;
+  int getCurrentPage() const;
 
   void setCurrentState(state newState);
   state getCurrentState();
