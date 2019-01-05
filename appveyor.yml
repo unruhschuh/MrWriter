@@ -15,7 +15,7 @@ build_script:
   - mingw32-make install
   - cd ..
   - cd ..
-  - qmake "INCLUDEPATH+=\"C:/Program Files (x86)/zlib/include\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/bin\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/lib\"" MrWriter.pro
+  - qmake "INCLUDEPATH+=\"C:/Program Files (x86)/zlib/include\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/bin\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/lib\"" CONFIG+=release MrWriter.pro
   - mingw32-make
   - md MrWriter
   - copy release\MrWriter.exe MrWriter\
