@@ -99,7 +99,7 @@ public:
    * @brief updateAllPageBuffers
    * @todo use std::unique_lock
    */
-  void updateAllPageBuffers();
+  void updateAllPageBuffers(bool force = false);
   void updateImageBuffer(int buffNum);
   void updateBuffer(int i);
   void updateBufferRegion(int buffNum, QRectF const &clipRect);
@@ -164,6 +164,8 @@ public:
   qreal m_zoom;
 
 private:
+  void showEvent(QShowEvent* event) override;
+
   QTime timer;
 
   QTimer *updateTimer;

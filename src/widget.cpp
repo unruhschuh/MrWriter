@@ -88,6 +88,11 @@ Widget::Widget(QWidget *parent) : QWidget(parent)
 //  updateAllPageBuffers();
 }
 
+void Widget::showEvent( QShowEvent* event ) {
+    QWidget::showEvent( event );
+  updateAllPageBuffers();
+}
+
 int Widget::firstVisiblePage() const
 {
   int firstVisiblePageNum = getPageFromMousePos(this->mapFromGlobal(scrollArea->mapToGlobal(QPoint(0, 0))));
@@ -115,7 +120,7 @@ bool Widget::pageVisible(int buffNum) const
   }
 }
 
-void Widget::updateAllPageBuffers()
+void Widget::updateAllPageBuffers(bool force)
 {
   if (pageBuffer.empty())
   {
@@ -128,7 +133,9 @@ void Widget::updateAllPageBuffers()
   {
     if (pageVisible(pageNum))
     {
-      if (pageBuffer.at(pageNum).isNull())
+      if ( force ||
+           ( pageBuffer.at(pageNum).width() != currentDocument.pages.at(pageNum).pixelWidth(m_zoom, devicePixelRatio()) ||
+             pageBuffer.at(pageNum).height() != currentDocument.pages.at(pageNum).pixelHeight(m_zoom, devicePixelRatio()) ) )
       {
         updateBuffer(pageNum);
       }
@@ -235,8 +242,8 @@ void Widget::updateAllDirtyBuffers()
 void Widget::drawGrid(QPainter &painter, int buffNum)
 {
   MrDoc::Page const &page = currentDocument.pages.at(buffNum);
-  int pixelWidth = static_cast<int>(m_zoom * page.width() * devicePixelRatio());
-  int pixelHeight = static_cast<int>(m_zoom * page.height() * devicePixelRatio());
+  int pixelWidth = page.pixelWidth(m_zoom, devicePixelRatio());
+  int pixelHeight = page.pixelHeight(m_zoom, devicePixelRatio());
 
   int gridPixelWidth = static_cast<int>(m_zoom * gridWidth * devicePixelRatio());
 
@@ -307,7 +314,8 @@ void Widget::paintEvent(QPaintEvent *event)
     QTransform trans;
     for (int i = 0; i < drawingOnPage; ++i)
     {
-      trans = trans.translate(0, -(pageBuffer.at(i).height() + PAGE_GAP*devicePixelRatio()));
+      //trans = trans.translate(0, -(pageBuffer.at(i).height() + PAGE_GAP*devicePixelRatio()));
+      trans = trans.translate(0, -(currentDocument.pages.at(i).pixelHeight(m_zoom, devicePixelRatio()) + PAGE_GAP*devicePixelRatio()));
     }
     trans = trans.scale(devicePixelRatio(),devicePixelRatio());
     rectSource = trans.mapRect(event->rect());
@@ -1607,9 +1615,11 @@ int Widget::getPageFromMousePos(QPointF mousePos) const
 {
   qreal y = mousePos.y(); // - currentCOSPos.y();
   int pageNum = 0;
-  while (y > (floor(currentDocument.pages[pageNum].height() * m_zoom)) + PAGE_GAP)
+  // while (y > (floor(currentDocument.pages[pageNum].height() * m_zoom)) + PAGE_GAP)
+  while (y > (floor(currentDocument.pages[pageNum].pixelHeight(m_zoom, devicePixelRatio()))) + PAGE_GAP)
   {
-    y -= (floor(currentDocument.pages[pageNum].height() * m_zoom)) + PAGE_GAP;
+    // y -= (floor(currentDocument.pages[pageNum].height() * m_zoom)) + PAGE_GAP;
+    y -= (floor(currentDocument.pages[pageNum].pixelHeight(m_zoom, devicePixelRatio()))) + PAGE_GAP;
     pageNum += 1;
     if (pageNum >= currentDocument.pages.size())
     {
@@ -1638,7 +1648,8 @@ QPointF Widget::getPagePosFromMousePos(QPointF mousePos, int pageNum) const
   {
     //        y -= (currentDocument.pages[i].height() * zoom + PAGE_GAP); // THIS DOESN'T WORK PROPERLY (should be floor(...height(), or just use
     //        pageBuffer[i].height()/devicePixelRatio())
-    y -= (pageBuffer[i].height()/devicePixelRatio() + PAGE_GAP);
+    // y -= (pageBuffer[i].height()/devicePixelRatio() + PAGE_GAP);
+    y -= (currentDocument.pages[pageNum].pixelHeight(m_zoom, devicePixelRatio()) + PAGE_GAP);
   }
   //    y -= (pageNum) * (currentDocument.pages[0].height() * zoom + PAGE_GAP);
 
@@ -1655,7 +1666,8 @@ QPointF Widget::getAbsolutePagePosFromMousePos(QPointF mousePos) const
   qreal y = 0.0;
   for (int i = 0; i < pageNum; ++i)
   {
-    y += (pageBuffer[i].height()/devicePixelRatio() + PAGE_GAP);
+    //y += (pageBuffer[i].height()/devicePixelRatio() + PAGE_GAP);
+    y += (currentDocument.pages[pageNum].pixelHeight(m_zoom, devicePixelRatio()) + PAGE_GAP);
   }
   y *= m_zoom;
 
@@ -1778,7 +1790,7 @@ void Widget::zoomFitHeight()
 void Widget::toggleGrid()
 {
   showGrid = !showGrid;
-  updateAllPageBuffers();
+  updateAllPageBuffers(true);
   update();
 }
 
