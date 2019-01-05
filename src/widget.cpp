@@ -73,7 +73,6 @@ Widget::Widget(QWidget *parent) : QWidget(parent)
 
   currentCOSPos.setX(0.0);
   currentCOSPos.setY(0.0);
-  updateAllPageBuffers();
   setGeometry(getWidgetGeometry());
 
   parent->updateGeometry();
@@ -85,6 +84,8 @@ Widget::Widget(QWidget *parent) : QWidget(parent)
   updateDirtyTimer = new QTimer(this);
   connect(updateDirtyTimer, SIGNAL(timeout()), this, SLOT(updateAllDirtyBuffers()));
   updateDirtyTimer->setInterval(15);
+
+//  updateAllPageBuffers();
 }
 
 int Widget::firstVisiblePage() const
@@ -116,29 +117,25 @@ bool Widget::pageVisible(int buffNum) const
 
 void Widget::updateAllPageBuffers()
 {
-  QVector<QFuture<void>> future;
-  pageImageBuffer.clear();
-  for (int buffNum = 0; buffNum < currentDocument.pages.size(); ++buffNum)
+  if (pageBuffer.empty())
   {
-    pageImageBuffer.append(QImage());
+    for (int pageNum = 0; pageNum < currentDocument.pages.size(); ++pageNum)
+    {
+      pageBuffer.append(QPixmap(0,0));
+    }
   }
-
-  for (int buffNum = 0; buffNum < currentDocument.pages.size(); ++buffNum)
+  for (int pageNum = 0; pageNum < currentDocument.pages.size(); ++pageNum)
   {
-    future.append(QtConcurrent::run(this, &Widget::updateImageBuffer, buffNum));
+    if (pageVisible(pageNum))
+    {
+      if (pageBuffer.at(pageNum).isNull())
+      {
+        updateBuffer(pageNum);
+      }
+    } else {
+      pageBuffer.replace(pageNum, QPixmap(0,0));
+    }
   }
-  pageBuffer.clear();
-  for (int buffNum = 0; buffNum < currentDocument.pages.size(); ++buffNum)
-  {
-    future[buffNum].waitForFinished();
-    pageBuffer.append(QPixmap::fromImage(pageImageBuffer.at(buffNum)));
-
-    // safe some memory
-    pageImageBufferMutex.lock();
-    pageImageBuffer[buffNum] = QImage();
-    pageImageBufferMutex.unlock();
-  }
-  pageImageBuffer.clear();
 }
 
 /**
@@ -279,9 +276,17 @@ QRect Widget::getWidgetGeometry() const
   int height = 0;
   for (int i = 0; i < pageBuffer.size(); ++i)
   {
+    height += currentDocument.pages.at(i).pixelHeight(m_zoom, devicePixelRatio()) + PAGE_GAP;
+    if (currentDocument.pages.at(i).pixelWidth(m_zoom, devicePixelRatio()) > width)
+    {
+      width = currentDocument.pages.at(i).pixelWidth(m_zoom, devicePixelRatio());
+    }
+
+    /*
     height += pageBuffer[i].height()/devicePixelRatio() + PAGE_GAP;
     if (pageBuffer[i].width()/devicePixelRatio() > width)
       width = pageBuffer[i].width()/devicePixelRatio();
+      */
   }
   height -= PAGE_GAP;
   return QRect(0, 0, width, height);
@@ -1746,6 +1751,7 @@ void Widget::zoomTo(qreal newZoom)
   scrollArea->horizontalScrollBar()->setValue(newH);
   scrollArea->verticalScrollBar()->setValue(newV);
 
+  updateAllPageBuffers();
   update();
 }
 

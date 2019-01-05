@@ -1274,6 +1274,8 @@ void MainWindow::verticalScrolling()
   pageStatus.setText(statusMsg);
 
   mainWidget->pageVisible(0);
+  mainWidget->updateAllPageBuffers();
+  mainWidget->update();
 }
 
 void MainWindow::showEvent(QShowEvent *event)
