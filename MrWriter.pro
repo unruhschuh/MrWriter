@@ -44,7 +44,8 @@ SOURCES += \
     src/tabletapplication.cpp \
     src/pagesettingsdialog.cpp \
     src/colorbutton.cpp \
-    src/stroke.cpp
+    src/stroke.cpp \
+    src/tools.cpp
 
 HEADERS  += \
     src/pagesettingsdialog.h \
@@ -60,7 +61,8 @@ HEADERS  += \
     src/commands.h \
     src/tictoc.h \
     src/tabletapplication.h \
-    src/version.h
+    src/version.h \
+    src/tools.h
 
 FORMS    +=
 

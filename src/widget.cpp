@@ -110,8 +110,6 @@ bool Widget::pageVisible(int buffNum) const
   int firstVisiblePangeNum = firstVisiblePage();
   int lastVisiblePangeNum = lastVisiblePage();
 
-  qDebug() << "firstVisiblePageNum: " << firstVisiblePangeNum << ", lastVisiblePageNum" << lastVisiblePangeNum;
-
   if (buffNum >= firstVisiblePangeNum && buffNum <= lastVisiblePangeNum)
   {
     return true;
@@ -283,10 +281,10 @@ QRect Widget::getWidgetGeometry() const
   int height = 0;
   for (int i = 0; i < pageBuffer.size(); ++i)
   {
-    height += currentDocument.pages.at(i).pixelHeight(m_zoom, devicePixelRatio()) + PAGE_GAP;
-    if (currentDocument.pages.at(i).pixelWidth(m_zoom, devicePixelRatio()) > width)
+    height += currentDocument.pages.at(i).pixelHeight(m_zoom, 1 /*devicePixelRatio()*/) + PAGE_GAP;
+    if (currentDocument.pages.at(i).pixelWidth(m_zoom, 1 /*devicePixelRatio()*/) > width)
     {
-      width = currentDocument.pages.at(i).pixelWidth(m_zoom, devicePixelRatio());
+      width = currentDocument.pages.at(i).pixelWidth(m_zoom, 1); //devicePixelRatio());
     }
 
     /*
@@ -867,9 +865,9 @@ void Widget::continueSelecting(QPointF mousePos)
   } else if (currentTool == Widget::tool::RECT_SELECT) {
     QPolygonF selectionPolygon;
     selectionPolygon.append(QPointF(firstPagePos.x(), firstPagePos.y()));
-    selectionPolygon.append(QPointF(pagePos.x(), firstPagePos.y()));
-    selectionPolygon.append(QPointF(pagePos.x(), pagePos.y()));
     selectionPolygon.append(QPointF(firstPagePos.x(), pagePos.y()));
+    selectionPolygon.append(QPointF(pagePos.x(), pagePos.y()));
+    selectionPolygon.append(QPointF(pagePos.x(), firstPagePos.y()));
     currentSelection.setSelectionPolygon(selectionPolygon);
   }
 

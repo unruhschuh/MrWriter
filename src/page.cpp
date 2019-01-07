@@ -1,5 +1,6 @@
 #include "page.h"
 #include "mrdoc.h"
+#include "tools.h"
 #include <QDebug>
 
 namespace MrDoc
@@ -136,12 +137,27 @@ QVector<QPair<Stroke, int>> Page::getStrokes(QPolygonF selectionPolygon)
   for (int i = m_strokes.size() - 1; i >= 0; --i)
   {
     const MrDoc::Stroke &stroke = m_strokes.at(i);
-    bool containsStroke = true;
-    for (int j = 0; j < stroke.points.size(); ++j)
+    bool containsStroke = false;
+    if (MrWriter::polygonIsClockwise(selectionPolygon))
     {
-      if (!selectionPolygon.containsPoint(stroke.points.at(j), Qt::OddEvenFill))
+      containsStroke = true;
+      for (int j = 0; j < stroke.points.size(); ++j)
       {
-        containsStroke = false;
+        if (!selectionPolygon.containsPoint(stroke.points.at(j), Qt::OddEvenFill))
+        {
+          containsStroke = false;
+        }
+      }
+    }
+    else
+    {
+      containsStroke = false;
+      for (int j = 0; j < stroke.points.size(); ++j)
+      {
+        if (selectionPolygon.containsPoint(stroke.points.at(j), Qt::OddEvenFill))
+        {
+          containsStroke = true;
+        }
       }
     }
     if (containsStroke)

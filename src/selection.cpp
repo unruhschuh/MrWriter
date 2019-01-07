@@ -1,5 +1,7 @@
 #include "selection.h"
 
+#include "tools.h"
+
 #include <iostream>
 #include <QDebug>
 #include <QtMath>
