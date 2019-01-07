@@ -146,7 +146,12 @@ QVector<QPair<Stroke, int>> Page::getStrokes(QPolygonF selectionPolygon)
         if (!selectionPolygon.containsPoint(stroke.points.at(j), Qt::OddEvenFill))
         {
           containsStroke = false;
+          break;
         }
+      }
+      if (MrWriter::polygonLinesIntersect(stroke.points, selectionPolygon))
+      {
+        containsStroke = false;
       }
     }
     else
@@ -157,7 +162,12 @@ QVector<QPair<Stroke, int>> Page::getStrokes(QPolygonF selectionPolygon)
         if (selectionPolygon.containsPoint(stroke.points.at(j), Qt::OddEvenFill))
         {
           containsStroke = true;
+          break;
         }
+      }
+      if (MrWriter::polygonLinesIntersect(stroke.points, selectionPolygon))
+      {
+        containsStroke = true;
       }
     }
     if (containsStroke)

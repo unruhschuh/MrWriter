@@ -1,6 +1,7 @@
 
 #include "tools.h"
 #include <QDebug>
+#include <QLineF>
 
 /*
  * The coordinate systeom:
@@ -47,7 +48,7 @@ double MrWriter::polygonSignedArea(const QPolygonF &polygon)
 bool MrWriter::polygonIsClockwise(const QPolygonF &polygon)
 {
   double area = polygonSignedArea(polygon);
-  qDebug() << area;
+
   if (area > 0.0)
   {
     return true;
@@ -56,4 +57,26 @@ bool MrWriter::polygonIsClockwise(const QPolygonF &polygon)
   {
     return false;
   }
+}
+
+
+bool MrWriter::polygonLinesIntersect(const QPolygonF &polygonA, const QPolygonF &polygonB)
+{
+  QLineF lineA;
+  QLineF lineB;
+  for (int i = 0; i < polygonA.length() - 1; i++)
+  {
+    lineA.setP1(polygonA.at(i));
+    lineA.setP2(polygonA.at(i+1));
+    for (int j = 0; j < polygonB.length() - 1; j++)
+    {
+      lineB.setP1(polygonB.at(j));
+      lineB.setP2(polygonB.at(j+1));
+      if (lineA.intersect(lineB, nullptr) == QLineF::BoundedIntersection)
+      {
+        return true;
+      }
+    }
+  }
+  return false;
 }

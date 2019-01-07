@@ -880,6 +880,17 @@ void Widget::stopSelecting(QPointF mousePos)
 
   //continueSelecting(mousePos);
 
+  if (currentSelection.selectionPolygon().length() < 10)
+  {
+    double s = 10.0;
+    QPolygonF selectionPolygon;
+    selectionPolygon.append(getPagePosFromMousePos(mousePos + QPointF(-s, -s), pageNum));
+    selectionPolygon.append(getPagePosFromMousePos(mousePos + QPointF( s, -s), pageNum));
+    selectionPolygon.append(getPagePosFromMousePos(mousePos + QPointF( s,  s), pageNum));
+    selectionPolygon.append(getPagePosFromMousePos(mousePos + QPointF(-s,  s), pageNum));
+    currentSelection.setSelectionPolygon(selectionPolygon);
+  }
+
   if (!currentDocument.pages[pageNum].getStrokes(currentSelection.selectionPolygon()).isEmpty())
   {
     CreateSelectionCommand *createSelectionCommand = new CreateSelectionCommand(this, pageNum, currentSelection);
