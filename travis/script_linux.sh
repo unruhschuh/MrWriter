@@ -16,7 +16,7 @@ export VERSION=$(git rev-parse --short HEAD) # linuxdeployqt uses this for namin
 ./linuxdeployqt-continuous-x86_64.AppImage appdir/usr/share/applications/*.desktop -appimage
 
 find appdir -executable -type f -exec ldd {} \; | grep " => /usr" | cut -d " " -f 2-3 | sort | uniq
-curl --upload-file MrWriter*.AppImage https://transfer.sh/MrWriter-git.$(git rev-parse --short HEAD)-x86_64.AppImage && echo ""
+echo `curl --upload-file MrWriter*.AppImage https://transfer.sh/MrWriter-git.$(git rev-parse --short HEAD)-x86_64.AppImage`
 # wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
 # bash upload.sh MrWriter*.AppImage*
 
