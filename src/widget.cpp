@@ -880,7 +880,7 @@ void Widget::stopSelecting(QPointF mousePos)
 
   //continueSelecting(mousePos);
 
-  if (currentSelection.selectionPolygon().length() < 10)
+  if (currentSelection.selectionPolygon().length() < 10 && currentTool == Widget::tool::SELECT)
   {
     double s = 10.0;
     QPolygonF selectionPolygon;
