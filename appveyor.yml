@@ -23,4 +23,4 @@ build_script:
   - copy "C:\Program Files (x86)\zlib\bin\libzlib.dll" MrWriter
   - copy "%QTDIR%\bin\libwinpthread-1.dll" MrWriter
   - 7z a MrWriter.zip MrWriter
-  - curl --upload-file MrWriter.zip https://transfer.sh/MrWriter.zip
+  - echo `curl --upload-file MrWriter.zip https://transfer.sh/MrWriter.zip`
