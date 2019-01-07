@@ -17,3 +17,9 @@ https://tooomm.github.io/github-release-stats/?username=unruhschuh&repository=Mr
 ** `qmake`
 ** `make`
 * Alternatively: open `MrWriter.pro` in QtCreator, configure, build and run
+
+== The latest and greatest
+For testing purposes you may download the latests build by clicking on one of the "build passing" buttons.
+There you'll find the build logs.
+At the bottom there is a url of the form `https://transfer.sh/342Xasf/XXX.Y` where `Y` is either zip/dmg/AppImage depending on the platforms Windows / Mac / Linux.
+Copy that and paste it into your browser's url field or use `wget` in the command line.

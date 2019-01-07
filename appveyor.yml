@@ -24,3 +24,4 @@ build_script:
   - copy "%QTDIR%\bin\libwinpthread-1.dll" MrWriter
   - 7z a MrWriter.zip MrWriter
   - curl --silent --upload-file MrWriter.zip https://transfer.sh/MrWriter.zip
+  - echo
