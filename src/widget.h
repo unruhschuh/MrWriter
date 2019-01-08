@@ -163,6 +163,8 @@ public:
 
   qreal m_zoom;
 
+  QString m_statusText;
+
 private:
   void showEvent(QShowEvent* event) override;
 

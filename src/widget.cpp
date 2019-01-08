@@ -2,6 +2,7 @@
 #include "mrdoc.h"
 #include "commands.h"
 #include "tabletapplication.h"
+#include "tools.h"
 
 #include <QMouseEvent>
 #include <QFileDialog>
@@ -872,6 +873,16 @@ void Widget::continueSelecting(QPointF mousePos)
   }
 
   update();
+
+  if (MrWriter::polygonIsClockwise(currentSelection.selectionPolygon()))
+  {
+    m_statusText = "selecting all intersecting strokes";
+  }
+  else
+  {
+    m_statusText = "selecting all contained strokes";
+  }
+  updateGUI();
 }
 
 void Widget::stopSelecting(QPointF mousePos)
@@ -880,7 +891,7 @@ void Widget::stopSelecting(QPointF mousePos)
 
   //continueSelecting(mousePos);
 
-  if (currentSelection.selectionPolygon().length() < 10 && currentTool == Widget::tool::SELECT)
+  if (currentSelection.selectionPolygon().length() < 3) // && currentTool == Widget::tool::SELECT)
   {
     double s = 10.0;
     QPolygonF selectionPolygon;
@@ -903,6 +914,8 @@ void Widget::stopSelecting(QPointF mousePos)
   {
     setCurrentState(state::IDLE);
   }
+  m_statusText.clear();
+  updateGUI();
 }
 
 void Widget::letGoSelection()
@@ -1476,6 +1489,8 @@ void Widget::continueRotatingSelection(QPointF mousePos)
     m_currentAngle = floor(m_currentAngle / 5.0) * 5.0;
   }
   currentSelection.setAngle(m_currentAngle);
+  m_statusText = QString("%1°").arg(m_currentAngle > 180.0 ? 360.0 - m_currentAngle : - m_currentAngle);
+  updateGUI();
 }
 
 void Widget::stopRotatingSelection(QPointF mousePos)
@@ -1496,6 +1511,8 @@ void Widget::stopRotatingSelection(QPointF mousePos)
   currentSelection.finalize();
   currentSelection.updateBuffer(m_zoom);
   setCurrentState(state::SELECTED);
+  m_statusText = "";
+  updateGUI();
 }
 
 void Widget::startResizingSelection(QPointF mousePos, MrDoc::Selection::GrabZone grabZone)

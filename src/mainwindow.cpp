@@ -68,11 +68,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
   sep1->setFixedWidth(10);
   QWidget *sep2 = new QWidget();
   sep2->setFixedWidth(10);
+  QWidget *sep3 = new QWidget();
+  sep3->setFixedWidth(10);
 
-  statusBar()->addPermanentWidget(&colorStatus);
+  statusBar()->addPermanentWidget(&statusStatus);
   statusBar()->addPermanentWidget(sep1);
-  statusBar()->addPermanentWidget(&penWidthStatus);
+  statusBar()->addPermanentWidget(&colorStatus);
   statusBar()->addPermanentWidget(sep2);
+  statusBar()->addPermanentWidget(&penWidthStatus);
+  statusBar()->addPermanentWidget(sep3);
   statusBar()->addPermanentWidget(&pageStatus);
 
   createActions();
@@ -1407,6 +1411,8 @@ void MainWindow::updateGUI()
   colorStatus.setPixmap(pixmap);
 
   penWidthStatus.setText(QString::number(mainWidget->currentPenWidth));
+
+  statusStatus.setText(mainWidget->m_statusText);
 
   verticalScrolling();
   setTitle();

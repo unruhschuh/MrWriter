@@ -140,22 +140,6 @@ QVector<QPair<Stroke, int>> Page::getStrokes(QPolygonF selectionPolygon)
     bool containsStroke = false;
     if (MrWriter::polygonIsClockwise(selectionPolygon))
     {
-      containsStroke = true;
-      for (int j = 0; j < stroke.points.size(); ++j)
-      {
-        if (!selectionPolygon.containsPoint(stroke.points.at(j), Qt::OddEvenFill))
-        {
-          containsStroke = false;
-          break;
-        }
-      }
-      if (MrWriter::polygonLinesIntersect(stroke.points, selectionPolygon))
-      {
-        containsStroke = false;
-      }
-    }
-    else
-    {
       containsStroke = false;
       for (int j = 0; j < stroke.points.size(); ++j)
       {
@@ -168,6 +152,22 @@ QVector<QPair<Stroke, int>> Page::getStrokes(QPolygonF selectionPolygon)
       if (MrWriter::polygonLinesIntersect(stroke.points, selectionPolygon))
       {
         containsStroke = true;
+      }
+    }
+    else
+    {
+      containsStroke = true;
+      for (int j = 0; j < stroke.points.size(); ++j)
+      {
+        if (!selectionPolygon.containsPoint(stroke.points.at(j), Qt::OddEvenFill))
+        {
+          containsStroke = false;
+          break;
+        }
+      }
+      if (MrWriter::polygonLinesIntersect(stroke.points, selectionPolygon))
+      {
+        containsStroke = false;
       }
     }
     if (containsStroke)

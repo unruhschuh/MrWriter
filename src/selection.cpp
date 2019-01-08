@@ -186,13 +186,20 @@ void Selection::paint(QPainter &painter, qreal zoom, QRectF region __attribute__
 
   QPen pen;
   pen.setStyle(Qt::DashLine);
-  //  pen.setStyle(Qt::SolidLine);
   pen.setWidth(2);
   pen.setCapStyle(Qt::RoundCap);
-  //  pen.setColor(QColor(0, 180, 0, 255));
-  painter.setBrush(QBrush(QColor(127, 127, 127, 50), Qt::SolidPattern));
-  //  painter.setBrush(QBrush(QColor(255, 165, 0, 50), Qt::SolidPattern));
-  //  painter.setBrush(QBrush(QColor(0, 255, 0, 50), Qt::SolidPattern));
+  if (MrWriter::polygonIsClockwise(selectionPolygon()) && !m_finalized)
+  {
+    painter.setBrush(QBrush(QColor(255, 127, 127, 50), Qt::SolidPattern));
+  }
+  else if (!m_finalized)
+  {
+    painter.setBrush(QBrush(QColor(127, 255, 127, 50), Qt::SolidPattern));
+  }
+  else
+  {
+    painter.setBrush(QBrush(QColor(127, 127, 127, 50), Qt::SolidPattern));
+  }
   painter.setPen(pen);
   if (!m_finalized)
   {
@@ -200,7 +207,6 @@ void Selection::paint(QPainter &painter, qreal zoom, QRectF region __attribute__
   }
   else
   {
-
     // draw GrabZones for resizing
     pen.setColor(QColor(127, 127, 127, 255));
     //    pen.setColor(QColor(255,255,255,255));

@@ -107,6 +107,7 @@ private:
 
   QString askForFileName();
 
+  QLabel statusStatus;
   QLabel pageStatus;
   QLabel penWidthStatus;
   QLabel colorStatus;

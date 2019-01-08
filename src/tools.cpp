@@ -32,7 +32,7 @@ double MrWriter::polygonSignedArea(const QPolygonF &polygon)
     y0 = polygon.at(i).y();
     x1 = polygon.at(i+1).x();
     y1 = polygon.at(i+1).y();
-    area += x1 * y0 - x0 * y1;
+    area += x0 * y1 - x1 * y0;
   }
 
   x0 = polygon.last().x();
@@ -40,7 +40,7 @@ double MrWriter::polygonSignedArea(const QPolygonF &polygon)
   x1 = polygon.first().x();
   y1 = polygon.first().y();
 
-  area += x1 * y0 - x0 * y1;
+  area += x0 * y1 - x1 * y0;
 
   return area;
 }
