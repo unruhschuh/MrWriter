@@ -114,7 +114,7 @@ for archive in archives:
     sys.stdout.write("\033[K")
     print("Downloading {}...".format(archive), end="\r")
 #    os.system("wget -q -O package.7z " + url)
-    os.system("curl -fsS -o package.7z " + url)
+    os.system("curl -fS -o package.7z " + url)
 
     sys.stdout.write("\033[K")
     print("Extracting {}...".format(archive), end="\r")
