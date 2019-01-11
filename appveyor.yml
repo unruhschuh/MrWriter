@@ -1,5 +1,7 @@
 install:
+  - dir C:\Python37
   - dir C:\Python37\Tools
+  - dir C:\Python37\Tools\scripts
   - appveyor DownloadFile https://git.kaidan.im/lnj/qli-installer/raw/master/qli-installer.py
   - C:\Python37\python.exe qli-installer.py 5.12.0 windows desktop win32_mingw53
   - dir
