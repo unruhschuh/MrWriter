@@ -2,18 +2,21 @@ install:
 #  - c:\Python37\python.exe -m pip install requests
 #  - appveyor DownloadFile https://git.kaidan.im/lnj/qli-installer/raw/master/qli-installer.py
 #  - C:\Python37\python.exe qli-installer.py 5.12.0 windows desktop win64_mingw73
-  - appveyor DownloadFile https://download.qt.io/online/qtsdkrepository/windows_x86/desktop/qt5_5120/qt.qt5.5120.win64_mingw73/5.12.0-0-201812040352qtbase-Windows-Windows_10-Mingw73-Windows-Windows_10-X86_64.7z
-  - appveyor DownloadFile https://download.qt.io/online/qtsdkrepository/windows_x86/desktop/qt5_5120/qt.qt5.5120.win64_mingw73/5.12.0-0-201812040352qttools-Windows-Windows_10-Mingw73-Windows-Windows_10-X86_64.7z
-  - 7z x 5.12.0-0-201812040352qtbase-Windows-Windows_10-Mingw73-Windows-Windows_10-X86_64.7z
-  - 7z x 5.12.0-0-201812040352qttools-Windows-Windows_10-Mingw73-Windows-Windows_10-X86_64.7z
+
+#  - appveyor DownloadFile https://download.qt.io/online/qtsdkrepository/windows_x86/desktop/qt5_5120/qt.qt5.5120.win64_mingw73/5.12.0-0-201812040352qtbase-Windows-Windows_10-Mingw73-Windows-Windows_10-X86_64.7z
+#  - appveyor DownloadFile https://download.qt.io/online/qtsdkrepository/windows_x86/desktop/qt5_5120/qt.qt5.5120.win64_mingw73/5.12.0-0-201812040352qttools-Windows-Windows_10-Mingw73-Windows-Windows_10-X86_64.7z
+#  - 7z x 5.12.0-0-201812040352qtbase-Windows-Windows_10-Mingw73-Windows-Windows_10-X86_64.7z
+#  - 7z x 5.12.0-0-201812040352qttools-Windows-Windows_10-Mingw73-Windows-Windows_10-X86_64.7z
+
 #  - dir
 #  - dir 5.12.0
 #  - dir 5.12.0\mingw73_64
 #  - dir 5.12.0\mingw73_64\bin
   - set QTDIR=%cd%\5.12.0\mingw73_64
 #  - set QTDIR=C:\Qt\5.11\mingw53_32
-  - set PATH=%QTDIR%\bin;C:\mingw-w64\x86_64-7.3.0-posix-seh-rt_v5-rev0\mingw64;%PATH%
-  - dir C:\mingw-w64\x86_64-7.3.0-posix-seh-rt_v5-rev0\mingw64
+  - set PATH=%QTDIR%\bin;C:\mingw-w64\x86_64-7.3.0-posix-seh-rt_v5-rev0\mingw64\bin;%PATH%
+  - dir C:\mingw-w64\x86_64-7.3.0-posix-seh-rt_v5-rev0\mingw64\bin
+  - dir C:\mingw-w64\x86_64-7.3.0-posix-seh-rt_v5-rev0\mingw64\bin\x86_64-w64-mingw32
 #  - set PATH=%QTDIR%\bin;C:\Qt\Tools\mingw530_32\bin;%PATH%
 #  - set PATH=%PATH%;%QTDIR%\bin;C:\MinGW\bin
 build_script:
