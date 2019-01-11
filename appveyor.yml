@@ -12,7 +12,7 @@ install:
 #  - dir
 #  - dir 5.12.0
 #  - dir 5.12.0\mingw73_64
-  - dir 5.12.0\mingw73_64\bin
+#  - dir 5.12.0\mingw73_64\bin
   - set QTDIR=C:\Qt\5.12.0\mingw73_64
 #  - set QTDIR=%cd%\5.12.0\mingw73_64
 #  - set QTDIR=C:\Qt\5.11\mingw53_32
