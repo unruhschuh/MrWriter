@@ -1,6 +1,6 @@
 install:
   - c:\Python37\python.exe -m pip install requests
-  - appveyor DownloadFile https://git.kaidan.im/lnj/qli-installer/raw/master/qli-installer.py
+#  - appveyor DownloadFile https://git.kaidan.im/lnj/qli-installer/raw/master/qli-installer.py
   - C:\Python37\python.exe qli-installer.py 5.12.0 windows desktop win64_mingw73
   - set QTDIR=C:\Qt\5.11\mingw53_32
   - set PATH=%QTDIR%\bin;C:\Qt\Tools\mingw530_32\bin;%PATH%
