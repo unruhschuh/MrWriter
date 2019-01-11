@@ -12,8 +12,8 @@ install:
 #  - dir 5.12.0\mingw73_64\bin
   - set QTDIR=%cd%\5.12.0\mingw73_64
 #  - set QTDIR=C:\Qt\5.11\mingw53_32
-  - set PATH=%QTDIR%\bin;C:\mingw-w64\x86_64-7.3.0-posix-seh-rt_v5-rev0;%PATH%
-  - dir C:\mingw-w64\x86_64-7.3.0-posix-seh-rt_v5-rev0
+  - set PATH=%QTDIR%\bin;C:\mingw-w64\x86_64-7.3.0-posix-seh-rt_v5-rev0\mingw64;%PATH%
+  - dir C:\mingw-w64\x86_64-7.3.0-posix-seh-rt_v5-rev0\mingw64
 #  - set PATH=%QTDIR%\bin;C:\Qt\Tools\mingw530_32\bin;%PATH%
 #  - set PATH=%PATH%;%QTDIR%\bin;C:\MinGW\bin
 build_script:
