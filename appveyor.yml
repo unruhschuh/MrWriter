@@ -34,8 +34,7 @@ build_script:
   - cd ..
   - cd ..
   - dir C:\
-  - dir "C:\Program Files (x86)"
-  - dir "C:\Program Files"
+  - where qmake
   - qmake -spec %QTDIR%\mkspecs\win32-g++ "INCLUDEPATH+=\"C:/Program Files (x86)/zlib/include\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/bin\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/lib\"" CONFIG+=release MrWriter.pro
 # - qmake "INCLUDEPATH+=\"C:/Program Files (x86)/zlib/include\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/bin\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/lib\"" CONFIG+=release MrWriter.pro
   - mingw32-make
