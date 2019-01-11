@@ -111,6 +111,8 @@ print("****************************************")
 for archive in archives:
     url = archives_url + full_version + archive
 
+    sys.stderr.write(url)
+
     sys.stdout.write("\033[K")
     print("Downloading {}...".format(archive), end="\r")
 #    os.system("wget -q -O package.7z " + url)
