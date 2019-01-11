@@ -1,7 +1,4 @@
 install:
-  - dir C:\
-  - dir "C:\Program Files (x86)"
-  - dir "C:\Program Files"
 #  - c:\Python37\python.exe -m pip install requests
 #  - appveyor DownloadFile https://git.kaidan.im/lnj/qli-installer/raw/master/qli-installer.py
 #  - C:\Python37\python.exe qli-installer.py 5.12.0 windows desktop win64_mingw73
@@ -36,6 +33,9 @@ build_script:
   - mingw32-make install
   - cd ..
   - cd ..
+  - dir C:\
+  - dir "C:\Program Files (x86)"
+  - dir "C:\Program Files"
   - qmake -spec %QTDIR%\mkspecs\win32-g++ "INCLUDEPATH+=\"C:/Program Files (x86)/zlib/include\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/bin\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/lib\"" CONFIG+=release MrWriter.pro
 # - qmake "INCLUDEPATH+=\"C:/Program Files (x86)/zlib/include\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/bin\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/lib\"" CONFIG+=release MrWriter.pro
   - mingw32-make
