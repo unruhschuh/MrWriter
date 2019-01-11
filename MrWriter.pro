@@ -72,6 +72,9 @@ RESOURCES += \
 unix {
     LIBS += -lz
 }
+win32 {
+    LIBS += -lzlib
+}
 win64 {
     LIBS += -lzlib
 }
