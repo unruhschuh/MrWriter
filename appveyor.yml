@@ -1,4 +1,8 @@
 install:
+  - wget https://git.kaidan.im/lnj/qli-installer/raw/master/qli-installer.py
+  - python qli-installer.py 5.12.0 windows desktop win32_mingw53
+  - dir
+  - dir 5.12.0
   - set QTDIR=C:\Qt\5.11\mingw53_32
   - set PATH=%QTDIR%\bin;C:\Qt\Tools\mingw530_32\bin;%PATH%
 #  - set PATH=%PATH%;%QTDIR%\bin;C:\MinGW\bin
