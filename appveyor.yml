@@ -11,8 +11,10 @@ install:
   - dir 5.12.0\mingw73_64
   - dir 5.12.0\mingw73_64\bin
   - dir 5.12.0\Tools
-  - set QTDIR=C:\Qt\5.11\mingw53_32
-  - set PATH=%QTDIR%\bin;C:\Qt\Tools\mingw530_32\bin;%PATH%
+  - set QTDIR=%cd%\5.12.0\mingw73_64
+#  - set QTDIR=C:\Qt\5.11\mingw53_32
+  - set PATH=%QTDIR%\bin;%PATH%
+#  - set PATH=%QTDIR%\bin;C:\Qt\Tools\mingw530_32\bin;%PATH%
 #  - set PATH=%PATH%;%QTDIR%\bin;C:\MinGW\bin
 build_script:
   - echo %PATH%
@@ -23,12 +25,15 @@ build_script:
   - md build
   - cd build
   - cmake -G "MinGW Makefiles" .. -DCMAKE_SH="CMAKE_SH-NOTFOUND"
-  - mingw32-make
-  - mingw32-make install
+  - mingw64-make
+  - mingw64-make install
+#  - mingw32-make
+#  - mingw32-make install
   - cd ..
   - cd ..
   - qmake "INCLUDEPATH+=\"C:/Program Files (x86)/zlib/include\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/bin\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/lib\"" CONFIG+=release MrWriter.pro
-  - mingw32-make
+  - mingw64-make
+#  - mingw32-make
   - md MrWriter
   - copy release\MrWriter.exe MrWriter\
   - windeployqt -verbose=3 MrWriter
