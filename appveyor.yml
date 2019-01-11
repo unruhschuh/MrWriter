@@ -35,6 +35,7 @@ build_script:
   - cd ..
   - dir C:\
   - where qmake
+  - qmake -query "QT_INSTALL_PREFIX"
   - qmake -spec %QTDIR%\mkspecs\win32-g++ "INCLUDEPATH+=\"C:/Program Files (x86)/zlib/include\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/bin\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/lib\"" CONFIG+=release MrWriter.pro
 # - qmake "INCLUDEPATH+=\"C:/Program Files (x86)/zlib/include\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/bin\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/lib\"" CONFIG+=release MrWriter.pro
   - mingw32-make
