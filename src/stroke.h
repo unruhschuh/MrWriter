@@ -6,6 +6,8 @@
 #include <QVector>
 #include <QVector2D>
 
+#include "element.h"
+
 #include "mrdoc.h"
 
 namespace MrDoc
@@ -15,14 +17,15 @@ namespace MrDoc
  * @brief The Stroke struct
  * @todo turn this into a class. make sure, points and pressures are of the same length using a setter
  */
-struct Stroke
+struct Stroke : public Element
 {
 public:
   Stroke();
   //    enum class dashPattern { SolidLine, DashLine, DashDotLine, DotLine };
-  void paint(QPainter &painter, qreal zoom, bool last = false);
+  void paint(QPainter &painter, qreal zoom, bool last = false) override;
+  bool containedInPolygon(QPolygonF selectionPolygon) override;
 
-  QRectF boundingRect() const;
+  QRectF boundingRect() const override;
   QRectF boundingRectSansPenWidth() const;
 
   QPolygonF points;

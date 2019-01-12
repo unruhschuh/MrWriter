@@ -2,6 +2,7 @@
 #define PAGE_H
 
 #include "stroke.h"
+#include "element.h"
 
 namespace MrDoc
 {
@@ -10,6 +11,7 @@ class Page
 {
 public:
   Page();
+  virtual ~Page() { }
 
   qreal width() const;
   qreal height() const;
@@ -30,19 +32,19 @@ public:
   bool changeStrokeColor(int strokeNum, QColor color);
   bool changeStrokePattern(int strokeNum, QVector<qreal> pattern);
 
-  const QVector<Stroke> &strokes();
+  const QVector<std::shared_ptr<Element>> & elements();
 
-  QVector<QPair<Stroke, int>> getStrokes(QPolygonF selectionPolygon);
-  QVector<QPair<Stroke, int>> removeStrokes(QPolygonF selectionPolygon);
-  void removeStrokeAt(int i);
-  void removeLastStroke();
+  QVector<QPair<std::shared_ptr<Element>, int> > getElements(QPolygonF selectionPolygon);
+  QVector<QPair<std::shared_ptr<Element>, int> > removeElements(QPolygonF selectionPolygon);
+  void removeElementAt(int i);
+  void removeLastElement();
 
-  void insertStrokes(const QVector<QPair<Stroke, int>> &strokesAndPositions);
-  void insertStroke(int position, const Stroke &stroke);
+  void insertElements(QVector<QPair<std::shared_ptr<Element>, int>> & elementsAndPositions);
+  void insertElement(int position, std::shared_ptr<Element> & element);
 
-  void appendStroke(const Stroke &stroke);
-  void appendStrokes(const QVector<Stroke> &strokes);
-  void prependStroke(const Stroke &stroke);
+  void appendElement(const std::shared_ptr<Element> & element);
+  void appendElements(QVector<std::shared_ptr<Element>> & elements);
+  void prependElement(std::shared_ptr<Element> & element);
 
   //    virtual void paint(QPainter &painter, qreal zoom);
   /**
@@ -56,7 +58,8 @@ public:
   //    QVector<Stroke> strokes;
 
 protected:
-  QVector<Stroke> m_strokes;
+//  QVector<Stroke> m_strokes;
+  QVector<std::shared_ptr<Element>> m_elements;
 
 private:
   QColor m_backgroundColor;

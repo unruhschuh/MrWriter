@@ -3,6 +3,8 @@
 #include "tools.h"
 #include <QDebug>
 
+#include <memory>
+
 namespace MrDoc
 {
 
@@ -54,11 +56,11 @@ void Page::setWidth(qreal width)
 
 void Page::paint(QPainter &painter, qreal zoom, QRectF region)
 {
-  for (Stroke &stroke : m_strokes)
+  for (std::shared_ptr<Element> element : m_elements)
   {
-    if (region.isNull() || stroke.boundingRect().intersects(region))
+    if (region.isNull() || element->boundingRect().intersects(region))
     {
-      stroke.paint(painter, zoom);
+      element->paint(painter, zoom);
     }
   }
 }
@@ -83,157 +85,140 @@ void Page::clearDirtyRect()
   m_dirtyRect = QRectF(0.0, 0.0, 0.0, 0.0);
 }
 
-bool Page::changePenWidth(int strokeNum, qreal penWidth)
+bool Page::changePenWidth(int elementNum, qreal penWidth)
 {
-  if (strokeNum < 0 || strokeNum >= m_strokes.size() || m_strokes.isEmpty())
+  if (elementNum < 0 || elementNum >= m_elements.size() || m_elements.isEmpty())
   {
     return false;
   }
   else
   {
-    m_strokes[strokeNum].penWidth = penWidth;
-    m_dirtyRect = m_dirtyRect.united(m_strokes[strokeNum].boundingRect());
-    return true;
+    auto stroke = std::dynamic_pointer_cast<Stroke>(m_elements[elementNum]);
+    if (nullptr != stroke)
+    {
+      stroke->penWidth = penWidth;
+      m_dirtyRect = m_dirtyRect.united(stroke->boundingRect());
+      return true;
+    }
   }
+  return false;
 }
 
-bool Page::changeStrokeColor(int strokeNum, QColor color)
+bool Page::changeStrokeColor(int elementNum, QColor color)
 {
-  if (strokeNum < 0 || strokeNum >= m_strokes.size() || m_strokes.isEmpty())
+  if (elementNum < 0 || elementNum >= m_elements.size() || m_elements.isEmpty())
   {
     return false;
   }
   else
   {
-    m_strokes[strokeNum].color = color;
-    m_dirtyRect = m_dirtyRect.united(m_strokes[strokeNum].boundingRect());
-    return true;
+    auto stroke = std::dynamic_pointer_cast<Stroke>(m_elements[elementNum]);
+    if (nullptr != stroke)
+    {
+      stroke->color = color;
+      m_dirtyRect = m_dirtyRect.united(stroke->boundingRect());
+      return true;
+    }
   }
+  return false;
 }
 
-bool Page::changeStrokePattern(int strokeNum, QVector<qreal> pattern)
+bool Page::changeStrokePattern(int elementNum, QVector<qreal> pattern)
 {
-  if (strokeNum < 0 || strokeNum >= m_strokes.size() || m_strokes.isEmpty())
+  if (elementNum < 0 || elementNum >= m_elements.size() || m_elements.isEmpty())
   {
     return false;
   }
   else
   {
-    m_strokes[strokeNum].pattern = pattern;
-    m_dirtyRect = m_dirtyRect.united(m_strokes[strokeNum].boundingRect());
-    return true;
+    auto stroke = std::dynamic_pointer_cast<Stroke>(m_elements[elementNum]);
+    if (nullptr != stroke)
+    {
+      stroke->pattern = pattern;
+      m_dirtyRect = m_dirtyRect.united(stroke->boundingRect());
+      return true;
+    }
   }
+  return false;
 }
 
-const QVector<Stroke> &Page::strokes()
+const QVector<std::shared_ptr<Element>> & Page::elements()
 {
-  return m_strokes;
+  return m_elements;
 }
 
-QVector<QPair<Stroke, int>> Page::getStrokes(QPolygonF selectionPolygon)
+QVector<QPair<std::shared_ptr<Element>, int>> Page::getElements(QPolygonF selectionPolygon)
 {
-  QVector<QPair<Stroke, int>> strokesAndPositions;
+  QVector<QPair<std::shared_ptr<Element>, int>> elementsAndPositions;
 
-  for (int i = m_strokes.size() - 1; i >= 0; --i)
+  for (int i = m_elements.size() - 1; i >= 0; --i)
   {
-    const MrDoc::Stroke &stroke = m_strokes.at(i);
-    bool containsStroke = false;
-    if (MrWriter::polygonIsClockwise(selectionPolygon))
+    const auto & element = m_elements.at(i);
+    if (element->containedInPolygon(selectionPolygon))
     {
-      containsStroke = false;
-      for (int j = 0; j < stroke.points.size(); ++j)
-      {
-        if (selectionPolygon.containsPoint(stroke.points.at(j), Qt::OddEvenFill))
-        {
-          containsStroke = true;
-          break;
-        }
-      }
-      if (MrWriter::polygonLinesIntersect(stroke.points, selectionPolygon))
-      {
-        containsStroke = true;
-      }
-    }
-    else
-    {
-      containsStroke = true;
-      for (int j = 0; j < stroke.points.size(); ++j)
-      {
-        if (!selectionPolygon.containsPoint(stroke.points.at(j), Qt::OddEvenFill))
-        {
-          containsStroke = false;
-          break;
-        }
-      }
-      if (MrWriter::polygonLinesIntersect(stroke.points, selectionPolygon))
-      {
-        containsStroke = false;
-      }
-    }
-    if (containsStroke)
-    {
-      // add selected strokes and positions to return vector
-      strokesAndPositions.append(QPair<Stroke, int>(stroke, i));
+      // add selected element and positions to return vector
+      elementsAndPositions.append(QPair<std::shared_ptr<Element>, int>(element, i));
+      // elementsAndPositions.append(QPair<std::shared_ptr<Element>, int>(std::make_shared<Element>(*element), i)); // creates a copy of element!
     }
   }
 
-  return strokesAndPositions;
+  return elementsAndPositions;
 }
 
-QVector<QPair<Stroke, int>> Page::removeStrokes(QPolygonF selectionPolygon)
+QVector<QPair<std::shared_ptr<Element>, int>> Page::removeElements(QPolygonF selectionPolygon)
 {
-  auto removedStrokesAndPositions = getStrokes(selectionPolygon);
+  auto removedElementsAndPositions = getElements(selectionPolygon);
 
-  for (auto sAndP : removedStrokesAndPositions)
+  for (auto eAndP : removedElementsAndPositions)
   {
-    removeStrokeAt(sAndP.second);
+    removeElementAt(eAndP.second);
   }
 
-  return removedStrokesAndPositions;
+  return removedElementsAndPositions;
 }
 
-void Page::removeStrokeAt(int i)
+void Page::removeElementAt(int i)
 {
-  m_dirtyRect = m_dirtyRect.united(m_strokes[i].boundingRect());
-  m_strokes.removeAt(i);
+  m_dirtyRect = m_dirtyRect.united(m_elements[i]->boundingRect());
+  m_elements.removeAt(i);
 }
 
-void Page::removeLastStroke()
+void Page::removeLastElement()
 {
-  removeStrokeAt(m_strokes.size() - 1);
+  removeElementAt(m_elements.size() - 1);
 }
 
-void Page::insertStrokes(const QVector<QPair<Stroke, int>> &strokesAndPositions)
+void Page::insertElements(QVector<QPair<std::shared_ptr<Element>, int>> & elementsAndPositions)
 {
-  for (int i = strokesAndPositions.size() - 1; i >= 0; --i)
+  for (int i = elementsAndPositions.size() - 1; i >= 0; --i)
   {
-    insertStroke(strokesAndPositions[i].second, strokesAndPositions[i].first);
+    insertElement(elementsAndPositions[i].second, elementsAndPositions[i].first);
   }
 }
 
-void Page::insertStroke(int position, const Stroke &stroke)
+void Page::insertElement(int position, std::shared_ptr<Element> & element)
 {
-  m_dirtyRect = m_dirtyRect.united(stroke.boundingRect());
-  m_strokes.insert(position, stroke);
+  m_dirtyRect = m_dirtyRect.united(element->boundingRect());
+  m_elements.insert(position, element);
 }
 
-void Page::appendStroke(const Stroke &stroke)
+void Page::appendElement(const std::shared_ptr<Element> & element)
 {
-  m_dirtyRect = m_dirtyRect.united(stroke.boundingRect());
-  m_strokes.append(stroke);
+  m_dirtyRect = m_dirtyRect.united(element->boundingRect());
+  m_elements.append(element);
 }
 
-void Page::prependStroke(const Stroke &stroke)
+void Page::prependElement(std::shared_ptr<Element> & element)
 {
-  m_dirtyRect = m_dirtyRect.united(stroke.boundingRect());
-  m_strokes.prepend(stroke);
+  m_dirtyRect = m_dirtyRect.united(element->boundingRect());
+  m_elements.prepend(element);
 }
 
-void Page::appendStrokes(const QVector<Stroke> &strokes)
+void Page::appendElements(QVector<std::shared_ptr<Element>> & elements)
 {
-  for (auto &stroke : strokes)
+  for (auto &element : elements)
   {
-    appendStroke(stroke);
+    appendElement(element);
   }
 }
 }

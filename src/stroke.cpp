@@ -1,4 +1,5 @@
 #include "stroke.h"
+#include "tools.h"
 
 namespace MrDoc
 {
@@ -51,6 +52,44 @@ void Stroke::paint(QPainter &painter, qreal zoom, bool last)
         dashOffset += 1.0 / tmpPenWidth * (QLineF(zoom * points.at(j - 1), zoom * points.at(j))).length();
     }
   }
+}
+
+bool Stroke::containedInPolygon(QPolygonF selectionPolygon)
+{
+  bool containsStroke = false;
+  if (MrWriter::polygonIsClockwise(selectionPolygon))
+  {
+    containsStroke = false;
+    for (int j = 0; j < points.size(); ++j)
+    {
+      if (selectionPolygon.containsPoint(points.at(j), Qt::OddEvenFill))
+      {
+        containsStroke = true;
+        break;
+      }
+    }
+    if (MrWriter::polygonLinesIntersect(points, selectionPolygon))
+    {
+      containsStroke = true;
+    }
+  }
+  else
+  {
+    containsStroke = true;
+    for (int j = 0; j < points.size(); ++j)
+    {
+      if (!selectionPolygon.containsPoint(points.at(j), Qt::OddEvenFill))
+      {
+        containsStroke = false;
+        break;
+      }
+    }
+    if (MrWriter::polygonLinesIntersect(points, selectionPolygon))
+    {
+      containsStroke = false;
+    }
+  }
+  return containsStroke;
 }
 
 QRectF Stroke::boundingRect() const
