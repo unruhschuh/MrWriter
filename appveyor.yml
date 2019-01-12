@@ -9,6 +9,7 @@ install:
   - 7z x 5.12.0-0-201812040352qttools-Windows-Windows_10-Mingw73-Windows-Windows_10-X86_64.7z
   - move 5.12.0 C:\Qt\
   - copy qt.conf C:\Qt\5.12.0\mingw73_64\bin
+  - copy qconfig.pri C:\Qt\5.12.0\mingw73_64\mkspecs
 
 #  - dir
 #  - dir 5.12.0
