@@ -1,8 +1,4 @@
 install:
-#  - c:\Python37\python.exe -m pip install requests
-#  - appveyor DownloadFile https://git.kaidan.im/lnj/qli-installer/raw/master/qli-installer.py
-#  - C:\Python37\python.exe qli-installer.py 5.12.0 windows desktop win64_mingw73
-
   - appveyor DownloadFile https://download.qt.io/online/qtsdkrepository/windows_x86/desktop/qt5_5120/qt.qt5.5120.win64_mingw73/5.12.0-0-201812040352qtbase-Windows-Windows_10-Mingw73-Windows-Windows_10-X86_64.7z
   - appveyor DownloadFile https://download.qt.io/online/qtsdkrepository/windows_x86/desktop/qt5_5120/qt.qt5.5120.win64_mingw73/5.12.0-0-201812040352qttools-Windows-Windows_10-Mingw73-Windows-Windows_10-X86_64.7z
   - 7z x 5.12.0-0-201812040352qtbase-Windows-Windows_10-Mingw73-Windows-Windows_10-X86_64.7z
@@ -10,18 +6,11 @@ install:
   - move 5.12.0 C:\Qt\
   - copy qt.conf C:\Qt\5.12.0\mingw73_64\bin
   - copy qconfig.pri C:\Qt\5.12.0\mingw73_64\mkspecs
-
-#  - dir
-#  - dir 5.12.0
-#  - dir 5.12.0\mingw73_64
-#  - dir 5.12.0\mingw73_64\bin
   - set QTDIR=C:\Qt\5.12.0\mingw73_64
-#  - set QTDIR=%cd%\5.12.0\mingw73_64
 #  - set QTDIR=C:\Qt\5.11\mingw53_32
   - set PATH=%QTDIR%\bin;C:\mingw-w64\x86_64-7.3.0-posix-seh-rt_v5-rev0\mingw64\bin;%PATH%
   - dir C:\mingw-w64\x86_64-7.3.0-posix-seh-rt_v5-rev0\mingw64\bin
 #  - set PATH=%QTDIR%\bin;C:\Qt\Tools\mingw530_32\bin;%PATH%
-#  - set PATH=%PATH%;%QTDIR%\bin;C:\MinGW\bin
 build_script:
   - echo %PATH%
   - appveyor DownloadFile http://zlib.net/zlib-1.2.11.tar.gz -FileName zlib-1.2.11.tar.gz
@@ -38,14 +27,13 @@ build_script:
   - dir C:\
   - where qmake
   - qmake -query "QT_INSTALL_PREFIX"
-# - qmake -spec %QTDIR%\mkspecs\win32-g++ "INCLUDEPATH+=\"C:/Program Files (x86)/zlib/include\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/bin\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/lib\"" CONFIG+=release MrWriter.pro
   - qmake "INCLUDEPATH+=\"C:/Program Files (x86)/zlib/include\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/bin\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/lib\"" CONFIG+=release MrWriter.pro
   - mingw32-make
   - md MrWriter
   - copy release\MrWriter.exe MrWriter\
   - windeployqt -verbose=3 MrWriter
   - copy "C:\Program Files (x86)\zlib\bin\libzlib.dll" MrWriter
-# - copy "%QTDIR%\bin\libwinpthread-1.dll" MrWriter
+# - copy "%QTDIR%\bin\libwinpthread-1.dll" MrWriter # only needed for qt 5.11.x, not for 5.12.0
   - 7z a MrWriter.zip MrWriter
   - curl --silent --upload-file MrWriter.zip https://transfer.sh/MrWriter.zip
   - echo
