@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -x
+set -e
 
 source /opt/qt*/bin/qt*-env.sh
 mkdir build
