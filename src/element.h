@@ -12,7 +12,8 @@ public:
   virtual ~Element() { }
 
   virtual void paint(QPainter &painter, qreal zoom, bool last = false) = 0;
-  virtual QRectF boundingRect() const;
+  virtual Element * clone() const = 0;
+  virtual QRectF boundingRect() const = 0;
   virtual bool containedInPolygon(QPolygonF selectionPolygon);
 };
 

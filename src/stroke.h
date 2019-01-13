@@ -23,6 +23,7 @@ public:
   Stroke();
   //    enum class dashPattern { SolidLine, DashLine, DashDotLine, DotLine };
   void paint(QPainter &painter, qreal zoom, bool last = false) override;
+  Element * clone() const override;
   bool containedInPolygon(QPolygonF selectionPolygon) override;
 
   QRectF boundingRect() const override;

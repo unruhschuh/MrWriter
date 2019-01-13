@@ -22,7 +22,7 @@ public:
   bool loadMOJ(QString fileName);
   bool saveMOJ(QString fileName);
 
-  void paintPage(int pageNum, QPainter &painter, qreal zoom);
+  void paintPage(size_t pageNum, QPainter &painter, qreal zoom);
 
   bool setDocName(QString docName);
   QString docName();
@@ -33,7 +33,8 @@ public:
   bool documentChanged();
   void setDocumentChanged(bool changed);
 
-  QVector<MrDoc::Page> pages;
+  //std::vector<MrDoc::Page> pages;
+  std::vector<std::unique_ptr<MrDoc::Page>> pages;
 
   QString toRGBA(QString argb);
   QString toARGB(QString rgba);

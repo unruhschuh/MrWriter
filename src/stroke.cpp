@@ -54,6 +54,12 @@ void Stroke::paint(QPainter &painter, qreal zoom, bool last)
   }
 }
 
+Element * Stroke::clone() const
+{
+  Element * clonedStroke = new Stroke();
+  return clonedStroke;
+}
+
 bool Stroke::containedInPolygon(QPolygonF selectionPolygon)
 {
   bool containsStroke = false;

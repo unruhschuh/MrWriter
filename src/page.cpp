@@ -56,7 +56,7 @@ void Page::setWidth(qreal width)
 
 void Page::paint(QPainter &painter, qreal zoom, QRectF region)
 {
-  for (std::shared_ptr<Element> element : m_elements)
+  for (const auto & element : m_elements)
   {
     if (region.isNull() || element->boundingRect().intersects(region))
     {
@@ -85,15 +85,15 @@ void Page::clearDirtyRect()
   m_dirtyRect = QRectF(0.0, 0.0, 0.0, 0.0);
 }
 
-bool Page::changePenWidth(int elementNum, qreal penWidth)
+bool Page::changePenWidth(size_t elementNum, qreal penWidth)
 {
-  if (elementNum < 0 || elementNum >= m_elements.size() || m_elements.isEmpty())
+  if (elementNum >= m_elements.size() || m_elements.empty())
   {
     return false;
   }
   else
   {
-    auto stroke = std::dynamic_pointer_cast<Stroke>(m_elements[elementNum]);
+    auto stroke = dynamic_cast<Stroke*>(m_elements[elementNum].get());
     if (nullptr != stroke)
     {
       stroke->penWidth = penWidth;
@@ -104,15 +104,15 @@ bool Page::changePenWidth(int elementNum, qreal penWidth)
   return false;
 }
 
-bool Page::changeStrokeColor(int elementNum, QColor color)
+bool Page::changeStrokeColor(size_t elementNum, QColor color)
 {
-  if (elementNum < 0 || elementNum >= m_elements.size() || m_elements.isEmpty())
+  if (elementNum >= m_elements.size() || m_elements.empty())
   {
     return false;
   }
   else
   {
-    auto stroke = std::dynamic_pointer_cast<Stroke>(m_elements[elementNum]);
+    auto stroke = dynamic_cast<Stroke*>(m_elements[elementNum].get());
     if (nullptr != stroke)
     {
       stroke->color = color;
@@ -123,15 +123,15 @@ bool Page::changeStrokeColor(int elementNum, QColor color)
   return false;
 }
 
-bool Page::changeStrokePattern(int elementNum, QVector<qreal> pattern)
+bool Page::changeStrokePattern(size_t elementNum, QVector<qreal> pattern)
 {
-  if (elementNum < 0 || elementNum >= m_elements.size() || m_elements.isEmpty())
+  if (elementNum >= m_elements.size() || m_elements.empty())
   {
     return false;
   }
   else
   {
-    auto stroke = std::dynamic_pointer_cast<Stroke>(m_elements[elementNum]);
+    auto stroke = dynamic_cast<Stroke*>(m_elements[elementNum].get());
     if (nullptr != stroke)
     {
       stroke->pattern = pattern;
@@ -142,34 +142,37 @@ bool Page::changeStrokePattern(int elementNum, QVector<qreal> pattern)
   return false;
 }
 
-const QVector<std::shared_ptr<Element>> & Page::elements()
+const std::vector<std::unique_ptr<Element>> & Page::elements()
 {
   return m_elements;
 }
 
-QVector<QPair<std::shared_ptr<Element>, int>> Page::getElements(QPolygonF selectionPolygon)
+std::vector<QPair<std::unique_ptr<Element>, size_t>> Page::getElements(QPolygonF selectionPolygon)
 {
-  QVector<QPair<std::shared_ptr<Element>, int>> elementsAndPositions;
+  std::vector<QPair<std::unique_ptr<Element>, size_t>> elementsAndPositions;
 
-  for (int i = m_elements.size() - 1; i >= 0; --i)
+  for (unsigned long i = m_elements.size(); i != 0; --i)
   {
-    const auto & element = m_elements.at(i);
+    const auto & element = m_elements.at(i-1);
     if (element->containedInPolygon(selectionPolygon))
     {
       // add selected element and positions to return vector
-      elementsAndPositions.append(QPair<std::shared_ptr<Element>, int>(element, i));
-      // elementsAndPositions.append(QPair<std::shared_ptr<Element>, int>(std::make_shared<Element>(*element), i)); // creates a copy of element!
+      // elementsAndPositions.append(QPair<std::unique_ptr<Element>, int>(element, i));
+      QPair<std::unique_ptr<Element>, size_t> eAndP;
+      eAndP.first = std::unique_ptr<Element>(element->clone());
+      eAndP.second = i - 1;
+      elementsAndPositions.push_back(std::move(eAndP));
     }
   }
 
   return elementsAndPositions;
 }
 
-QVector<QPair<std::shared_ptr<Element>, int>> Page::removeElements(QPolygonF selectionPolygon)
+std::vector<QPair<std::unique_ptr<Element>, size_t>> Page::removeElements(QPolygonF selectionPolygon)
 {
   auto removedElementsAndPositions = getElements(selectionPolygon);
 
-  for (auto eAndP : removedElementsAndPositions)
+  for (auto & eAndP : removedElementsAndPositions)
   {
     removeElementAt(eAndP.second);
   }
@@ -177,10 +180,11 @@ QVector<QPair<std::shared_ptr<Element>, int>> Page::removeElements(QPolygonF sel
   return removedElementsAndPositions;
 }
 
-void Page::removeElementAt(int i)
+void Page::removeElementAt(size_t i)
 {
   m_dirtyRect = m_dirtyRect.united(m_elements[i]->boundingRect());
-  m_elements.removeAt(i);
+  //m_elements.removeAt(i);
+  m_elements.erase(m_elements.begin() + static_cast<long>(i));
 }
 
 void Page::removeLastElement()
@@ -188,37 +192,37 @@ void Page::removeLastElement()
   removeElementAt(m_elements.size() - 1);
 }
 
-void Page::insertElements(QVector<QPair<std::shared_ptr<Element>, int>> & elementsAndPositions)
+void Page::insertElements(std::vector<QPair<std::unique_ptr<Element>, size_t>> & elementsAndPositions)
 {
-  for (int i = elementsAndPositions.size() - 1; i >= 0; --i)
+  for (auto i = elementsAndPositions.size(); i != 0; --i)
   {
-    insertElement(elementsAndPositions[i].second, elementsAndPositions[i].first);
+    insertElement(elementsAndPositions[i-1].second, std::move(elementsAndPositions[i-1].first));
   }
 }
 
-void Page::insertElement(int position, std::shared_ptr<Element> & element)
+void Page::insertElement(size_t position, std::unique_ptr<Element> element)
 {
   m_dirtyRect = m_dirtyRect.united(element->boundingRect());
-  m_elements.insert(position, element);
+  m_elements.insert(m_elements.begin() + static_cast<long>(position), std::move(element));
 }
 
-void Page::appendElement(const std::shared_ptr<Element> & element)
+void Page::appendElement(std::unique_ptr<Element> element)
 {
   m_dirtyRect = m_dirtyRect.united(element->boundingRect());
-  m_elements.append(element);
+  m_elements.push_back(std::move(element));
 }
 
-void Page::prependElement(std::shared_ptr<Element> & element)
+void Page::prependElement(std::unique_ptr<Element> element)
 {
   m_dirtyRect = m_dirtyRect.united(element->boundingRect());
-  m_elements.prepend(element);
+  m_elements.insert(m_elements.begin(), std::move(element));
 }
 
-void Page::appendElements(QVector<std::shared_ptr<Element>> & elements)
+void Page::appendElements(std::vector<std::unique_ptr<Element>> elements)
 {
   for (auto &element : elements)
   {
-    appendElement(element);
+    appendElement(std::move(element));
   }
 }
 }

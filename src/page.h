@@ -28,23 +28,23 @@ public:
   const QRectF &dirtyRect() const;
   void clearDirtyRect();
 
-  bool changePenWidth(int strokeNum, qreal penWidth);
-  bool changeStrokeColor(int strokeNum, QColor color);
-  bool changeStrokePattern(int strokeNum, QVector<qreal> pattern);
+  bool changePenWidth(size_t strokeNum, qreal penWidth);
+  bool changeStrokeColor(size_t strokeNum, QColor color);
+  bool changeStrokePattern(size_t strokeNum, QVector<qreal> pattern);
 
-  const QVector<std::shared_ptr<Element>> & elements();
+  const std::vector<std::unique_ptr<Element> >& elements();
 
-  QVector<QPair<std::shared_ptr<Element>, int> > getElements(QPolygonF selectionPolygon);
-  QVector<QPair<std::shared_ptr<Element>, int> > removeElements(QPolygonF selectionPolygon);
-  void removeElementAt(int i);
+  std::vector<QPair<std::unique_ptr<Element>, size_t> > getElements(QPolygonF selectionPolygon);
+  std::vector<QPair<std::unique_ptr<Element>, size_t> > removeElements(QPolygonF selectionPolygon);
+  void removeElementAt(unsigned long i);
   void removeLastElement();
 
-  void insertElements(QVector<QPair<std::shared_ptr<Element>, int>> & elementsAndPositions);
-  void insertElement(int position, std::shared_ptr<Element> & element);
+  void insertElements(std::vector<QPair<std::unique_ptr<Element>, size_t> >& elementsAndPositions);
+  void insertElement(size_t position, std::unique_ptr<Element> element);
 
-  void appendElement(const std::shared_ptr<Element> & element);
-  void appendElements(QVector<std::shared_ptr<Element>> & elements);
-  void prependElement(std::shared_ptr<Element> & element);
+  void appendElement(std::unique_ptr<Element> element);
+  void appendElements(std::vector<std::unique_ptr<Element> > elements);
+  void prependElement(std::unique_ptr<Element> element);
 
   //    virtual void paint(QPainter &painter, qreal zoom);
   /**
@@ -55,11 +55,8 @@ public:
    */
   virtual void paint(QPainter &painter, qreal zoom, QRectF region = QRect(0, 0, 0, 0));
 
-  //    QVector<Stroke> strokes;
-
 protected:
-//  QVector<Stroke> m_strokes;
-  QVector<std::shared_ptr<Element>> m_elements;
+  std::vector<std::unique_ptr<Element>> m_elements;
 
 private:
   QColor m_backgroundColor;

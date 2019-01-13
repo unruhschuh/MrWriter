@@ -841,8 +841,8 @@ void Widget::startSelecting(QPointF mousePos)
   MrDoc::Selection newSelection;
 
   newSelection.setPageNum(pageNum);
-  newSelection.setWidth(currentDocument.pages[pageNum].width());
-  newSelection.setHeight(currentDocument.pages[pageNum].height());
+  newSelection.setWidth(currentDocument.pages[pageNum]->width());
+  newSelection.setHeight(currentDocument.pages[pageNum]->height());
   newSelection.appendToSelectionPolygon(pagePos);
 
   firstMousePos = mousePos;
@@ -902,7 +902,7 @@ void Widget::stopSelecting(QPointF mousePos)
     currentSelection.setSelectionPolygon(selectionPolygon);
   }
 
-  if (!currentDocument.pages[pageNum].getStrokes(currentSelection.selectionPolygon()).isEmpty())
+  if (!currentDocument.pages[pageNum].getElements(currentSelection.selectionPolygon()).isEmpty())
   {
     CreateSelectionCommand *createSelectionCommand = new CreateSelectionCommand(this, pageNum, currentSelection);
     undoStack.push(createSelectionCommand);
@@ -1276,7 +1276,7 @@ void Widget::erase(QPointF mousePos, bool lineEraser)
   int pageNum = getPageFromMousePos(mousePos);
   QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
 
-  const QVector<MrDoc::Stroke> &strokes = currentDocument.pages[pageNum].strokes();
+  const QVector<std::unique_ptr<MrDoc::Element>> &elements = currentDocument.pages[pageNum].elements();
 
   qreal eraserWidth = 10;
 
@@ -1303,65 +1303,69 @@ void Widget::erase(QPointF mousePos, bool lineEraser)
 
   if (!lineEraser)
   {
-    for (int i = strokes.size() - 1; i >= 0; --i)
+    for (int i = elements.size() - 1; i >= 0; --i)
     {
-      MrDoc::Stroke stroke = strokes.at(i);
-      if (rectE.intersects(stroke.points.boundingRect()) || !stroke.points.boundingRect().isValid()) // this is done for speed
+      auto stroke = dynamic_cast<MrDoc::Stroke*>(elements.at(i).get());
+      if (nullptr != stroke)
       {
-        for (int j = 0; j < stroke.points.length() - 1; ++j)
+        if (rectE.intersects(stroke->points.boundingRect()) || !stroke->points.boundingRect().isValid()) // this is done for speed
         {
-          QLineF line = QLineF(stroke.points.at(j), stroke.points.at(j + 1));
-          if (line.intersect(lineA, &iPointA) == QLineF::BoundedIntersection && iPointA != stroke.points.first() && iPointA != stroke.points.last())
+          for (int j = 0; j < stroke->points.length() - 1; ++j)
           {
-            iPoint = iPointA;
-            intersected = true;
-          }
-          else if (line.intersect(lineB, &iPointB) == QLineF::BoundedIntersection && iPointB != stroke.points.first() && iPointB != stroke.points.last())
-          {
-            iPoint = iPointB;
-            intersected = true;
-          }
-          else if (line.intersect(lineC, &iPointC) == QLineF::BoundedIntersection && iPointC != stroke.points.first() && iPointC != stroke.points.last())
-          {
-            iPoint = iPointC;
-            intersected = true;
-          }
-          else if (line.intersect(lineD, &iPointD) == QLineF::BoundedIntersection && iPointD != stroke.points.first() && iPointD != stroke.points.last())
-          {
-            iPoint = iPointD;
-            intersected = true;
-          }
-          else
-          {
-            intersected = false;
-          }
-
-          if (intersected)
-          {
-            //                        if (iPoint != stroke.points.first() && iPoint != stroke.points.last())
+            QLineF line = QLineF(stroke->points.at(j), stroke->points.at(j + 1));
+            if (line.intersect(lineA, &iPointA) == QLineF::BoundedIntersection && iPointA != stroke->points.first() && iPointA != stroke->points.last())
             {
-              MrDoc::Stroke splitStroke = stroke;
-              splitStroke.points = splitStroke.points.mid(0, j + 1);
-              splitStroke.points.append(iPoint);
-              splitStroke.pressures = splitStroke.pressures.mid(0, j + 1);
-              qreal lastPressure = splitStroke.pressures.last();
-              splitStroke.pressures.append(lastPressure);
+              iPoint = iPointA;
+              intersected = true;
+            }
+            else if (line.intersect(lineB, &iPointB) == QLineF::BoundedIntersection && iPointB != stroke->points.first() && iPointB != stroke->points.last())
+            {
+              iPoint = iPointB;
+              intersected = true;
+            }
+            else if (line.intersect(lineC, &iPointC) == QLineF::BoundedIntersection && iPointC != stroke->points.first() && iPointC != stroke->points.last())
+            {
+              iPoint = iPointC;
+              intersected = true;
+            }
+            else if (line.intersect(lineD, &iPointD) == QLineF::BoundedIntersection && iPointD != stroke->points.first() && iPointD != stroke->points.last())
+            {
+              iPoint = iPointD;
+              intersected = true;
+            }
+            else
+            {
+              intersected = false;
+            }
 
-              stroke.points = stroke.points.mid(j + 1);
-              stroke.points.prepend(iPoint);
-              stroke.pressures = stroke.pressures.mid(j + 1);
-              qreal firstPressure = stroke.pressures.first();
-              stroke.pressures.prepend(firstPressure);
+            if (intersected)
+            {
+              //                        if (iPoint != stroke.points.first() && iPoint != stroke.points.last())
+              {
+                MrDoc::Stroke splitStrokeA = *stroke;
+                splitStrokeA.points = splitStrokeA.points.mid(0, j + 1);
+                splitStrokeA.points.append(iPoint);
+                splitStrokeA.pressures = splitStrokeA.pressures.mid(0, j + 1);
+                qreal lastPressure = splitStrokeA.pressures.last();
+                splitStrokeA.pressures.append(lastPressure);
 
-              RemoveStrokeCommand *removeStrokeCommand = new RemoveStrokeCommand(this, pageNum, i, false);
-              undoStack.push(removeStrokeCommand);
-              AddStrokeCommand *addStrokeCommand = new AddStrokeCommand(this, pageNum, stroke, i, false, false);
-              undoStack.push(addStrokeCommand);
-              addStrokeCommand = new AddStrokeCommand(this, pageNum, splitStroke, i, false, false);
-              undoStack.push(addStrokeCommand);
-              //                            strokes.insert(i, splitStroke);
-              i += 2;
-              break;
+                MrDoc::Stroke splitStrokeB = *stroke;
+                splitStrokeB.points = splitStrokeB.points.mid(j + 1);
+                splitStrokeB.points.prepend(iPoint);
+                splitStrokeB.pressures = splitStrokeB.pressures.mid(j + 1);
+                qreal firstPressure = splitStrokeB.pressures.first();
+                splitStrokeB.pressures.prepend(firstPressure);
+
+                RemoveStrokeCommand *removeStrokeCommand = new RemoveStrokeCommand(this, pageNum, i, false);
+                undoStack.push(removeStrokeCommand);
+                AddStrokeCommand *addStrokeCommand = new AddStrokeCommand(this, pageNum, splitStrokeB, i, false, false);
+                undoStack.push(addStrokeCommand);
+                addStrokeCommand = new AddStrokeCommand(this, pageNum, splitStrokeA, i, false, false);
+                undoStack.push(addStrokeCommand);
+                //                            strokes.insert(i, splitStrokeA);
+                i += 2;
+                break;
+              }
             }
           }
         }
@@ -1379,31 +1383,34 @@ void Widget::erase(QPointF mousePos, bool lineEraser)
 
   rectE = QRectF(pagePos + QPointF(-eraserWidth, eraserWidth) / 2.0, pagePos + QPointF(eraserWidth, -eraserWidth) / 2.0);
 
-  for (int i = 0; i < strokes.size(); ++i)
+  for (int i = 0; i < elements.size(); ++i)
   {
-    const MrDoc::Stroke stroke = strokes.at(i);
-    if (rectE.intersects(stroke.points.boundingRect()) || !stroke.points.boundingRect().isValid()) // this is done for speed
+    auto stroke = dynamic_cast<MrDoc::Stroke*>(elements.at(i).get());
+    if (nullptr != stroke)
     {
-      bool foundStrokeToDelete = false;
-      for (int j = 0; j < stroke.points.length(); ++j)
+      if (rectE.intersects(stroke->points.boundingRect()) || !stroke->points.boundingRect().isValid()) // this is done for speed
       {
-        if (rectE.contains(stroke.points.at(j)))
+        bool foundStrokeToDelete = false;
+        for (int j = 0; j < stroke->points.length(); ++j)
         {
-          strokesToDelete.append(i);
-          foundStrokeToDelete = true;
-          break;
-        }
-      }
-      if (foundStrokeToDelete == false)
-      {
-        for (int j = 0; j < stroke.points.length() - 1; ++j)
-        {
-          QLineF line = QLineF(stroke.points.at(j), stroke.points.at(j + 1));
-          if (line.intersect(lineA, &iPoint) == QLineF::BoundedIntersection || line.intersect(lineB, &iPoint) == QLineF::BoundedIntersection ||
-              line.intersect(lineC, &iPoint) == QLineF::BoundedIntersection || line.intersect(lineD, &iPoint) == QLineF::BoundedIntersection)
+          if (rectE.contains(stroke->points.at(j)))
           {
             strokesToDelete.append(i);
+            foundStrokeToDelete = true;
             break;
+          }
+        }
+        if (foundStrokeToDelete == false)
+        {
+          for (int j = 0; j < stroke->points.length() - 1; ++j)
+          {
+            QLineF line = QLineF(stroke->points.at(j), stroke->points.at(j + 1));
+            if (line.intersect(lineA, &iPoint) == QLineF::BoundedIntersection || line.intersect(lineB, &iPoint) == QLineF::BoundedIntersection ||
+                line.intersect(lineC, &iPoint) == QLineF::BoundedIntersection || line.intersect(lineD, &iPoint) == QLineF::BoundedIntersection)
+            {
+              strokesToDelete.append(i);
+              break;
+            }
           }
         }
       }
@@ -2011,9 +2018,9 @@ void Widget::selectAll()
 
   int pageNum = getCurrentPage();
   QRectF selectRect;
-  for (auto &stroke : currentDocument.pages[pageNum].strokes())
+  for (auto &element : currentDocument.pages[pageNum].elements())
   {
-    selectRect = selectRect.united(stroke.boundingRect());
+    selectRect = selectRect.united(element->boundingRect());
   }
   QPolygonF selectionPolygon = QPolygonF(selectRect);
 
@@ -2021,7 +2028,7 @@ void Widget::selectAll()
   selection.setPageNum(pageNum);
   selection.setSelectionPolygon(selectionPolygon);
 
-  if (!currentDocument.pages[pageNum].getStrokes(selection.selectionPolygon()).isEmpty())
+  if (!currentDocument.pages[pageNum].getElements(selection.selectionPolygon()).isEmpty())
   {
     currentSelection = selection;
     CreateSelectionCommand *createSelectionCommand = new CreateSelectionCommand(this, pageNum, selection);
