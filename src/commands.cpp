@@ -1,6 +1,8 @@
 #include "commands.h"
 #include "mainwindow.h"
 #include <QDebug>
+#include <memory>
+#include "element.h"
 
 /******************************************************************************
 ** AddStrokeCommand
@@ -46,11 +48,11 @@ void AddStrokeCommand::undo()
   {
     if (strokeNum == -1)
     {
-      widget->currentDocument.pages[pageNum].removeStrokeAt(widget->currentDocument.pages[pageNum].strokes().size() - 1);
+      widget->currentDocument.pages[pageNum]->removeElementAt(widget->currentDocument.pages[pageNum]->elements().size() - 1);
     }
     else
     {
-      widget->currentDocument.pages[pageNum].removeStrokeAt(strokeNum);
+      widget->currentDocument.pages[pageNum]->removeElementAt(strokeNum);
     }
   }
 }
@@ -61,11 +63,11 @@ void AddStrokeCommand::redo()
   {
     if (strokeNum == -1)
     {
-      widget->currentDocument.pages[pageNum].appendStroke(stroke);
+      widget->currentDocument.pages[pageNum]->appendElement(std::make_unique<MrDoc::Element>(stroke));
     }
     else
     {
-      widget->currentDocument.pages[pageNum].insertStroke(strokeNum, stroke);
+      widget->currentDocument.pages[pageNum]->insertElement(strokeNum, std::make_unique<MrDoc::Element>(stroke));
     }
   }
 }

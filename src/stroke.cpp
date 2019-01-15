@@ -98,6 +98,23 @@ bool Stroke::containedInPolygon(QPolygonF selectionPolygon)
   return containsStroke;
 }
 
+void Stroke::transform(QTransform _transform)
+{
+  qreal sx = _transform.m11();
+  qreal sy = _transform.m22();
+  qreal s = (sx + sy) / 2.0;
+
+  this->points = _transform.map(this->points);
+  /*
+  'if (!transform.isRotating())' doesn't work, since rotation of 180 and 360 degrees is treated as a scaling transformation. Same goes for
+  'if (transform.isScaling())'
+  */
+  if (_transform.determinant() != 1)
+  {
+    this->penWidth = this->penWidth * s;
+  }
+}
+
 QRectF Stroke::boundingRect() const
 {
   QRectF bRect = boundingRectSansPenWidth();

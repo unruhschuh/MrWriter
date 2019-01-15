@@ -1476,9 +1476,9 @@ bool MainWindow::loadMOJ(QString fileName)
 void MainWindow::pageSettings()
 {
   int pageNum = mainWidget->getCurrentPage();
-  qreal width = mainWidget->currentDocument.pages[pageNum].width();
-  qreal height = mainWidget->currentDocument.pages[pageNum].height();
-  PageSettingsDialog *pageDialog = new PageSettingsDialog(QSizeF(width, height), mainWidget->currentDocument.pages[pageNum].backgroundColor(), this);
+  qreal width = mainWidget->currentDocument.pages[pageNum]->width();
+  qreal height = mainWidget->currentDocument.pages[pageNum]->height();
+  PageSettingsDialog *pageDialog = new PageSettingsDialog(QSizeF(width, height), mainWidget->currentDocument.pages[pageNum]->backgroundColor(), this);
   pageDialog->setWindowModality(Qt::WindowModal);
   if (pageDialog->exec() == QDialog::Accepted)
   {

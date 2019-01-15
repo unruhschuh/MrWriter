@@ -32,6 +32,7 @@ Document::Document()
   setDocumentChanged(false);
 }
 
+/*
 Document::Document(const Document &doc)
 {
   for (size_t i = 0; i < doc.pages.size(); ++i)
@@ -40,6 +41,7 @@ Document::Document(const Document &doc)
     pages.push_back(std::make_unique<Page>(*(doc.pages.at(i))));
   }
 }
+*/
 
 void Document::paintPage(size_t pageNum, QPainter &painter, qreal zoom)
 {
@@ -164,11 +166,13 @@ bool Document::loadXOJ(QString fileName)
       QXmlStreamAttributes attributes = reader.attributes();
       QStringRef width = attributes.value("", "width");
       QStringRef height = attributes.value("", "height");
-      Page newPage;
-      newPage.setWidth(width.toDouble());
-      newPage.setHeight(height.toDouble());
+      std::unique_ptr<Page> newPage = std::make_unique<Page>();
+      //Page newPage;
+      newPage->setWidth(width.toDouble());
+      newPage->setHeight(height.toDouble());
 
-      pages.push_back(std::make_unique<Page>(newPage));
+      pages.push_back(std::move(newPage));
+      // pages.push_back(std::make_unique<Page>(newPage));
     }
     if (reader.name() == "background" && reader.tokenType() == QXmlStreamReader::StartElement)
     {

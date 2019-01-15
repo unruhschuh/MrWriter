@@ -25,6 +25,7 @@ public:
   void paint(QPainter &painter, qreal zoom, bool last = false) override;
   Element * clone() const override;
   bool containedInPolygon(QPolygonF selectionPolygon) override;
+  void transform(QTransform _transform) override;
 
   QRectF boundingRect() const override;
   QRectF boundingRectSansPenWidth() const;

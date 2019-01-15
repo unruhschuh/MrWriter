@@ -12,7 +12,7 @@ class Document
 {
 public:
   Document();
-  Document(const Document &doc);
+  // Document(const Document &doc);
 
   void exportPDF(QString fileName);
 
