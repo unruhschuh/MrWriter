@@ -11,6 +11,7 @@ class Page
 {
 public:
   Page();
+  Page(const Page & _page);
   virtual ~Page() { }
 
   qreal width() const;
@@ -46,7 +47,6 @@ public:
   void appendElements(std::vector<std::unique_ptr<Element> > elements);
   void prependElement(std::unique_ptr<Element> element);
 
-  //    virtual void paint(QPainter &painter, qreal zoom);
   /**
    * @brief paint
    * @param painter

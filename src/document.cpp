@@ -25,27 +25,23 @@ Document::Document()
 {
   for (int i = 0; i < 1; ++i)
   {
-    //Page nextPage;
-    //pages.push_back(std::move(nextPage));
-    pages.push_back(std::make_unique<Page>());
+    Page nextPage;
+    pages.push_back(nextPage);
   }
   setDocumentChanged(false);
 }
 
-/*
 Document::Document(const Document &doc)
 {
   for (size_t i = 0; i < doc.pages.size(); ++i)
   {
-    //pages.push_back(doc.pages.at(i));
-    pages.push_back(std::make_unique<Page>(*(doc.pages.at(i))));
+    pages.push_back(doc.pages.at(i));
   }
 }
-*/
 
 void Document::paintPage(size_t pageNum, QPainter &painter, qreal zoom)
 {
-  pages[pageNum]->paint(painter, zoom);
+  pages[pageNum].paint(painter, zoom);
 }
 
 /* will become exportSVG
@@ -83,7 +79,7 @@ void Document::exportPDF(QString fileName)
   pdfWriter.setOutputFileName(fileName);
   //    pdfWriter.setMargins();
 
-  pdfWriter.setPageSize(QPageSize(QSizeF(pages[0]->width(), pages[0]->height()), QPageSize::Point));
+  pdfWriter.setPageSize(QPageSize(QSizeF(pages[0].width(), pages[0].height()), QPageSize::Point));
   pdfWriter.setPageMargins(QMarginsF(0, 0, 0, 0));
   qreal zoomW = ((qreal)pdfWriter.pageRect().width()) / ((qreal)pdfWriter.paperRect().width());
   qreal zoomH = ((qreal)pdfWriter.pageRect().height()) / ((qreal)pdfWriter.paperRect().height());
@@ -100,17 +96,17 @@ void Document::exportPDF(QString fileName)
   painter.setRenderHint(QPainter::Antialiasing, true);
   for (size_t pageNum = 0; pageNum < pages.size(); ++pageNum)
   {
-    if (pages[pageNum]->backgroundColor() != QColor("white"))
+    if (pages[pageNum].backgroundColor() != QColor("white"))
     {
       QRectF pageRect = pdfWriter.pageRect(QPrinter::Point);
       pageRect.translate(-pageRect.topLeft());
-      painter.fillRect(pageRect, pages[pageNum]->backgroundColor());
+      painter.fillRect(pageRect, pages[pageNum].backgroundColor());
     }
-    pages[pageNum]->paint(painter, zoom, QRect(0, 0, 0, 0));
+    pages[pageNum].paint(painter, zoom, QRect(0, 0, 0, 0));
 
     if (pageNum + 1 < pages.size())
     {
-      pdfWriter.setPageSize(QPageSize(QSize(pages[pageNum + 1]->width(), pages[pageNum + 1]->height())));
+      pdfWriter.setPageSize(QPageSize(QSize(pages[pageNum + 1].width(), pages[pageNum + 1].height())));
       pdfWriter.newPage();
     }
   }
@@ -166,10 +162,9 @@ bool Document::loadXOJ(QString fileName)
       QXmlStreamAttributes attributes = reader.attributes();
       QStringRef width = attributes.value("", "width");
       QStringRef height = attributes.value("", "height");
-      std::unique_ptr<Page> newPage = std::make_unique<Page>();
-      //Page newPage;
-      newPage->setWidth(width.toDouble());
-      newPage->setHeight(height.toDouble());
+      Page newPage;
+      newPage.setWidth(width.toDouble());
+      newPage.setHeight(height.toDouble());
 
       pages.push_back(std::move(newPage));
       // pages.push_back(std::make_unique<Page>(newPage));
@@ -179,7 +174,7 @@ bool Document::loadXOJ(QString fileName)
       QXmlStreamAttributes attributes = reader.attributes();
       QStringRef color = attributes.value("", "color");
       QColor newColor = stringToColor(color.toString());
-      pages.back()->setBackgroundColor(newColor);
+      pages.back().setBackgroundColor(newColor);
     }
     if (reader.name() == "stroke" && reader.tokenType() == QXmlStreamReader::StartElement)
     {
@@ -209,7 +204,8 @@ bool Document::loadXOJ(QString fileName)
         {
           newStroke.pressures.append(1.0);
         }
-        pages.back()->appendElement(std::make_unique<Element>(newStroke));
+        //pages.back().appendElement(std::make_unique<Element>(newStroke));
+        pages.back().appendElement(newStroke.clone());
         strokeCount++;
         qDebug() << strokeCount;
       }
@@ -221,7 +217,7 @@ bool Document::loadXOJ(QString fileName)
 
   for (auto &page : pages)
   {
-    page->clearDirtyRect();
+    page.clearDirtyRect();
   }
 
   if (reader.hasError())
@@ -263,16 +259,16 @@ bool Document::saveXOJ(QString fileName)
   for (size_t i = 0; i < pages.size(); ++i)
   {
     writer.writeStartElement("page");
-    writer.writeAttribute(QXmlStreamAttribute("width", QString::number(pages[i]->width())));
-    writer.writeAttribute(QXmlStreamAttribute("height", QString::number(pages[i]->height())));
+    writer.writeAttribute(QXmlStreamAttribute("width", QString::number(pages[i].width())));
+    writer.writeAttribute(QXmlStreamAttribute("height", QString::number(pages[i].height())));
     writer.writeEmptyElement("background");
     writer.writeAttribute(QXmlStreamAttribute("type", "solid"));
-    writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(pages[i]->backgroundColor().name(QColor::HexArgb))));
+    writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(pages[i].backgroundColor().name(QColor::HexArgb))));
     writer.writeAttribute(QXmlStreamAttribute("style", "plain"));
     writer.writeStartElement("layer");
 
     //    for (int j = 0; j < pages[i].m_strokes.size(); ++j)
-    for (auto & element : pages[i]->elements())
+    for (auto & element : pages[i].elements())
     {
       auto stroke = dynamic_cast<Stroke*>(element.get());
       if (nullptr != stroke)
@@ -390,14 +386,14 @@ bool Document::loadMOJ(QString fileName)
       newPage.setWidth(width.toDouble());
       newPage.setHeight(height.toDouble());
 
-      pages.push_back(std::make_unique<Page>(newPage));
+      pages.push_back(std::move(newPage));
     }
     if (reader.name() == "background" && reader.tokenType() == QXmlStreamReader::StartElement)
     {
       QXmlStreamAttributes attributes = reader.attributes();
       QStringRef color = attributes.value("", "color");
       QColor newColor = stringToColor(color.toString());
-      pages.back()->setBackgroundColor(newColor);
+      pages.back().setBackgroundColor(newColor);
     }
     if (reader.name() == "stroke" && reader.tokenType() == QXmlStreamReader::StartElement)
     {
@@ -455,7 +451,7 @@ bool Document::loadMOJ(QString fileName)
         {
           return false;
         }
-        pages.back()->appendElement(std::make_unique<Element>(newStroke));
+        pages.back().appendElement(std::make_unique<Element>(newStroke));
         strokeCount++;
         qDebug() << strokeCount;
       }
@@ -467,7 +463,7 @@ bool Document::loadMOJ(QString fileName)
 
   for (auto &page : pages)
   {
-    page->clearDirtyRect();
+    page.clearDirtyRect();
   }
 
   if (reader.hasError())
@@ -513,16 +509,16 @@ bool Document::saveMOJ(QString fileName)
   for (size_t i = 0; i < pages.size(); ++i)
   {
     writer.writeStartElement("page");
-    writer.writeAttribute(QXmlStreamAttribute("width", QString::number(pages[i]->width())));
-    writer.writeAttribute(QXmlStreamAttribute("height", QString::number(pages[i]->height())));
+    writer.writeAttribute(QXmlStreamAttribute("width", QString::number(pages[i].width())));
+    writer.writeAttribute(QXmlStreamAttribute("height", QString::number(pages[i].height())));
     writer.writeEmptyElement("background");
     writer.writeAttribute(QXmlStreamAttribute("type", "solid"));
-    writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(pages[i]->backgroundColor().name(QColor::HexArgb))));
+    writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(pages[i].backgroundColor().name(QColor::HexArgb))));
     writer.writeAttribute(QXmlStreamAttribute("style", "plain"));
     writer.writeStartElement("layer");
 
     //    for (int j = 0; j < pages[i].m_strokes.size(); ++j)
-    for (auto & element : pages[i]->elements())
+    for (auto & element : pages[i].elements())
     {
       auto stroke = dynamic_cast<Stroke*>(element.get());
       if (nullptr != stroke)

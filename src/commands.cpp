@@ -5,113 +5,109 @@
 #include "element.h"
 
 /******************************************************************************
-** AddStrokeCommand
+** AddElementCommand
 */
 
 /**
- * @brief AddStrokeCommand::AddStrokeCommand
+ * @brief AddElementCommand::AddElementCommand
  * @param newWidget
  * @param newPageNum
- * @param newStroke
- * @param newStrokeNum
+ * @param newElement
+ * @param newElementNum
  * @param newUpdate
  * @param newUpdateSuccessive
  * @param parent
  * @todo remove parameter newUpdate
  */
-AddStrokeCommand::AddStrokeCommand(Widget *newWidget, int newPageNum, const MrDoc::Stroke &newStroke, int newStrokeNum, bool newUpdate,
+AddElementCommand::AddElementCommand(Widget *newWidget, int newPageNum, std::unique_ptr<MrDoc::Element> newElement, int newElementNum, bool newUpdate,
                                    bool newUpdateSuccessive, QUndoCommand *parent)
     : QUndoCommand(parent)
 {
-  setText(MainWindow::tr("Add Stroke"));
+  setText(MainWindow::tr("Add Element"));
   pageNum = newPageNum;
   widget = newWidget;
-  stroke = newStroke;
-  strokeNum = newStrokeNum;
+  element = std::move(newElement);
+  elementNum = newElementNum;
   update = newUpdate;
   updateSuccessive = newUpdateSuccessive;
 
   // delete duplicate points
-  for (int i = stroke.points.length() - 1; i > 0; --i)
+  /*
+  for (int i = element.points.length() - 1; i > 0; --i)
   {
-    if (stroke.points.at(i) == stroke.points.at(i - 1))
+    if (element.points.at(i) == element.points.at(i - 1))
     {
-      stroke.points.removeAt(i);
-      stroke.pressures.removeAt(i);
+      element.points.removeAt(i);
+      element.pressures.removeAt(i);
     }
+  }
+  */
+}
+
+void AddElementCommand::undo()
+{
+  if (elementNum == -1)
+  {
+    widget->currentDocument.pages[pageNum].removeElementAt(widget->currentDocument.pages[pageNum].elements().size() - 1);
+  }
+  else
+  {
+    widget->currentDocument.pages[pageNum].removeElementAt(elementNum);
   }
 }
 
-void AddStrokeCommand::undo()
+void AddElementCommand::redo()
 {
-  if (stroke.points.length() > 0)
+  if (elementNum == -1)
   {
-    if (strokeNum == -1)
-    {
-      widget->currentDocument.pages[pageNum]->removeElementAt(widget->currentDocument.pages[pageNum]->elements().size() - 1);
-    }
-    else
-    {
-      widget->currentDocument.pages[pageNum]->removeElementAt(strokeNum);
-    }
+    widget->currentDocument.pages[pageNum].appendElement(element->clone());
   }
-}
-
-void AddStrokeCommand::redo()
-{
-  if (stroke.points.length() > 0)
+  else
   {
-    if (strokeNum == -1)
-    {
-      widget->currentDocument.pages[pageNum]->appendElement(std::make_unique<MrDoc::Element>(stroke));
-    }
-    else
-    {
-      widget->currentDocument.pages[pageNum]->insertElement(strokeNum, std::make_unique<MrDoc::Element>(stroke));
-    }
+    widget->currentDocument.pages[pageNum].insertElement(elementNum, element->clone());
   }
 }
 
 /******************************************************************************
-** RemoveStrokeCommand
+** RemoveElementCommand
 */
 
 /**
- * @brief RemoveStrokeCommand::RemoveStrokeCommand
+ * @brief RemoveElementCommand::RemoveElementCommand
  * @param newWidget
  * @param newPageNum
- * @param newStrokeNum
+ * @param newElementNum
  * @param newUpdate
  * @param parent
  * @todo remove parameter newUpdate
  */
-RemoveStrokeCommand::RemoveStrokeCommand(Widget *newWidget, int newPageNum, int newStrokeNum, bool newUpdate, QUndoCommand *parent) : QUndoCommand(parent)
+RemoveElementCommand::RemoveElementCommand(Widget *newWidget, int newPageNum, int newElementNum, bool newUpdate, QUndoCommand *parent) : QUndoCommand(parent)
 {
-  setText(MainWindow::tr("Remove Stroke"));
+  setText(MainWindow::tr("Remove Element"));
   pageNum = newPageNum;
   widget = newWidget;
-  strokeNum = newStrokeNum;
-  stroke = widget->currentDocument.pages[pageNum].strokes()[strokeNum];
+  elementNum = newElementNum;
+  element = widget->currentDocument.pages[pageNum]->elements()[elementNum]->clone();
   update = newUpdate;
 }
 
-void RemoveStrokeCommand::undo()
+void RemoveElementCommand::undo()
 {
-  widget->currentDocument.pages[pageNum].insertStroke(strokeNum, stroke);
+  widget->currentDocument.pages[pageNum]->insertElement(elementNum, element->clone());
 
   qreal zoom = widget->m_zoom;
-  QRect updateRect = stroke.points.boundingRect().toRect();
+  QRect updateRect = element->boundingRect().toRect();
   updateRect = QRect(zoom * updateRect.topLeft(), zoom * updateRect.bottomRight());
   int delta = zoom * 10;
   updateRect.adjust(-delta, -delta, delta, delta);
 }
 
-void RemoveStrokeCommand::redo()
+void RemoveElementCommand::redo()
 {
-  widget->currentDocument.pages[pageNum].removeStrokeAt(strokeNum);
+  widget->currentDocument.pages[pageNum]->removeElementAt(elementNum);
 
   qreal zoom = widget->m_zoom;
-  QRect updateRect = stroke.points.boundingRect().toRect();
+  QRect updateRect = element->boundingRect().toRect();
   updateRect = QRect(zoom * updateRect.topLeft(), zoom * updateRect.bottomRight());
   int delta = zoom * 10;
   updateRect.adjust(-delta, -delta, delta, delta);
@@ -129,11 +125,11 @@ CreateSelectionCommand::CreateSelectionCommand(Widget *widget, int pageNum, MrDo
   m_selection = selection;
   m_selectionPolygon = selection.selectionPolygon();
 
-  m_strokesAndPositions = widget->currentDocument.pages[pageNum].getStrokes(m_selectionPolygon);
+  m_elementsAndPositions = widget->currentDocument.pages[pageNum]->getElements(m_selectionPolygon);
 
-  for (auto sAndP : m_strokesAndPositions)
+  for (auto sAndP : m_elementsAndPositions)
   {
-    m_selection.prependStroke(sAndP.first);
+    m_selection.prependElement(sAndP.first);
   }
   m_selection.finalize();
   m_selection.updateBuffer(m_widget->m_zoom);
@@ -141,16 +137,16 @@ CreateSelectionCommand::CreateSelectionCommand(Widget *widget, int pageNum, MrDo
 
 void CreateSelectionCommand::undo()
 {
-  m_widget->currentDocument.pages[m_pageNum].insertStrokes(m_strokesAndPositions);
+  m_widget->currentDocument.pages[m_pageNum]->insertElements(m_elementsAndPositions);
 
   m_widget->setCurrentState(Widget::state::IDLE);
 }
 
 void CreateSelectionCommand::redo()
 {
-  for (auto &sAndP : m_strokesAndPositions)
+  for (auto &sAndP : m_elementsAndPositions)
   {
-    m_widget->currentDocument.pages[m_pageNum].removeStrokeAt(sAndP.second);
+    m_widget->currentDocument.pages[m_pageNum].removeElementAt(sAndP.second);
   }
   m_widget->currentSelection = m_selection;
   m_widget->setCurrentState(Widget::state::SELECTED);
@@ -172,9 +168,9 @@ ReleaseSelectionCommand::ReleaseSelectionCommand(Widget *newWidget, int newPageN
 void ReleaseSelectionCommand::undo()
 {
   widget->currentSelection = selection;
-  for (int i = 0; i < widget->currentSelection.strokes().size(); ++i)
+  for (int i = 0; i < widget->currentSelection.elements().size(); ++i)
   {
-    widget->currentDocument.pages[pageNum].removeLastStroke();
+    widget->currentDocument.pages[pageNum].removeLastElement();
   }
   widget->setCurrentState(Widget::state::SELECTED);
 }
@@ -182,7 +178,7 @@ void ReleaseSelectionCommand::undo()
 void ReleaseSelectionCommand::redo()
 {
   int pageNum = widget->currentSelection.pageNum();
-  widget->currentDocument.pages[pageNum].appendStrokes(widget->currentSelection.strokes());
+  widget->currentDocument.pages[pageNum].appendElements(widget->currentSelection.elements());
   widget->setCurrentState(Widget::state::IDLE);
 }
 
@@ -240,9 +236,9 @@ void ChangeColorOfSelectionCommand::undo()
 
 void ChangeColorOfSelectionCommand::redo()
 {
-  for (int i = 0; i < m_widget->currentSelection.strokes().size(); ++i)
+  for (int i = 0; i < m_widget->currentSelection.elements().size(); ++i)
   {
-    m_widget->currentSelection.changeStrokeColor(i, m_color);
+    m_widget->currentSelection.changeElementColor(i, m_color);
   }
 }
 
@@ -266,7 +262,7 @@ void ChangePatternOfSelectionCommand::undo()
 
 void ChangePatternOfSelectionCommand::redo()
 {
-  for (int i = 0; i < m_widget->currentSelection.strokes().size(); ++i)
+  for (int i = 0; i < m_widget->currentSelection.elements().size(); ++i)
   {
     m_widget->currentSelection.changeStrokePattern(i, m_pattern);
   }
@@ -292,7 +288,7 @@ void ChangePenWidthOfSelectionCommand::undo()
 
 void ChangePenWidthOfSelectionCommand::redo()
 {
-  for (int i = 0; i < widget->currentSelection.strokes().size(); ++i)
+  for (int i = 0; i < widget->currentSelection.elements().size(); ++i)
   {
     widget->currentSelection.changePenWidth(i, m_penWidth);
   }

@@ -18,6 +18,15 @@ Page::Page()
   setBackgroundColor(QColor(255, 255, 255));
 }
 
+Page::Page(const Page & _page)
+{
+  size_t numElements = _page.m_elements.size();
+  for (size_t i = 0; i < numElements; i++)
+  {
+    m_elements.push_back(_page.m_elements[i]->clone());
+  }
+}
+
 qreal Page::height() const
 {
   return m_height;

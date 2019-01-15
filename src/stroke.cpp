@@ -54,10 +54,9 @@ void Stroke::paint(QPainter &painter, qreal zoom, bool last)
   }
 }
 
-Element * Stroke::clone() const
+std::unique_ptr<Element> Stroke::clone() const
 {
-  Element * clonedStroke = new Stroke();
-  return clonedStroke;
+  return std::make_unique<Element>(*this);
 }
 
 bool Stroke::containedInPolygon(QPolygonF selectionPolygon)

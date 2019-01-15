@@ -12,7 +12,7 @@ class Document
 {
 public:
   Document();
-  // Document(const Document &doc);
+  Document(const Document &doc);
 
   void exportPDF(QString fileName);
 
@@ -33,8 +33,8 @@ public:
   bool documentChanged();
   void setDocumentChanged(bool changed);
 
-  //std::vector<MrDoc::Page> pages;
-  std::vector<std::unique_ptr<MrDoc::Page>> pages;
+  std::vector<MrDoc::Page> pages;
+  //std::vector<std::unique_ptr<MrDoc::Page>> pages;
 
   QString toRGBA(QString argb);
   QString toARGB(QString rgba);

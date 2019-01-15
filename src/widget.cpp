@@ -847,7 +847,7 @@ void Widget::startSelecting(QPointF mousePos)
 
   firstMousePos = mousePos;
 
-  currentSelection = newSelection;
+  currentSelection = std::move(newSelection);
 
   //    selecting = true;
   currentState = state::SELECTING;
