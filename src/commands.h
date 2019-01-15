@@ -49,7 +49,7 @@ public:
 private:
   Widget *m_widget;
   QPolygonF m_selectionPolygon;
-  std::vector<QPair<std::unique_ptr<MrDoc::Element>, int>> m_elementsAndPositions;
+  std::vector<QPair<std::unique_ptr<MrDoc::Element>, size_t>> m_elementsAndPositions;
   MrDoc::Selection m_selection;
   int m_pageNum;
 };

@@ -87,13 +87,13 @@ RemoveElementCommand::RemoveElementCommand(Widget *newWidget, int newPageNum, in
   pageNum = newPageNum;
   widget = newWidget;
   elementNum = newElementNum;
-  element = widget->currentDocument.pages[pageNum]->elements()[elementNum]->clone();
+  element = widget->currentDocument.pages[pageNum].elements()[elementNum]->clone();
   update = newUpdate;
 }
 
 void RemoveElementCommand::undo()
 {
-  widget->currentDocument.pages[pageNum]->insertElement(elementNum, element->clone());
+  widget->currentDocument.pages[pageNum].insertElement(elementNum, element->clone());
 
   qreal zoom = widget->m_zoom;
   QRect updateRect = element->boundingRect().toRect();
@@ -104,7 +104,7 @@ void RemoveElementCommand::undo()
 
 void RemoveElementCommand::redo()
 {
-  widget->currentDocument.pages[pageNum]->removeElementAt(elementNum);
+  widget->currentDocument.pages[pageNum].removeElementAt(elementNum);
 
   qreal zoom = widget->m_zoom;
   QRect updateRect = element->boundingRect().toRect();
@@ -125,11 +125,11 @@ CreateSelectionCommand::CreateSelectionCommand(Widget *widget, int pageNum, MrDo
   m_selection = selection;
   m_selectionPolygon = selection.selectionPolygon();
 
-  m_elementsAndPositions = widget->currentDocument.pages[pageNum]->getElements(m_selectionPolygon);
+  m_elementsAndPositions = widget->currentDocument.pages[pageNum].getElements(m_selectionPolygon);
 
-  for (auto sAndP : m_elementsAndPositions)
+  for (auto &sAndP : m_elementsAndPositions)
   {
-    m_selection.prependElement(sAndP.first);
+    m_selection.prependElement(sAndP.first->clone());
   }
   m_selection.finalize();
   m_selection.updateBuffer(m_widget->m_zoom);
@@ -137,7 +137,7 @@ CreateSelectionCommand::CreateSelectionCommand(Widget *widget, int pageNum, MrDo
 
 void CreateSelectionCommand::undo()
 {
-  m_widget->currentDocument.pages[m_pageNum]->insertElements(m_elementsAndPositions);
+  m_widget->currentDocument.pages[m_pageNum].insertElements(m_elementsAndPositions);
 
   m_widget->setCurrentState(Widget::state::IDLE);
 }
@@ -238,7 +238,7 @@ void ChangeColorOfSelectionCommand::redo()
 {
   for (int i = 0; i < m_widget->currentSelection.elements().size(); ++i)
   {
-    m_widget->currentSelection.changeElementColor(i, m_color);
+    m_widget->currentSelection.changeStrokeColor(i, m_color);
   }
 }
 
@@ -307,7 +307,7 @@ AddPageCommand::AddPageCommand(Widget *newWidget, int newPageNum, QUndoCommand *
 
 void AddPageCommand::undo()
 {
-  widget->currentDocument.pages.removeAt(pageNum);
+  widget->currentDocument.pages.erase(widget->currentDocument.pages.begin() + pageNum);
   widget->pageBuffer.removeAt(pageNum);
   widget->update();
 }
