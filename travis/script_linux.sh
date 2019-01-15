@@ -1,9 +1,10 @@
 #!/bin/bash
 
 set -x
-set -e
 
 source /opt/qt*/bin/qt*-env.sh
+
+set -e
 mkdir build
 cd build
 qmake CONFIG+=release ..
