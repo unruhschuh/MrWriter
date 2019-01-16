@@ -42,11 +42,11 @@ public:
   void removeElementAt(unsigned long i);
   void removeLastElement();
 
-  void insertElements(std::vector<QPair<std::unique_ptr<Element>, size_t> >& elementsAndPositions);
+  void insertElements(const std::vector<QPair<std::unique_ptr<Element>, size_t> >& elementsAndPositions);
   void insertElement(size_t position, std::unique_ptr<Element> element);
 
   void appendElement(std::unique_ptr<Element> element);
-  void appendElements(std::vector<std::unique_ptr<Element> >& elements);
+  void appendElements(const std::vector<std::unique_ptr<Element> >& elements);
   void prependElement(std::unique_ptr<Element> element);
 
   /**

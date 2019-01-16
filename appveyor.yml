@@ -1,6 +1,6 @@
-branches:
-  only:
-    - master
+#branches:
+#  only:
+#    - master
 
 install:
   - appveyor DownloadFile https://download.qt.io/online/qtsdkrepository/windows_x86/desktop/qt5_5120/qt.qt5.5120.win64_mingw73/5.12.0-0-201812040352qtbase-Windows-Windows_10-Mingw73-Windows-Windows_10-X86_64.7z

@@ -201,7 +201,7 @@ void Page::removeLastElement()
   removeElementAt(m_elements.size() - 1);
 }
 
-void Page::insertElements(std::vector<QPair<std::unique_ptr<Element>, size_t>> & elementsAndPositions)
+void Page::insertElements(const std::vector<QPair<std::unique_ptr<Element>, size_t>> & elementsAndPositions)
 {
   for (auto i = elementsAndPositions.size(); i != 0; --i)
   {
@@ -227,7 +227,7 @@ void Page::prependElement(std::unique_ptr<Element> element)
   m_elements.insert(m_elements.begin(), std::move(element));
 }
 
-void Page::appendElements(std::vector<std::unique_ptr<Element>> & elements)
+void Page::appendElements(const std::vector<std::unique_ptr<Element>> & elements)
 {
   for (auto &element : elements)
   {
