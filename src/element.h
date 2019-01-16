@@ -2,6 +2,7 @@
 #define ELEMENT_H
 
 #include <QPainter>
+#include <memory>
 
 namespace MrDoc {
 

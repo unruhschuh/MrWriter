@@ -1,6 +1,8 @@
 #ifndef PAGE_H
 #define PAGE_H
 
+#include <memory>
+
 #include "stroke.h"
 #include "element.h"
 

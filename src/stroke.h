@@ -5,6 +5,7 @@
 #include <QPainter>
 #include <QVector>
 #include <QVector2D>
+#include <memory>
 
 #include "element.h"
 
