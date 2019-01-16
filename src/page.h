@@ -44,7 +44,7 @@ public:
   void insertElement(size_t position, std::unique_ptr<Element> element);
 
   void appendElement(std::unique_ptr<Element> element);
-  void appendElements(std::vector<std::unique_ptr<Element> > elements);
+  void appendElements(std::vector<std::unique_ptr<Element> >& elements);
   void prependElement(std::unique_ptr<Element> element);
 
   /**

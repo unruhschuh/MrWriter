@@ -451,7 +451,7 @@ bool Document::loadMOJ(QString fileName)
         {
           return false;
         }
-        pages.back().appendElement(std::make_unique<Element>(newStroke));
+        pages.back().appendElement(newStroke.clone());
         strokeCount++;
         qDebug() << strokeCount;
       }

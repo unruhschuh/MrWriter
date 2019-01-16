@@ -205,7 +205,7 @@ void Page::insertElements(std::vector<QPair<std::unique_ptr<Element>, size_t>> &
 {
   for (auto i = elementsAndPositions.size(); i != 0; --i)
   {
-    insertElement(elementsAndPositions[i-1].second, std::move(elementsAndPositions[i-1].first));
+    insertElement(elementsAndPositions[i-1].second, elementsAndPositions[i-1].first->clone());
   }
 }
 
@@ -227,11 +227,12 @@ void Page::prependElement(std::unique_ptr<Element> element)
   m_elements.insert(m_elements.begin(), std::move(element));
 }
 
-void Page::appendElements(std::vector<std::unique_ptr<Element>> elements)
+void Page::appendElements(std::vector<std::unique_ptr<Element>> & elements)
 {
   for (auto &element : elements)
   {
-    appendElement(std::move(element));
+    appendElement(element->clone());
+    //appendElement(std::move(element));
   }
 }
 }
