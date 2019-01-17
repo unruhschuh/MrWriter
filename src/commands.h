@@ -178,6 +178,19 @@ private:
   Widget::state previousState;
 };
 
+class DeleteCommand : public QUndoCommand
+{
+public:
+  DeleteCommand(Widget *newWidget, QUndoCommand *parent = nullptr);
+  void undo() Q_DECL_OVERRIDE;
+  void redo() Q_DECL_OVERRIDE;
+
+private:
+  Widget *widget;
+  MrDoc::Selection previousSelection;
+  Widget::state previousState;
+};
+
 class ChangePageSettingsCommand : public QUndoCommand
 {
 public:

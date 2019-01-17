@@ -2054,51 +2054,52 @@ void Widget::copy()
 
 void Widget::paste()
 {
-  MrDoc::Selection tmpSelection = clipboard;
-  tmpSelection.setPageNum(getCurrentPage());
-
-  QPoint globalMousePos = parentWidget()->mapToGlobal(QPoint(0, 0)) + QPoint(parentWidget()->size().width() / 2, parentWidget()->size().height() / 2);
-  QPoint mousePos = this->mapFromGlobal(globalMousePos);
-  QPointF selectionPos = getPagePosFromMousePos(mousePos, getCurrentPage()) - tmpSelection.boundingRect().center();
-
-  if (snapToGrid)
+  if (! clipboard.empty())
   {
-    selectionPos = pagePosToGrid(selectionPos);
+    MrDoc::Selection tmpSelection = clipboard;
+    tmpSelection.setPageNum(getCurrentPage());
+
+    QPoint globalMousePos = parentWidget()->mapToGlobal(QPoint(0, 0)) + QPoint(parentWidget()->size().width() / 2, parentWidget()->size().height() / 2);
+    QPoint mousePos = this->mapFromGlobal(globalMousePos);
+    QPointF selectionPos = getPagePosFromMousePos(mousePos, getCurrentPage()) - tmpSelection.boundingRect().center();
+
+    if (snapToGrid)
+    {
+      selectionPos = pagePosToGrid(selectionPos);
+    }
+
+    QTransform myTrans;
+    myTrans = myTrans.translate(selectionPos.x(), selectionPos.y());
+
+    tmpSelection.transform(myTrans, tmpSelection.pageNum());
+
+    tmpSelection.finalize();
+    tmpSelection.updateBuffer(m_zoom);
+
+    undoStack.beginMacro("Paste");
+    if (currentState == state::SELECTED)
+    {
+      letGoSelection();
+    }
+    PasteCommand *pasteCommand = new PasteCommand(this, tmpSelection);
+    undoStack.push(pasteCommand);
+    undoStack.endMacro();
+
+    currentDocument.setDocumentChanged(true);
+    emit modified();
   }
-
-  QTransform myTrans;
-  myTrans = myTrans.translate(selectionPos.x(), selectionPos.y());
-
-  tmpSelection.transform(myTrans, tmpSelection.pageNum());
-
-  //  for (int i = 0; i < tmpSelection.strokes().size(); ++i)
-  //  {
-  //    tmpSelection.m_strokes[i].points = myTrans.map(tmpSelection.m_strokes[i].points);
-  //  }
-  tmpSelection.finalize();
-  tmpSelection.updateBuffer(m_zoom);
-
-  undoStack.beginMacro("Paste");
-  if (currentState == state::SELECTED)
-  {
-    letGoSelection();
-  }
-  PasteCommand *pasteCommand = new PasteCommand(this, tmpSelection);
-  undoStack.push(pasteCommand);
-  undoStack.endMacro();
-
-  currentDocument.setDocumentChanged(true);
-  emit modified();
 }
 
 void Widget::cut()
 {
   CutCommand *cutCommand = new CutCommand(this);
   undoStack.push(cutCommand);
-  //    clipboard = currentSelection;
-  //    currentSelection = Selection();
-  //    currentState = state::IDLE;
-  //    update();
+}
+
+void Widget::deleteSlot()
+{
+  DeleteCommand *deleteCommand = new DeleteCommand(this);
+  undoStack.push(deleteCommand);
 }
 
 void Widget::undo()

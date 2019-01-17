@@ -133,6 +133,7 @@ private:
   QAction *copyAct;
   QAction *pasteAct;
   QAction *cutAct;
+  QAction *deleteAct;
 
   QAction *zoomInAct;
   QAction *zoomOutAct;

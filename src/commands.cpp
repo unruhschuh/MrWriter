@@ -413,6 +413,30 @@ void CutCommand::redo()
 }
 
 /******************************************************************************
+** DeleteCommand
+*/
+
+DeleteCommand::DeleteCommand(Widget *newWidget, QUndoCommand *parent) : QUndoCommand(parent)
+{
+  setText(MainWindow::tr("Delete"));
+  widget = newWidget;
+  previousSelection = widget->currentSelection;
+  previousState = widget->getCurrentState();
+}
+
+void DeleteCommand::undo()
+{
+  widget->currentSelection = previousSelection;
+  widget->setCurrentState(previousState);
+}
+
+void DeleteCommand::redo()
+{
+  widget->currentSelection = MrDoc::Selection();
+  widget->setCurrentState(Widget::state::IDLE);
+}
+
+/******************************************************************************
 ** ChangePageSettingsCommand
 */
 

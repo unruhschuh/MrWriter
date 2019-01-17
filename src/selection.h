@@ -53,6 +53,8 @@ public:
 
   const QImage & buffer();
 
+  bool empty();
+
 private:
   QImage m_buffer;
 

@@ -175,6 +175,16 @@ const QImage&Selection::buffer()
   return m_buffer;
 }
 
+bool Selection::empty()
+{
+  if (m_elements.size() == 0)
+  {
+    return true;
+  } else {
+    return false;
+  }
+}
+
 void Selection::paint(QPainter &painter, qreal zoom, QRectF region __attribute__((unused)))
 {
   QTransform scaleTrans;

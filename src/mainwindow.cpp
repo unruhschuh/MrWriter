@@ -218,6 +218,12 @@ void MainWindow::createActions()
   connect(cutAct, SIGNAL(triggered()), mainWidget, SLOT(cut()));
   this->addAction(cutAct); // add to make shortcut work if menubar is hidden
 
+  deleteAct = new QAction(tr("Delete"), this);
+  deleteAct->setShortcut(QKeySequence::Delete);
+  deleteAct->setStatusTip(tr("Cut"));
+  connect(deleteAct, SIGNAL(triggered()), mainWidget, SLOT(deleteSlot()));
+  this->addAction(deleteAct); // add to make shortdelete work if menubar is hidden
+
   zoomInAct = new QAction(QIcon(":/images/zoomInIcon.png"), tr("Zoom &In"), this);
   zoomInAct->setShortcut(QKeySequence::ZoomIn);
   zoomInAct->setStatusTip(tr("Zoom In"));
@@ -575,6 +581,7 @@ void MainWindow::createMenus()
   editMenu->addAction(undoAct);
   editMenu->addAction(redoAct);
   editMenu->addSeparator();
+  editMenu->addAction(deleteAct);
   editMenu->addAction(cutAct);
   editMenu->addAction(copyAct);
   editMenu->addAction(pasteAct);
@@ -684,6 +691,7 @@ void MainWindow::createToolBars()
 
   editToolBar = addToolBar(tr("Edit"));
   editToolBar->setObjectName("editToolBar");
+  editToolBar->addAction(deleteAct);
   editToolBar->addAction(cutAct);
   editToolBar->addAction(copyAct);
   editToolBar->addAction(pasteAct);

@@ -259,6 +259,7 @@ private slots:
   void copy();
   void paste();
   void cut();
+  void deleteSlot();
 
   void pageFirst();
   void pageLast();
