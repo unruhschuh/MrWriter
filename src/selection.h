@@ -51,6 +51,8 @@ public:
 
   void updateBuffer(qreal zoom);
 
+  const QImage & buffer();
+
 private:
   QImage m_buffer;
 

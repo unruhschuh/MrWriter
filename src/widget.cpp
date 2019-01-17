@@ -4,6 +4,7 @@
 #include "tabletapplication.h"
 #include "tools.h"
 
+#include <QClipboard>
 #include <QMouseEvent>
 #include <QFileDialog>
 #include <QPdfWriter>
@@ -1291,7 +1292,7 @@ void Widget::erase(QPointF mousePos, bool lineEraser)
 
   QRectF rectE = QRectF(pagePos + QPointF(-eraserWidth, eraserWidth) / 2.0, pagePos + QPointF(eraserWidth, -eraserWidth) / 2.0);
 
-  QVector<int> strokesToDelete;
+  std::vector<size_t> strokesToDelete;
   QPointF iPoint;
 
   QPointF iPointA;
@@ -1299,10 +1300,10 @@ void Widget::erase(QPointF mousePos, bool lineEraser)
   QPointF iPointC;
   QPointF iPointD;
 
-  bool intersected;
 
   if (!lineEraser)
   {
+  bool intersected;
     for (size_t i = elements.size(); i--> 0; ) // reverse loop for size_t
     {
       auto stroke = dynamic_cast<MrDoc::Stroke*>(elements.at(i).get());
@@ -1396,7 +1397,7 @@ void Widget::erase(QPointF mousePos, bool lineEraser)
         {
           if (rectE.contains(stroke->points.at(j)))
           {
-            strokesToDelete.append(static_cast<int>(i));
+            strokesToDelete.push_back(i);
             foundStrokeToDelete = true;
             break;
           }
@@ -1409,7 +1410,7 @@ void Widget::erase(QPointF mousePos, bool lineEraser)
             if (line.intersect(lineA, &iPoint) == QLineF::BoundedIntersection || line.intersect(lineB, &iPoint) == QLineF::BoundedIntersection ||
                 line.intersect(lineC, &iPoint) == QLineF::BoundedIntersection || line.intersect(lineD, &iPoint) == QLineF::BoundedIntersection)
             {
-              strokesToDelete.append(static_cast<int>(i));
+              strokesToDelete.push_back(i);
               break;
             }
           }
@@ -1425,7 +1426,7 @@ void Widget::erase(QPointF mousePos, bool lineEraser)
 
     //    QRect updateRect;
     std::sort(strokesToDelete.begin(), strokesToDelete.end(), std::greater<int>());
-    for (int i = 0; i < strokesToDelete.size(); ++i)
+    for (size_t i = 0; i < strokesToDelete.size(); ++i)
     {
       //      updateRect = updateRect.united(currentDocument.pages[pageNum].m_strokes.at(strokesToDelete.at(i)).points.boundingRect().toRect());
       RemoveElementCommand *removeCommand = new RemoveElementCommand(this, pageNum, strokesToDelete[i]);
@@ -2035,7 +2036,19 @@ void Widget::selectAll()
 
 void Widget::copy()
 {
-  clipboard = currentSelection;
+  if (currentState == state::SELECTED )
+  {
+    clipboard = currentSelection;
+
+    QImage selectionBuffer = currentSelection.buffer();
+    QImage clipboardImage = selectionBuffer;
+    clipboardImage.fill(QColor(255,255,255));
+    QPainter painter(&clipboardImage);
+    painter.drawImage(0, 0, selectionBuffer);
+
+    QClipboard *clipboard = QGuiApplication::clipboard();
+    clipboard->setImage(clipboardImage);
+  }
   update();
 }
 
@@ -2261,8 +2274,6 @@ void Widget::setCurrentPenCursor(Widget::cursor cursorType)
         break;
     case Widget::cursor::DOT:
         setDotCursorIcon();
-        break;
-    default:
         break;
     }
 }

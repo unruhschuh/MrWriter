@@ -170,6 +170,11 @@ void Selection::updateBuffer(qreal zoom)
   Page::paint(imgPainter, upscale * zoom);
 }
 
+const QImage&Selection::buffer()
+{
+  return m_buffer;
+}
+
 void Selection::paint(QPainter &painter, qreal zoom, QRectF region __attribute__((unused)))
 {
   QTransform scaleTrans;
