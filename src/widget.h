@@ -92,24 +92,24 @@ public:
   void mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::MouseButtons buttons, Qt::KeyboardModifiers keyboardModifiers,
                            QTabletEvent::PointerType pointerType, QEvent::Type eventType, qreal pressure, bool tabletEvent);
 
-  bool pageVisible(int buffNum) const;
-  int firstVisiblePage() const;
-  int lastVisiblePage() const;
+  bool pageVisible(size_t buffNum) const;
+  size_t firstVisiblePage() const;
+  size_t lastVisiblePage() const;
   /**
    * @brief updateAllPageBuffers
    * @todo use std::unique_lock
    */
   void updateAllPageBuffers(bool force = false);
-  void updateImageBuffer(int buffNum);
-  void updateBuffer(int i);
-  void updateBufferRegion(int buffNum, QRectF const &clipRect);
-  void drawGrid(QPainter &painter, int buffNum);
+  void updateImageBuffer(size_t buffNum);
+  void updateBuffer(size_t i);
+  void updateBufferRegion(size_t buffNum, QRectF const &clipRect);
+  void drawGrid(QPainter &painter, size_t buffNum);
   void drawOnBuffer(bool last = false);
-  int getPageFromMousePos(QPointF mousePos) const;
-  QPointF getPagePosFromMousePos(QPointF mousePos, int pageNum) const;
+  size_t getPageFromMousePos(QPointF mousePos) const;
+  QPointF getPagePosFromMousePos(QPointF mousePos, size_t pageNum) const;
   QPointF getAbsolutePagePosFromMousePos(QPointF mousePos) const;
   QRect getWidgetGeometry() const;
-  int getCurrentPage() const;
+  size_t getCurrentPage() const;
 
   void setCurrentState(state newState);
   state getCurrentState();
@@ -175,7 +175,7 @@ private:
 
   qreal count;
 
-  void scrollDocumentToPageNum(int pageNum);
+  void scrollDocumentToPageNum(size_t pageNum);
 
   QVector<qreal> currentPattern = MrDoc::solidLinePattern;
 
@@ -191,7 +191,7 @@ private:
   state currentState;
 
   bool penDown = false;
-  int drawingOnPage;
+  size_t drawingOnPage;
 
   tool currentTool;
   tool previousTool;

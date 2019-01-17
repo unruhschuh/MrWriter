@@ -20,8 +20,7 @@
  * @param parent
  * @todo remove parameter newUpdate
  */
-AddElementCommand::AddElementCommand(Widget *newWidget, int newPageNum, std::unique_ptr<MrDoc::Element> newElement, int newElementNum, bool newUpdate,
-                                   bool newUpdateSuccessive, QUndoCommand *parent)
+AddElementCommand::AddElementCommand(Widget *newWidget, size_t newPageNum, std::unique_ptr<MrDoc::Element> newElement, bool newAtEnd, size_t newElementNum, bool newUpdate, bool newUpdateSuccessive, QUndoCommand *parent)
     : QUndoCommand(parent)
 {
   setText(MainWindow::tr("Add Element"));
@@ -31,6 +30,7 @@ AddElementCommand::AddElementCommand(Widget *newWidget, int newPageNum, std::uni
   elementNum = newElementNum;
   update = newUpdate;
   updateSuccessive = newUpdateSuccessive;
+  atEnd = newAtEnd;
 
   // delete duplicate points
   /*
@@ -118,7 +118,7 @@ void RemoveElementCommand::redo()
 ** CreateSelectionCommand
 */
 
-CreateSelectionCommand::CreateSelectionCommand(Widget *widget, int pageNum, const MrDoc::Selection & selection, QUndoCommand *parent) : QUndoCommand(parent)
+CreateSelectionCommand::CreateSelectionCommand(Widget *widget, size_t pageNum, const MrDoc::Selection & selection, QUndoCommand *parent) : QUndoCommand(parent)
 {
   setText(MainWindow::tr("Create Selection"));
   m_widget = widget;
@@ -157,7 +157,7 @@ void CreateSelectionCommand::redo()
 ** ReleaseSelectionCommand
 */
 
-ReleaseSelectionCommand::ReleaseSelectionCommand(Widget *newWidget, int newPageNum, QUndoCommand *parent) : QUndoCommand(parent)
+ReleaseSelectionCommand::ReleaseSelectionCommand(Widget *newWidget, size_t newPageNum, QUndoCommand *parent) : QUndoCommand(parent)
 {
   setText(MainWindow::tr("Release Selection"));
 
@@ -169,7 +169,7 @@ ReleaseSelectionCommand::ReleaseSelectionCommand(Widget *newWidget, int newPageN
 void ReleaseSelectionCommand::undo()
 {
   widget->currentSelection = selection;
-  for (int i = 0; i < widget->currentSelection.elements().size(); ++i)
+  for (size_t i = 0; i < widget->currentSelection.elements().size(); ++i)
   {
     widget->currentDocument.pages[pageNum].removeLastElement();
   }
@@ -178,7 +178,7 @@ void ReleaseSelectionCommand::undo()
 
 void ReleaseSelectionCommand::redo()
 {
-  int pageNum = widget->currentSelection.pageNum();
+  size_t pageNum = widget->currentSelection.pageNum();
   widget->currentDocument.pages[pageNum].appendElements(widget->currentSelection.elements());
   widget->setCurrentState(Widget::state::IDLE);
 }
@@ -237,7 +237,7 @@ void ChangeColorOfSelectionCommand::undo()
 
 void ChangeColorOfSelectionCommand::redo()
 {
-  for (int i = 0; i < m_widget->currentSelection.elements().size(); ++i)
+  for (size_t i = 0; i < m_widget->currentSelection.elements().size(); ++i)
   {
     m_widget->currentSelection.changeStrokeColor(i, m_color);
   }
@@ -263,7 +263,7 @@ void ChangePatternOfSelectionCommand::undo()
 
 void ChangePatternOfSelectionCommand::redo()
 {
-  for (int i = 0; i < m_widget->currentSelection.elements().size(); ++i)
+  for (size_t i = 0; i < m_widget->currentSelection.elements().size(); ++i)
   {
     m_widget->currentSelection.changeStrokePattern(i, m_pattern);
   }
@@ -289,7 +289,7 @@ void ChangePenWidthOfSelectionCommand::undo()
 
 void ChangePenWidthOfSelectionCommand::redo()
 {
-  for (int i = 0; i < widget->currentSelection.elements().size(); ++i)
+  for (size_t i = 0; i < widget->currentSelection.elements().size(); ++i)
   {
     widget->currentSelection.changePenWidth(i, m_penWidth);
   }
@@ -299,7 +299,7 @@ void ChangePenWidthOfSelectionCommand::redo()
 ** AddPageCommand
 */
 
-AddPageCommand::AddPageCommand(Widget *newWidget, int newPageNum, QUndoCommand *parent) : QUndoCommand(parent)
+AddPageCommand::AddPageCommand(Widget *newWidget, size_t newPageNum, QUndoCommand *parent) : QUndoCommand(parent)
 {
   setText(MainWindow::tr("Add Page"));
   widget = newWidget;
@@ -308,15 +308,15 @@ AddPageCommand::AddPageCommand(Widget *newWidget, int newPageNum, QUndoCommand *
 
 void AddPageCommand::undo()
 {
-  widget->currentDocument.pages.erase(widget->currentDocument.pages.begin() + pageNum);
-  widget->pageBuffer.removeAt(pageNum);
+  widget->currentDocument.pages.erase(widget->currentDocument.pages.begin() + static_cast<long>(pageNum));
+  widget->pageBuffer.removeAt(static_cast<int>(pageNum));
   widget->update();
 }
 
 void AddPageCommand::redo()
 {
   page = MrDoc::Page();
-  int pageNumForSettings;
+  size_t pageNumForSettings;
 
   if (pageNum == 0)
     pageNumForSettings = pageNum;
@@ -327,8 +327,8 @@ void AddPageCommand::redo()
   page.setHeight(widget->currentDocument.pages[pageNumForSettings].height());
   page.setBackgroundColor(widget->currentDocument.pages[pageNumForSettings].backgroundColor());
 
-  widget->currentDocument.pages.insert(widget->currentDocument.pages.begin() + pageNum, page);
-  widget->pageBuffer.insert(pageNum, QPixmap());
+  widget->currentDocument.pages.insert(widget->currentDocument.pages.begin() + static_cast<long>(pageNum), page);
+  widget->pageBuffer.insert(static_cast<int>(pageNum), QPixmap());
   widget->updateBuffer(pageNum);
   widget->update();
 }
@@ -337,7 +337,7 @@ void AddPageCommand::redo()
 ** RemovePageCommand
 */
 
-RemovePageCommand::RemovePageCommand(Widget *newWidget, int newPageNum, QUndoCommand *parent) : QUndoCommand(parent)
+RemovePageCommand::RemovePageCommand(Widget *newWidget, size_t newPageNum, QUndoCommand *parent) : QUndoCommand(parent)
 {
   setText(MainWindow::tr("Remove Page"));
   widget = newWidget;
@@ -347,16 +347,16 @@ RemovePageCommand::RemovePageCommand(Widget *newWidget, int newPageNum, QUndoCom
 
 void RemovePageCommand::undo()
 {
-  widget->currentDocument.pages.insert(widget->currentDocument.pages.begin() + pageNum, page);
-  widget->pageBuffer.insert(pageNum, QPixmap());
+  widget->currentDocument.pages.insert(widget->currentDocument.pages.begin() + static_cast<long>(pageNum), page);
+  widget->pageBuffer.insert(static_cast<int>(pageNum), QPixmap());
   widget->updateBuffer(pageNum);
   widget->update();
 }
 
 void RemovePageCommand::redo()
 {
-  widget->currentDocument.pages.erase(widget->currentDocument.pages.begin() + pageNum);
-  widget->pageBuffer.removeAt(pageNum);
+  widget->currentDocument.pages.erase(widget->currentDocument.pages.begin() + static_cast<long>(pageNum));
+  widget->pageBuffer.removeAt(static_cast<int>(pageNum));
   widget->update();
 }
 
@@ -364,7 +364,7 @@ void RemovePageCommand::redo()
 ** RemovePageCommand
 */
 
-PasteCommand::PasteCommand(Widget *newWidget, MrDoc::Selection newSelection, QUndoCommand *parent) : QUndoCommand(parent)
+PasteCommand::PasteCommand(Widget *newWidget, const MrDoc::Selection & newSelection, QUndoCommand *parent) : QUndoCommand(parent)
 {
   setText(MainWindow::tr("Paste"));
   widget = newWidget;

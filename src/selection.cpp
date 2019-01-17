@@ -11,17 +11,18 @@ namespace MrDoc
 
 Selection::Selection()
 {
+  m_pageNum = 0;
   setWidth(10.0);
   setHeight(10.0);
   setBackgroundColor(QColor(255, 255, 255, 0)); // transparent
 }
 
-void Selection::setPageNum(int pageNum)
+void Selection::setPageNum(size_t pageNum)
 {
   m_pageNum = pageNum;
 }
 
-int Selection::pageNum() const
+size_t Selection::pageNum() const
 {
   return m_pageNum;
 }
@@ -159,7 +160,7 @@ void Selection::updateBuffer(qreal zoom)
 {
   QPainter imgPainter;
   qreal upscale = 2.0;
-  m_buffer = QImage(upscale * zoom * width(), upscale * zoom * height(), QImage::Format_ARGB32_Premultiplied);
+  m_buffer = QImage(static_cast<int>(upscale * zoom * width()), static_cast<int>(upscale * zoom * height()), QImage::Format_ARGB32_Premultiplied);
   m_buffer.fill(qRgba(0, 0, 0, 0));
   m_buffer.setAlphaChannel(m_buffer);
   imgPainter.begin(&m_buffer);
@@ -241,13 +242,13 @@ void Selection::paint(QPainter &painter, qreal zoom, QRectF region __attribute__
   painter.setTransform(paintTrans.inverted(), true);
 }
 
-void Selection::transform(QTransform transform, int pageNum)
+void Selection::transform(QTransform transform, size_t pageNum)
 {
   m_selectionPolygon = transform.map(m_selectionPolygon);
 
   qreal sx = transform.m11();
   qreal sy = transform.m22();
-  qreal s = (sx + sy) / 2.0;
+  // qreal s = (sx + sy) / 2.0;
 
   for (size_t i = 0; i < m_elements.size(); ++i)
   {

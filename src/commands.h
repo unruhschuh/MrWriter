@@ -10,18 +10,18 @@
 class AddElementCommand : public QUndoCommand
 {
 public:
-  AddElementCommand(Widget *newWidget, int newPageNum, std::unique_ptr<MrDoc::Element> newElement, int newElementNum = -1, bool newUpdate = true,
-                   bool newUpdateSuccessive = true, QUndoCommand *parent = nullptr);
+  AddElementCommand(Widget *newWidget, size_t newPageNum, std::unique_ptr<MrDoc::Element> newElement, bool newAtEnd = true, size_t newElementNum = 0, bool newUpdate = true, bool newUpdateSuccessive = true, QUndoCommand *parent = nullptr);
   void undo() Q_DECL_OVERRIDE;
   void redo() Q_DECL_OVERRIDE;
 
 private:
   Widget *widget;
   std::unique_ptr<MrDoc::Element> element;
-  int elementNum;
-  int pageNum;
+  size_t elementNum;
+  size_t pageNum;
   bool update;
   bool updateSuccessive;
+  bool atEnd;
 };
 
 class RemoveElementCommand : public QUndoCommand
@@ -42,7 +42,7 @@ private:
 class CreateSelectionCommand : public QUndoCommand
 {
 public:
-  CreateSelectionCommand(Widget *widget, int pageNum, const MrDoc::Selection& selection, QUndoCommand *parent = nullptr);
+  CreateSelectionCommand(Widget *widget, size_t pageNum, const MrDoc::Selection& selection, QUndoCommand *parent = nullptr);
   void undo() Q_DECL_OVERRIDE;
   void redo() Q_DECL_OVERRIDE;
 
@@ -51,20 +51,20 @@ private:
   QPolygonF m_selectionPolygon;
   std::vector<QPair<std::unique_ptr<MrDoc::Element>, size_t>> m_elementsAndPositions;
   MrDoc::Selection m_selection;
-  int m_pageNum;
+  size_t m_pageNum;
 };
 
 class ReleaseSelectionCommand : public QUndoCommand
 {
 public:
-  ReleaseSelectionCommand(Widget *newWidget, int newPageNum, QUndoCommand *parent = nullptr);
+  ReleaseSelectionCommand(Widget *newWidget, size_t newPageNum, QUndoCommand *parent = nullptr);
   void undo() Q_DECL_OVERRIDE;
   void redo() Q_DECL_OVERRIDE;
 
 private:
   Widget *widget;
   MrDoc::Selection selection;
-  int pageNum;
+  size_t pageNum;
 };
 
 class TransformSelectionCommand : public QUndoCommand
@@ -128,33 +128,33 @@ private:
 class AddPageCommand : public QUndoCommand
 {
 public:
-  AddPageCommand(Widget *newWidget, int newPageNum, QUndoCommand *parent = nullptr);
+  AddPageCommand(Widget *newWidget, size_t newPageNum, QUndoCommand *parent = nullptr);
   void undo() Q_DECL_OVERRIDE;
   void redo() Q_DECL_OVERRIDE;
 
 private:
   Widget *widget;
   MrDoc::Page page;
-  int pageNum;
+  size_t pageNum;
 };
 
 class RemovePageCommand : public QUndoCommand
 {
 public:
-  RemovePageCommand(Widget *newWidget, int newPageNum, QUndoCommand *parent = nullptr);
+  RemovePageCommand(Widget *newWidget, size_t newPageNum, QUndoCommand *parent = nullptr);
   void undo() Q_DECL_OVERRIDE;
   void redo() Q_DECL_OVERRIDE;
 
 private:
   Widget *widget;
   MrDoc::Page page;
-  int pageNum;
+  size_t pageNum;
 };
 
 class PasteCommand : public QUndoCommand
 {
 public:
-  PasteCommand(Widget *newWidget, MrDoc::Selection newSelection, QUndoCommand *parent = nullptr);
+  PasteCommand(Widget *newWidget, const MrDoc::Selection& newSelection, QUndoCommand *parent = nullptr);
   void undo() Q_DECL_OVERRIDE;
   void redo() Q_DECL_OVERRIDE;
 
