@@ -16,7 +16,7 @@ public:
   virtual std::unique_ptr<Element> clone() const = 0;
   virtual QRectF boundingRect() const = 0;
   virtual void transform(QTransform _transform) = 0;
-  virtual bool containedInPolygon(QPolygonF selectionPolygon);
+  virtual bool containedInPolygon(QPolygonF selectionPolygon) = 0;
 };
 
 }

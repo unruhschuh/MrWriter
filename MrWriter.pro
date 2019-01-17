@@ -92,7 +92,7 @@ DISTFILES += \
     COPYING \
     MrWriter.icns
 
-CONFIG += c++14
+CONFIG += c++17
 
 #QMAKE_CXXFLAGS_RELEASE -= -O
 #QMAKE_CXXFLAGS_RELEASE -= -O1

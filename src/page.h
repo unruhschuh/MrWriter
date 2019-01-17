@@ -13,7 +13,8 @@ class Page
 {
 public:
   Page();
-  Page(const Page & _page);
+  Page(const Page & page);
+  Page &operator=(Page const & page);
   virtual ~Page() { }
 
   qreal width() const;

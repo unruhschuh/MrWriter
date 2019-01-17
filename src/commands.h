@@ -42,7 +42,7 @@ private:
 class CreateSelectionCommand : public QUndoCommand
 {
 public:
-  CreateSelectionCommand(Widget *widget, int pageNum, MrDoc::Selection selection, QUndoCommand *parent = nullptr);
+  CreateSelectionCommand(Widget *widget, int pageNum, const MrDoc::Selection& selection, QUndoCommand *parent = nullptr);
   void undo() Q_DECL_OVERRIDE;
   void redo() Q_DECL_OVERRIDE;
 

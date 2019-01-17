@@ -18,13 +18,29 @@ Page::Page()
   setBackgroundColor(QColor(255, 255, 255));
 }
 
-Page::Page(const Page & _page)
+Page::Page(const Page & page)
 {
-  size_t numElements = _page.m_elements.size();
+  size_t numElements = page.m_elements.size();
   for (size_t i = 0; i < numElements; i++)
   {
-    m_elements.push_back(_page.m_elements[i]->clone());
+    m_elements.push_back(page.m_elements[i]->clone());
   }
+  m_width = page.width();
+  m_height = page.height();
+  setBackgroundColor(page.backgroundColor());
+}
+
+Page & Page::operator=(Page const & page)
+{
+  size_t numElements = page.m_elements.size();
+  for (size_t i = 0; i < numElements; i++)
+  {
+    m_elements.push_back(page.m_elements[i]->clone());
+  }
+  m_width = page.width();
+  m_height = page.height();
+  setBackgroundColor(page.backgroundColor());
+  return *this;
 }
 
 qreal Page::height() const
@@ -160,15 +176,16 @@ std::vector<QPair<std::unique_ptr<Element>, size_t>> Page::getElements(QPolygonF
 {
   std::vector<QPair<std::unique_ptr<Element>, size_t>> elementsAndPositions;
 
-  for (unsigned long i = m_elements.size(); i != 0; --i)
+  for (size_t i = m_elements.size(); i != 0; --i)
   {
-    const auto & element = m_elements.at(i-1);
+    //const auto & element = m_elements.at(i-1);
+    auto element = m_elements.at(i-1).get();
     if (element->containedInPolygon(selectionPolygon))
     {
       // add selected element and positions to return vector
       // elementsAndPositions.append(QPair<std::unique_ptr<Element>, int>(element, i));
       QPair<std::unique_ptr<Element>, size_t> eAndP;
-      eAndP.first = std::unique_ptr<Element>(element->clone());
+      eAndP.first = element->clone();
       eAndP.second = i - 1;
       elementsAndPositions.push_back(std::move(eAndP));
     }

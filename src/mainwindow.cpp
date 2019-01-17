@@ -1524,3 +1524,4 @@ void MainWindow::exit()
 {
   static_cast<TabletApplication *>(qApp)->exit();
 }
+
