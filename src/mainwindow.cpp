@@ -155,7 +155,6 @@ void MainWindow::createActions()
 
   exportPDFAct = new QAction(QIcon(":/images/savePDFIcon.png"), tr("Export PDF"), this);
   exportPDFAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_E));
-  //    zoomFitWidthAct->setShortcut(QKeySequence(Qt::Key_Z));
   exportPDFAct->setStatusTip(tr("Export PDF"));
   connect(exportPDFAct, SIGNAL(triggered()), this, SLOT(exportPDF()));
 
@@ -170,12 +169,10 @@ void MainWindow::createActions()
   exitAct = new QAction(tr("E&xit"), this);
   exitAct->setShortcuts(QKeySequence::Quit);
   exitAct->setStatusTip(tr("Exit MrWriter"));
-  //    TabletApplication *qTabApp = static_cast<TabletApplication*>(qApp); // I have no idea what this was for (TOM)
   connect(exitAct, SIGNAL(triggered()), this, SLOT(exit()));
   this->addAction(exitAct); // add to make shortcut work if menubar is hidden
 
   undoAct = mainWidget->undoStack.createUndoAction(this);
-  //    undoAct = new QAction(QIcon(":/images/undoIcon.png"), tr("&Undo"), this);
   undoAct->setIcon(QIcon(":/images/undoIcon.png"));
   undoAct->setShortcut(QKeySequence::Undo);
   undoAct->setStatusTip(tr("Undo"));
@@ -185,7 +182,6 @@ void MainWindow::createActions()
   this->addAction(undoAct); // add to make shortcut work if menubar is hidden
 
   redoAct = mainWidget->undoStack.createRedoAction(this);
-  //    redoAct = new QAction(QIcon(":/images/redoIcon.png"), tr("&Redo"), this);
   redoAct->setIcon(QIcon(":/images/redoIcon.png"));
   redoAct->setShortcut(QKeySequence::Redo);
   redoAct->setStatusTip(tr("Redo"));
