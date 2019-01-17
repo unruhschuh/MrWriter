@@ -40,7 +40,7 @@ public:
 
   std::vector<QPair<std::unique_ptr<Element>, size_t> > getElements(QPolygonF selectionPolygon);
   std::vector<QPair<std::unique_ptr<Element>, size_t> > removeElements(QPolygonF selectionPolygon);
-  void removeElementAt(unsigned long i);
+  void removeElementAt(size_t i);
   void removeLastElement();
 
   void insertElements(const std::vector<QPair<std::unique_ptr<Element>, size_t> >& elementsAndPositions);
