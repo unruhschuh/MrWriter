@@ -840,6 +840,7 @@ void Widget::startSelecting(QPointF mousePos)
 
   MrDoc::Selection newSelection;
 
+
   newSelection.setPageNum(pageNum);
   newSelection.setWidth(currentDocument.pages[pageNum].width());
   newSelection.setHeight(currentDocument.pages[pageNum].height());
@@ -847,7 +848,7 @@ void Widget::startSelecting(QPointF mousePos)
 
   firstMousePos = mousePos;
 
-  currentSelection = std::move(newSelection);
+  currentSelection = newSelection;
 
   //    selecting = true;
   currentState = state::SELECTING;

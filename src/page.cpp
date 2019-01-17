@@ -32,6 +32,7 @@ Page::Page(const Page & page)
 
 Page & Page::operator=(Page const & page)
 {
+  m_elements.clear();
   size_t numElements = page.m_elements.size();
   for (size_t i = 0; i < numElements; i++)
   {

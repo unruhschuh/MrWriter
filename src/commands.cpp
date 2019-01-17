@@ -3,6 +3,7 @@
 #include <QDebug>
 #include <memory>
 #include "element.h"
+#include "tools.h"
 
 /******************************************************************************
 ** AddElementCommand

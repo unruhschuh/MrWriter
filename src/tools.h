@@ -3,6 +3,8 @@
 
 #include <QPolygonF>
 
+#define DEBUG_PRINT_EXPR(var) qDebug() << #var << " = " << var << " in " << __FILE__ "/" << __func__ << ":" << __LINE__
+
 namespace MrWriter {
 
 double polygonSignedArea(const QPolygonF &polygon);
