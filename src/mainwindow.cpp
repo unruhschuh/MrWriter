@@ -1173,8 +1173,8 @@ void MainWindow::about()
   aboutText.append(PRODUCT_NAME);
   aboutText.append(" ");
   aboutText.append(version);
-  aboutText.append(" Build ");
-  aboutText.append(BUILD);
+//  aboutText.append(" Build ");
+//  aboutText.append(BUILD);
   aboutText.append("<br/><br/>Written by Thomas Leitz<br/><br/><a href='");
   aboutText.append(PRODUCT_URL);
   aboutText.append("'>");
@@ -1251,12 +1251,7 @@ void MainWindow::snapToGrid()
 
 void MainWindow::verticalScrolling()
 {
-  QSize size = scrollArea->size();
-  QPoint globalMousePos = QPoint(size.width() / 2.0, size.height() / 2.0) + scrollArea->pos() + this->pos();
-  QPoint pos = mainWidget->mapFromGlobal(globalMousePos);
-  int pageNum = mainWidget->getPageFromMousePos(pos);
-
-  pageNum = mainWidget->getCurrentPage();
+  size_t pageNum = mainWidget->getCurrentPage();
 
   if (pageNum == mainWidget->currentDocument.pages.size() - 1)
   {
@@ -1271,7 +1266,7 @@ void MainWindow::verticalScrolling()
     pageDownAct->setStatusTip(tr("Page Down"));
   }
 
-  int Npages = mainWidget->currentDocument.pages.size();
+  size_t Npages = mainWidget->currentDocument.pages.size();
 
   QString statusMsg = QString("%1 / %2").arg(QString::number(pageNum + 1), QString::number(Npages));
 
@@ -1464,18 +1459,16 @@ void MainWindow::maximize()
 bool MainWindow::loadXOJ(QString fileName)
 {
   return mainWidget->currentDocument.loadXOJ(fileName);
-  updateGUI();
 }
 
 bool MainWindow::loadMOJ(QString fileName)
 {
   return mainWidget->currentDocument.loadMOJ(fileName);
-  updateGUI();
 }
 
 void MainWindow::pageSettings()
 {
-  int pageNum = mainWidget->getCurrentPage();
+  size_t pageNum = mainWidget->getCurrentPage();
   qreal width = mainWidget->currentDocument.pages[pageNum].width();
   qreal height = mainWidget->currentDocument.pages[pageNum].height();
   PageSettingsDialog *pageDialog = new PageSettingsDialog(QSizeF(width, height), mainWidget->currentDocument.pages[pageNum].backgroundColor(), this);

@@ -70,7 +70,7 @@ private:
 class TransformSelectionCommand : public QUndoCommand
 {
 public:
-  TransformSelectionCommand(Widget *newWidget, int newPageNum, QTransform newTransform, QUndoCommand *parent = nullptr);
+  TransformSelectionCommand(Widget *newWidget, size_t newPageNum, QTransform newTransform, QUndoCommand *parent = nullptr);
   void undo() Q_DECL_OVERRIDE;
   void redo() Q_DECL_OVERRIDE;
   int id() const Q_DECL_OVERRIDE
@@ -83,7 +83,7 @@ private:
   Widget *widget;
   MrDoc::Selection selection;
   QTransform transform;
-  int pageNum;
+  size_t pageNum;
 };
 
 class ChangeColorOfSelectionCommand : public QUndoCommand
@@ -181,13 +181,13 @@ private:
 class ChangePageSettingsCommand : public QUndoCommand
 {
 public:
-  ChangePageSettingsCommand(Widget *newWidget, int newPageNum, QSizeF newSize, QColor newBackgroundColor, QUndoCommand *parent = nullptr);
+  ChangePageSettingsCommand(Widget *newWidget, size_t newPageNum, QSizeF newSize, QColor newBackgroundColor, QUndoCommand *parent = nullptr);
   void undo() Q_DECL_OVERRIDE;
   void redo() Q_DECL_OVERRIDE;
 
 private:
   Widget *widget;
-  int pageNum;
+  size_t pageNum;
   QSizeF prevSize;
   QSizeF size;
   QColor prevBackgroundColor;

@@ -187,7 +187,7 @@ void ReleaseSelectionCommand::redo()
 ** TransformSelectionCommand
 */
 
-TransformSelectionCommand::TransformSelectionCommand(Widget *newWidget, int newPageNum, QTransform newTransform, QUndoCommand *parent) : QUndoCommand(parent)
+TransformSelectionCommand::TransformSelectionCommand(Widget *newWidget, size_t newPageNum, QTransform newTransform, QUndoCommand *parent) : QUndoCommand(parent)
 {
   setText(MainWindow::tr("Transform Selection"));
 
@@ -416,7 +416,7 @@ void CutCommand::redo()
 ** ChangePageSettingsCommand
 */
 
-ChangePageSettingsCommand::ChangePageSettingsCommand(Widget *newWidget, int newPageNum, QSizeF newSize, QColor newBackgroundColor, QUndoCommand *parent)
+ChangePageSettingsCommand::ChangePageSettingsCommand(Widget *newWidget, size_t newPageNum, QSizeF newSize, QColor newBackgroundColor, QUndoCommand *parent)
     : QUndoCommand(parent)
 {
   widget = newWidget;
