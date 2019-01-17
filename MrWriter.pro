@@ -46,7 +46,8 @@ SOURCES += \
     src/colorbutton.cpp \
     src/stroke.cpp \
     src/tools.cpp \
-    src/element.cpp
+    src/element.cpp \
+    src/quickmenu.cpp
 
 HEADERS  += \
     src/pagesettingsdialog.h \
@@ -64,9 +65,11 @@ HEADERS  += \
     src/tabletapplication.h \
     src/version.h \
     src/tools.h \
-    src/element.h
+    src/element.h \
+    src/quickmenu.h
 
-FORMS    +=
+FORMS    += \
+    src/quickmenu.ui
 
 RESOURCES += \
     myresource.qrc

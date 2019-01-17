@@ -27,6 +27,8 @@
 #include "pagesettingsdialog.h"
 #include "commands.h"
 #include "tabletapplication.h"
+//#include "quickmenu.h"
+#include "ui_quickmenu.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
@@ -82,6 +84,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
   createActions();
   createMenus();
   createToolBars();
+
+  quickmenu = new QDialog(this);
+  Ui::QuickMenu quickMenuUi;
+  quickMenuUi.setupUi(quickmenu);
 
   updateGUI();
 }
@@ -1002,6 +1008,7 @@ void MainWindow::zoomOut()
 void MainWindow::zoomFitWidth()
 {
   mainWidget->zoomFitWidth();
+  quickmenu->exec();
 }
 
 void MainWindow::zoomFitHeight()
@@ -1291,6 +1298,7 @@ void MainWindow::showEvent(QShowEvent *event)
   Widget::cursor storedValue = static_cast<Widget::cursor>(
               settings.value("cursorIcon").toInt());
   mainWidget->setCurrentPenCursor(storedValue);
+
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
