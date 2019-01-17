@@ -27,15 +27,15 @@ private:
 class RemoveElementCommand : public QUndoCommand
 {
 public:
-  RemoveElementCommand(Widget *newWidget, int newPageNum, int newElementNum, bool newUpdate = true, QUndoCommand *parent = nullptr);
+  RemoveElementCommand(Widget *newWidget, size_t newPageNum, size_t newElementNum, bool newUpdate = true, QUndoCommand *parent = nullptr);
   void undo() Q_DECL_OVERRIDE;
   void redo() Q_DECL_OVERRIDE;
 
 private:
   Widget *widget;
   std::unique_ptr<MrDoc::Element> element;
-  int elementNum;
-  int pageNum;
+  size_t elementNum;
+  size_t pageNum;
   bool update;
 };
 

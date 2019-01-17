@@ -47,7 +47,7 @@ AddElementCommand::AddElementCommand(Widget *newWidget, size_t newPageNum, std::
 
 void AddElementCommand::undo()
 {
-  if (elementNum == -1)
+  if (atEnd)
   {
     widget->currentDocument.pages[pageNum].removeElementAt(widget->currentDocument.pages[pageNum].elements().size() - 1);
   }
@@ -59,7 +59,7 @@ void AddElementCommand::undo()
 
 void AddElementCommand::redo()
 {
-  if (elementNum == -1)
+  if (atEnd)
   {
     widget->currentDocument.pages[pageNum].appendElement(element->clone());
   }
@@ -82,7 +82,7 @@ void AddElementCommand::redo()
  * @param parent
  * @todo remove parameter newUpdate
  */
-RemoveElementCommand::RemoveElementCommand(Widget *newWidget, int newPageNum, int newElementNum, bool newUpdate, QUndoCommand *parent) : QUndoCommand(parent)
+RemoveElementCommand::RemoveElementCommand(Widget *newWidget, size_t newPageNum, size_t newElementNum, bool newUpdate, QUndoCommand *parent) : QUndoCommand(parent)
 {
   setText(MainWindow::tr("Remove Element"));
   pageNum = newPageNum;
@@ -99,7 +99,7 @@ void RemoveElementCommand::undo()
   qreal zoom = widget->m_zoom;
   QRect updateRect = element->boundingRect().toRect();
   updateRect = QRect(zoom * updateRect.topLeft(), zoom * updateRect.bottomRight());
-  int delta = zoom * 10;
+  int delta = static_cast<int>(zoom * 10.0);
   updateRect.adjust(-delta, -delta, delta, delta);
 }
 
@@ -110,7 +110,7 @@ void RemoveElementCommand::redo()
   qreal zoom = widget->m_zoom;
   QRect updateRect = element->boundingRect().toRect();
   updateRect = QRect(zoom * updateRect.topLeft(), zoom * updateRect.bottomRight());
-  int delta = zoom * 10;
+  int delta = static_cast<int>(zoom * 10.0);
   updateRect.adjust(-delta, -delta, delta, delta);
 }
 
@@ -309,7 +309,7 @@ AddPageCommand::AddPageCommand(Widget *newWidget, size_t newPageNum, QUndoComman
 void AddPageCommand::undo()
 {
   widget->currentDocument.pages.erase(widget->currentDocument.pages.begin() + static_cast<long>(pageNum));
-  widget->pageBuffer.removeAt(static_cast<int>(pageNum));
+  widget->pageBuffer.erase(widget->pageBuffer.begin() + static_cast<long>(pageNum));
   widget->update();
 }
 
@@ -328,7 +328,7 @@ void AddPageCommand::redo()
   page.setBackgroundColor(widget->currentDocument.pages[pageNumForSettings].backgroundColor());
 
   widget->currentDocument.pages.insert(widget->currentDocument.pages.begin() + static_cast<long>(pageNum), page);
-  widget->pageBuffer.insert(static_cast<int>(pageNum), QPixmap());
+  widget->pageBuffer.insert(widget->pageBuffer.begin() + static_cast<long>(pageNum), QPixmap());
   widget->updateBuffer(pageNum);
   widget->update();
 }
@@ -348,7 +348,7 @@ RemovePageCommand::RemovePageCommand(Widget *newWidget, size_t newPageNum, QUndo
 void RemovePageCommand::undo()
 {
   widget->currentDocument.pages.insert(widget->currentDocument.pages.begin() + static_cast<long>(pageNum), page);
-  widget->pageBuffer.insert(static_cast<int>(pageNum), QPixmap());
+  widget->pageBuffer.insert(widget->pageBuffer.begin() + static_cast<long>(pageNum), QPixmap());
   widget->updateBuffer(pageNum);
   widget->update();
 }
@@ -356,7 +356,7 @@ void RemovePageCommand::undo()
 void RemovePageCommand::redo()
 {
   widget->currentDocument.pages.erase(widget->currentDocument.pages.begin() + static_cast<long>(pageNum));
-  widget->pageBuffer.removeAt(static_cast<int>(pageNum));
+  widget->pageBuffer.erase(widget->pageBuffer.begin() + static_cast<long>(pageNum));
   widget->update();
 }
 

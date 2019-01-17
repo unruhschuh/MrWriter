@@ -138,8 +138,8 @@ public:
   void rotateSelection(qreal angle);
 
   MrDoc::Document currentDocument;
-  QVector<QPixmap> pageBuffer;
-  QVector<QImage> pageImageBuffer;
+  std::vector<QPixmap> pageBuffer;
+  std::vector<QImage> pageImageBuffer;
   QMutex pageImageBufferMutex;
 
   QColor currentColor;
@@ -155,7 +155,7 @@ public:
   MrDoc::Selection currentSelection;
   MrDoc::Selection &clipboard = static_cast<TabletApplication *>(qApp)->clipboard;
 
-  int selectingOnPage;
+  size_t selectingOnPage;
 
   QScrollArea *scrollArea;
 

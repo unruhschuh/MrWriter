@@ -125,7 +125,7 @@ void Widget::updateAllPageBuffers(bool force)
   {
     for (size_t pageNum = 0; pageNum < currentDocument.pages.size(); ++pageNum)
     {
-      pageBuffer.append(QPixmap(0,0));
+      pageBuffer.push_back(QPixmap(0,0));
     }
   }
   for (size_t pageNum = 0; pageNum < currentDocument.pages.size(); ++pageNum)
@@ -133,13 +133,13 @@ void Widget::updateAllPageBuffers(bool force)
     if (pageVisible(pageNum))
     {
       if ( force ||
-           ( pageBuffer.at(static_cast<int>(pageNum)).width() != currentDocument.pages.at(pageNum).pixelWidth(m_zoom, devicePixelRatio()) ||
-             pageBuffer.at(static_cast<int>(pageNum)).height() != currentDocument.pages.at(pageNum).pixelHeight(m_zoom, devicePixelRatio()) ) )
+           ( pageBuffer.at(pageNum).width() != currentDocument.pages.at(pageNum).pixelWidth(m_zoom, devicePixelRatio()) ||
+             pageBuffer.at(pageNum).height() != currentDocument.pages.at(pageNum).pixelHeight(m_zoom, devicePixelRatio()) ) )
       {
         updateBuffer(pageNum);
       }
     } else {
-      pageBuffer.replace(static_cast<int>(pageNum), QPixmap(0,0));
+      pageBuffer.at(pageNum) = QPixmap(0,0);
     }
   }
 }
@@ -171,7 +171,7 @@ void Widget::updateImageBuffer(size_t buffNum)
   painter.end();
 
   pageImageBufferMutex.lock();
-  pageImageBuffer.replace(static_cast<int>(buffNum), image);
+  pageImageBuffer.at(buffNum) = image;
   pageImageBufferMutex.unlock();
 }
 
@@ -198,13 +198,13 @@ void Widget::updateBuffer(size_t buffNum)
 
   painter.end();
 
-  pageBuffer.replace(static_cast<int>(buffNum), pixmap);
+  pageBuffer.at(buffNum) = pixmap;
 }
 
 void Widget::updateBufferRegion(size_t buffNum, QRectF const &clipRect)
 {
   QPainter painter;
-  painter.begin(&pageBuffer[static_cast<int>(buffNum)]);
+  painter.begin(&pageBuffer[buffNum]);
   painter.setRenderHint(QPainter::Antialiasing, true);
   painter.setClipRect(clipRect);
   painter.setClipping(true);
@@ -267,7 +267,7 @@ void Widget::drawGrid(QPainter &painter, size_t buffNum)
 void Widget::drawOnBuffer(bool last)
 {
   QPainter painter;
-  painter.begin(&pageBuffer[static_cast<int>(drawingOnPage)]);
+  painter.begin(&pageBuffer[drawingOnPage]);
   painter.setRenderHint(QPainter::Antialiasing, true);
 
   currentStroke.paint(painter, m_zoom, last);
@@ -317,7 +317,7 @@ void Widget::paintEvent(QPaintEvent *event)
     rectSource = trans.mapRect(event->rect());
 
     //        QPixmap tmp = QPixmap::fromImage(pageBuffer.at(drawingOnPage));
-    painter.drawPixmap(event->rect(), pageBuffer[static_cast<int>(drawingOnPage)], rectSource);
+    painter.drawPixmap(event->rect(), pageBuffer[drawingOnPage], rectSource);
 
     //        painter.drawImage(event->rect(), pageBuffer.at(drawingOnPage), rectSource);
     return;
@@ -329,16 +329,16 @@ void Widget::paintEvent(QPaintEvent *event)
   {
     QRectF rectSource;
     rectSource.setTopLeft(QPointF(0.0, 0.0));
-    rectSource.setWidth(pageBuffer.at(static_cast<int>(i)).width());
-    rectSource.setHeight(pageBuffer.at(static_cast<int>(i)).height());
+    rectSource.setWidth(pageBuffer.at(i).width());
+    rectSource.setHeight(pageBuffer.at(i).height());
 
     QRectF rectTarget;
     //        rectTarget.setTopLeft(QPointF(0.0, currentYPos));
     rectTarget.setTopLeft(QPointF(0.0, 0.0));
-    rectTarget.setWidth(pageBuffer.at(static_cast<int>(i)).width()/devicePixelRatio());
-    rectTarget.setHeight(pageBuffer.at(static_cast<int>(i)).height()/devicePixelRatio());
+    rectTarget.setWidth(pageBuffer.at(i).width()/devicePixelRatio());
+    rectTarget.setHeight(pageBuffer.at(i).height()/devicePixelRatio());
 
-    painter.drawPixmap(rectTarget, pageBuffer.at(static_cast<int>(i)), rectSource);
+    painter.drawPixmap(rectTarget, pageBuffer.at(i), rectSource);
 
     if ((currentState == state::SELECTING || currentState == state::SELECTED || currentState == state::MOVING_SELECTION ||
          currentState == state::RESIZING_SELECTION || currentState == state::ROTATING_SELECTION) &&
@@ -834,7 +834,7 @@ void Widget::setPreviousTool()
 
 void Widget::startSelecting(QPointF mousePos)
 {
-  int pageNum = getPageFromMousePos(mousePos);
+  size_t pageNum = getPageFromMousePos(mousePos);
   QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
 
   MrDoc::Selection newSelection;
@@ -856,7 +856,7 @@ void Widget::startSelecting(QPointF mousePos)
 
 void Widget::continueSelecting(QPointF mousePos)
 {
-  int pageNum = selectingOnPage;
+  size_t pageNum = selectingOnPage;
   QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
   QPointF firstPagePos = getPagePosFromMousePos(firstMousePos, pageNum);
 
@@ -887,7 +887,7 @@ void Widget::continueSelecting(QPointF mousePos)
 
 void Widget::stopSelecting(QPointF mousePos)
 {
-  int pageNum = selectingOnPage;
+  size_t pageNum = selectingOnPage;
 
   //continueSelecting(mousePos);
 
@@ -922,7 +922,7 @@ void Widget::letGoSelection()
 {
   if (getCurrentState() == state::SELECTED)
   {
-    int pageNum = currentSelection.pageNum();
+    size_t pageNum = currentSelection.pageNum();
     ReleaseSelectionCommand *releaseCommand = new ReleaseSelectionCommand(this, pageNum);
     undoStack.push(releaseCommand);
     updateAllDirtyBuffers();
@@ -943,7 +943,7 @@ void Widget::startRuling(QPointF mousePos)
   currentDocument.setDocumentChanged(true);
   emit modified();
 
-  int pageNum = getPageFromMousePos(mousePos);
+  size_t pageNum = getPageFromMousePos(mousePos);
   QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
 
   if (snapToGrid)
@@ -995,7 +995,7 @@ void Widget::continueRuling(QPointF mousePos)
   QRect clipRect(m_zoom * firstPagePos.toPoint(), m_zoom * pagePos.toPoint());
   QRect oldClipRect(m_zoom * firstPagePos.toPoint(), m_zoom * previousPagePos.toPoint());
   clipRect = clipRect.normalized().united(oldClipRect.normalized());
-  int clipRad = m_zoom * currentPenWidth / 2 + 2;
+  int clipRad = static_cast<int>(m_zoom * currentPenWidth / 2.0) + 2;
   clipRect = clipRect.normalized().adjusted(-clipRad, -clipRad, clipRad, clipRad);
   updateBufferRegion(drawingOnPage, clipRect);
   drawOnBuffer();
@@ -1052,7 +1052,7 @@ void Widget::startCircling(QPointF mousePos)
   currentDocument.setDocumentChanged(true);
   emit modified();
 
-  int pageNum = getPageFromMousePos(mousePos);
+  size_t pageNum = getPageFromMousePos(mousePos);
 
   MrDoc::Stroke newStroke;
   //    newStroke.points.append(pagePos);
@@ -1133,7 +1133,7 @@ void Widget::startRecting(QPointF mousePos)
   currentDocument.setDocumentChanged(true);
   emit modified();
 
-  int pageNum = getPageFromMousePos(mousePos);
+  size_t pageNum = getPageFromMousePos(mousePos);
 
   MrDoc::Stroke newStroke;
   //    newStroke.points.append(pagePos);
@@ -1216,7 +1216,7 @@ void Widget::startDrawing(QPointF mousePos, qreal pressure)
 
   currentUpdateRect = QRect();
 
-  int pageNum = getPageFromMousePos(mousePos);
+  size_t pageNum = getPageFromMousePos(mousePos);
   QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
 
   currentDashOffset = 0.0;
@@ -1244,7 +1244,7 @@ void Widget::continueDrawing(QPointF mousePos, qreal pressure)
   drawOnBuffer(true);
 
   QRect updateRect(previousMousePos.toPoint(), mousePos.toPoint());
-  int rad = currentPenWidth * m_zoom / 2 + 2;
+  int rad = static_cast<int>(currentPenWidth * m_zoom / 2.0) + 2;
   updateRect = updateRect.normalized().adjusted(-rad, -rad, +rad, +rad);
 
   currentUpdateRect = currentUpdateRect.united(updateRect);
@@ -1303,13 +1303,14 @@ void Widget::erase(QPointF mousePos, bool lineEraser)
 
   if (!lineEraser)
   {
-    for (int i = elements.size() - 1; i >= 0; --i)
+    for (size_t i = elements.size(); i--> 0; ) // reverse loop for size_t
     {
       auto stroke = dynamic_cast<MrDoc::Stroke*>(elements.at(i).get());
       if (nullptr != stroke)
       {
         if (rectE.intersects(stroke->points.boundingRect()) || !stroke->points.boundingRect().isValid()) // this is done for speed
         {
+
           for (int j = 0; j < stroke->points.length() - 1; ++j)
           {
             QLineF line = QLineF(stroke->points.at(j), stroke->points.at(j + 1));
@@ -1439,7 +1440,7 @@ void Widget::startMovingSelection(QPointF mousePos)
   currentDocument.setDocumentChanged(true);
   emit modified();
 
-  int pageNum = getPageFromMousePos(mousePos);
+  size_t pageNum = getPageFromMousePos(mousePos);
   previousPagePos = getPagePosFromMousePos(mousePos, pageNum);
   if (snapToGrid)
   {
@@ -1451,7 +1452,7 @@ void Widget::startMovingSelection(QPointF mousePos)
 
 void Widget::continueMovingSelection(QPointF mousePos)
 {
-  int pageNum = getPageFromMousePos(mousePos);
+  size_t pageNum = getPageFromMousePos(mousePos);
   QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
   //    currentSelection.move(1 * (pagePos - previousPagePos));
 
@@ -1480,14 +1481,14 @@ void Widget::startRotatingSelection(QPointF mousePos)
 
   m_currentAngle = 0.0;
 
-  int pageNum = currentSelection.pageNum();
+  size_t pageNum = currentSelection.pageNum();
   previousPagePos = getPagePosFromMousePos(mousePos, pageNum);
   setCurrentState(state::ROTATING_SELECTION);
 }
 
 void Widget::continueRotatingSelection(QPointF mousePos)
 {
-  int pageNum = currentSelection.pageNum();
+  size_t pageNum = currentSelection.pageNum();
   QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
 
   m_currentAngle = QLineF(currentSelection.boundingRect().center(), pagePos).angleTo(QLineF(currentSelection.boundingRect().center(), previousPagePos));
@@ -1503,7 +1504,7 @@ void Widget::continueRotatingSelection(QPointF mousePos)
 void Widget::stopRotatingSelection(QPointF mousePos)
 {
   continueRotatingSelection(mousePos);
-  int pageNum = currentSelection.pageNum();
+  size_t pageNum = currentSelection.pageNum();
 
   QTransform transform;
   transform.translate(currentSelection.boundingRect().center().x(), currentSelection.boundingRect().center().y());
@@ -1529,14 +1530,14 @@ void Widget::startResizingSelection(QPointF mousePos, MrDoc::Selection::GrabZone
 
   m_grabZone = grabZone;
 
-  int pageNum = currentSelection.pageNum();
+  size_t pageNum = currentSelection.pageNum();
   previousPagePos = getPagePosFromMousePos(mousePos, pageNum);
   setCurrentState(state::RESIZING_SELECTION);
 }
 
 void Widget::continueResizingSelection(QPointF mousePos)
 {
-  int pageNum = currentSelection.pageNum();
+  size_t pageNum = currentSelection.pageNum();
   QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
   QPointF delta = (pagePos - previousPagePos);
 
