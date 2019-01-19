@@ -27,8 +27,10 @@
 #include "pagesettingsdialog.h"
 #include "commands.h"
 #include "tabletapplication.h"
-//#include "quickmenu.h"
+#include "quickmenu.h"
 #include "ui_quickmenu.h"
+#include "settingsdialog.h"
+#include "ui_settingsdialog.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
@@ -50,6 +52,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
   connect(mainWidget, SIGNAL(updateGUI()), this, SLOT(updateGUI()));
 
   connect(mainWidget, SIGNAL(modified()), this, SLOT(modified()));
+
+  connect(mainWidget, SIGNAL(quickmenu()), this, SLOT(quickmenu()));
 
   scrollArea = new QScrollArea(this);
   scrollArea->setWidget(mainWidget);
@@ -85,9 +89,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
   createMenus();
   createToolBars();
 
-  quickmenu = new QDialog(this);
-  Ui::QuickMenu quickMenuUi;
-  quickMenuUi.setupUi(quickmenu);
+  quickMenu = new QuickMenu(this);
 
   updateGUI();
 }
@@ -294,6 +296,10 @@ void MainWindow::createActions()
   pageSettingsAct = new QAction(tr("Page Settings"), this);
   pageSettingsAct->setStatusTip(tr("Page Settings"));
   connect(pageSettingsAct, SIGNAL(triggered()), this, SLOT(pageSettings()));
+
+  settingsAct = new QAction(tr("Settings"), this);
+  settingsAct->setStatusTip(tr("Settings"));
+  connect(settingsAct, SIGNAL(triggered()), this, SLOT(settings()));
 
   saveMyStateAct = new QAction(tr("Save window state"), this);
   saveMyStateAct->setStatusTip(tr("Save window state"));
@@ -591,6 +597,8 @@ void MainWindow::createMenus()
   editMenu->addAction(selectAllAct);
   editMenu->addSeparator();
   editMenu->addAction(rotateAct);
+  editMenu->addSeparator();
+  editMenu->addAction(settingsAct);
 
   pageMenu = menuBar()->addMenu(tr("&Page"));
   pageMenu->addAction(pageAddBeforeAct);
@@ -1008,7 +1016,6 @@ void MainWindow::zoomOut()
 void MainWindow::zoomFitWidth()
 {
   mainWidget->zoomFitWidth();
-  quickmenu->exec();
 }
 
 void MainWindow::zoomFitHeight()
@@ -1077,6 +1084,12 @@ void MainWindow::hand()
 void MainWindow::modified()
 {
   setWindowModified(mainWidget->currentDocument.documentChanged());
+}
+
+void MainWindow::quickmenu()
+{
+  quickMenu->move(QCursor::pos() - QPoint(quickMenu->width() / 2, quickMenu->height() / 2));
+  quickMenu->exec();
 }
 
 void MainWindow::black()
@@ -1495,6 +1508,12 @@ void MainWindow::pageSettings()
     }
   }
   delete pageDialog;
+}
+
+void MainWindow::settings()
+{
+  SettingsDialog * settingsDialog = new SettingsDialog(this);
+  settingsDialog->exec();
 }
 
 void MainWindow::saveMyState()

@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SettingsDialog</class>
+ <widget class="QDialog" name="SettingsDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>365</width>
+    <height>202</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Settings</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0">
+    <layout class="QFormLayout" name="formLayout">
+     <item row="0" column="0">
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Left mouse button / pen tip</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QComboBox" name="comboBox">
+       <item>
+        <property name="text">
+         <string>Pen tool</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Select tool</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Hand tool</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Eraser tool</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Ruler tool</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Rectangle tool</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Rectangle select tool</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Circle tool</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Quick menu</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QComboBox" name="comboBox_4">
+       <item>
+        <property name="text">
+         <string>Pen tool</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Select tool</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Hand tool</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Eraser tool</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Ruler tool</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Rectangle tool</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Rectangle select tool</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Circle tool</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Quick menu</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QComboBox" name="comboBox_3">
+       <item>
+        <property name="text">
+         <string>Pen tool</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Select tool</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Hand tool</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Eraser tool</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Ruler tool</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Rectangle tool</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Rectangle select tool</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Circle tool</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Quick menu</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QComboBox" name="comboBox_2">
+       <item>
+        <property name="text">
+         <string>Pen tool</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Select tool</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Hand tool</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Eraser tool</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Ruler tool</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Rectangle tool</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Rectangle select tool</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Circle tool</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Quick menu</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>Right mouse button</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>Middle mouse button</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>eraser tip</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="1" column="0">
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QPushButton" name="cancelButton">
+       <property name="text">
+        <string>Cancel</string>
+       </property>
+       <property name="autoDefault">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton">
+       <property name="text">
+        <string>Ok</string>
+       </property>
+       <property name="autoDefault">
+        <bool>false</bool>
+       </property>
+       <property name="default">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <tabstops>
+  <tabstop>comboBox</tabstop>
+  <tabstop>comboBox_4</tabstop>
+  <tabstop>comboBox_3</tabstop>
+  <tabstop>comboBox_2</tabstop>
+  <tabstop>cancelButton</tabstop>
+  <tabstop>pushButton</tabstop>
+ </tabstops>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>cancelButton</sender>
+   <signal>clicked()</signal>
+   <receiver>SettingsDialog</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>133</x>
+     <y>173</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>255</x>
+     <y>100</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

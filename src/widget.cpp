@@ -791,6 +791,12 @@ void Widget::mouseReleaseEvent(QMouseEvent *event)
   penDown = false;
 }
 
+void Widget::mouseDoubleClickEvent(QMouseEvent* event)
+{
+  (void)event;
+  emit quickmenu();
+}
+
 void Widget::setPreviousTool()
 {
   if (previousTool == tool::PEN)

@@ -47,7 +47,8 @@ SOURCES += \
     src/stroke.cpp \
     src/tools.cpp \
     src/element.cpp \
-    src/quickmenu.cpp
+    src/quickmenu.cpp \
+    src/settingsdialog.cpp
 
 HEADERS  += \
     src/pagesettingsdialog.h \
@@ -66,10 +67,12 @@ HEADERS  += \
     src/version.h \
     src/tools.h \
     src/element.h \
-    src/quickmenu.h
+    src/quickmenu.h \
+    src/settingsdialog.h
 
 FORMS    += \
-    src/quickmenu.ui
+    src/quickmenu.ui \
+    src/settingsdialog.ui
 
 RESOURCES += \
     myresource.qrc

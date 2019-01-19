@@ -59,6 +59,7 @@ private slots:
   void hand();
 
   void modified();
+  void quickmenu();
 
   void toolbar();
   void statusbar();
@@ -68,6 +69,7 @@ private slots:
   void maximize();
 
   void pageSettings();
+  void settings();
 
   void black();
   void blue();
@@ -101,7 +103,7 @@ private:
   Widget *mainWidget;
   QScrollArea *scrollArea;
 
-  QDialog *quickmenu;
+  QDialog *quickMenu;
 
   void createActions();
   void createToolBars();
@@ -155,6 +157,7 @@ private:
   QAction *pageRemoveAct;
 
   QAction *pageSettingsAct;
+  QAction *settingsAct;
 
   QAction *penAct;
   QAction *rulerAct;

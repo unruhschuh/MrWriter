@@ -304,11 +304,14 @@ signals:
 
   void modified();
 
+  void quickmenu();
+
 protected:
   void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
   void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
   void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
   void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+  virtual void mouseDoubleClickEvent(QMouseEvent *event) override;
 
   void tabletEvent(QTabletEvent *event) Q_DECL_OVERRIDE;
 
