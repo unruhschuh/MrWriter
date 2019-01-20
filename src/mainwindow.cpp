@@ -1021,6 +1021,42 @@ void MainWindow::zoomFitHeight()
   mainWidget->zoomFitHeight();
 }
 
+void MainWindow::undo()
+{
+  mainWidget->undo();
+}
+
+void MainWindow::redo()
+{
+  mainWidget->redo();
+}
+
+void MainWindow::copy()
+{
+  mainWidget->copy();
+}
+
+void MainWindow::cut()
+{
+  mainWidget->cut();
+}
+
+void MainWindow::paste()
+{
+  mainWidget->paste();
+}
+
+void MainWindow::deleteSlot()
+{
+  mainWidget->deleteSlot();
+}
+
+void MainWindow::letGoSelection()
+{
+  mainWidget->letGoSelection();
+}
+
+
 void MainWindow::pen()
 {
   mainWidget->setCurrentTool(Widget::tool::PEN);
@@ -1092,7 +1128,7 @@ void MainWindow::quickmenu()
   quickMenu->setAttribute(Qt::WA_DeleteOnClose);
   quickMenu->exec();
   mainWidget->enableInput();
-  mainWidget->letGoSelection();
+  updateGUI();
 }
 
 void MainWindow::black()

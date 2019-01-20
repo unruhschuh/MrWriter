@@ -117,7 +117,6 @@ public:
   QColor getCurrentColor();
 
   void setDocument(const MrDoc::Document &newDocument);
-  void letGoSelection();
 
   void newFile();
   //    void openFile();
@@ -250,9 +249,7 @@ private:
 
   void erase(QPointF mousePos, bool invertEraser = false);
 
-private slots:
-  void updateAllDirtyBuffers();
-
+public slots:
   void undo();
   void redo();
 
@@ -261,6 +258,10 @@ private slots:
   void paste();
   void cut();
   void deleteSlot();
+
+private slots:
+  void updateAllDirtyBuffers();
+
 
   void pageFirst();
   void pageLast();
@@ -319,6 +320,7 @@ protected:
 signals:
 
 public slots:
+  void letGoSelection();
   void enableInput();
   void disableInput();
 

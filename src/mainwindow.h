@@ -48,6 +48,15 @@ private slots:
   void zoomFitWidth();
   void zoomFitHeight();
 
+  void undo();
+  void redo();
+  void copy();
+  void cut();
+  void paste();
+  void deleteSlot();
+
+  void letGoSelection();
+
   void pen();
   void ruler();
   void circle();
