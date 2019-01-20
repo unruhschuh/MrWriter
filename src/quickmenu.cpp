@@ -7,6 +7,7 @@ QuickMenu::QuickMenu(QWidget *parent) : QDialog(parent), ui(new Ui::QuickMenu)
 {
   qDebug() << "constr";
   ui->setupUi(this);
+  setAttribute(Qt::WA_Hover);
   setWindowFlag(Qt::FramelessWindowHint);
 
   MainWindow *mainWindow = dynamic_cast<MainWindow*>(parent);
