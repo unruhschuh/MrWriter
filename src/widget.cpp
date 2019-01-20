@@ -90,6 +90,21 @@ Widget::Widget(QWidget *parent) : QWidget(parent)
 //  updateAllPageBuffers();
 }
 
+void Widget::enableInput()
+{
+  m_inputEnabled = true;
+}
+
+void Widget::disableInput()
+{
+  m_inputEnabled = false;
+}
+
+bool Widget::inputEnabled()
+{
+  return m_inputEnabled;
+}
+
 void Widget::showEvent( QShowEvent* event ) {
     QWidget::showEvent( event );
   updateAllPageBuffers();
@@ -410,6 +425,11 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
     setPreviousTool();
   }
 
+  if ((eventType == QEvent::MouseButtonPress || eventType == QEvent::MouseButtonRelease) && button == Qt::RightButton)
+  {
+    emit quickmenu();
+    return;
+  }
   if ((currentState == state::IDLE || currentState == state::SELECTED) && buttons & Qt::MiddleButton && pointerType == QTabletEvent::Pen)
   {
     if (eventType == QEvent::MouseButtonPress && button == Qt::MiddleButton)
@@ -707,94 +727,106 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
 
 void Widget::tabletEvent(QTabletEvent *event)
 {
-  event->accept();
-
-  //    qDebug("tabletevent");
-
-  //    event->setAccepted(true);
-
-  QPointF mousePos = QPointF(event->hiResGlobalX(), event->hiResGlobalY()) - mapToGlobal(QPoint(0, 0));
-  qreal pressure = event->pressure();
-
-  QEvent::Type eventType;
-  switch (event->type())
+  qDebug() << Q_FUNC_INFO;
+  if (inputEnabled())
   {
-  case QTabletEvent::TabletPress:
-    eventType = QEvent::MouseButtonPress;
-    penDown = true;
-    break;
-  case QTabletEvent::TabletMove:
-    eventType = QEvent::MouseMove;
-    penDown = true;
-    break;
-  case QTabletEvent::TabletRelease:
-    eventType = QEvent::MouseButtonRelease;
-    break;
-  default:
-    eventType = event->type();
+    event->accept();
+
+    QPointF mousePos = QPointF(event->hiResGlobalX(), event->hiResGlobalY()) - mapToGlobal(QPoint(0, 0));
+    qreal pressure = event->pressure();
+
+    QEvent::Type eventType;
+    switch (event->type())
+    {
+    case QTabletEvent::TabletPress:
+      eventType = QEvent::MouseButtonPress;
+      penDown = true;
+      break;
+    case QTabletEvent::TabletMove:
+      eventType = QEvent::MouseMove;
+      penDown = true;
+      break;
+    case QTabletEvent::TabletRelease:
+      eventType = QEvent::MouseButtonRelease;
+      break;
+    default:
+      eventType = event->type();
+    }
+
+    Qt::KeyboardModifiers keyboardModifiers = event->modifiers();
+
+    mouseAndTabletEvent(mousePos, event->button(), event->buttons(), keyboardModifiers, event->pointerType(), eventType, pressure, true);
   }
-
-  Qt::KeyboardModifiers keyboardModifiers = event->modifiers();
-
-  mouseAndTabletEvent(mousePos, event->button(), event->buttons(), keyboardModifiers, event->pointerType(), eventType, pressure, true);
+  else
+  {
+    event->ignore();
+  }
 }
 
 void Widget::mousePressEvent(QMouseEvent *event)
 {
-  bool usingTablet = static_cast<TabletApplication *>(qApp)->isUsingTablet();
-
-  if (!usingTablet)
+  if (inputEnabled())
   {
-    if (!penDown)
-    {
-      QPointF mousePos = event->localPos();
-      qreal pressure = 1;
+    bool usingTablet = static_cast<TabletApplication *>(qApp)->isUsingTablet();
 
-      Qt::KeyboardModifiers keyboardModifiers = event->modifiers();
-      mouseAndTabletEvent(mousePos, event->button(), event->buttons(), keyboardModifiers, QTabletEvent::Pen, event->type(), pressure, false);
+    if (!usingTablet)
+    {
+      if (!penDown)
+      {
+        QPointF mousePos = event->localPos();
+        qreal pressure = 1;
+
+        Qt::KeyboardModifiers keyboardModifiers = event->modifiers();
+        mouseAndTabletEvent(mousePos, event->button(), event->buttons(), keyboardModifiers, QTabletEvent::Pen, event->type(), pressure, false);
+      }
     }
   }
 }
 
 void Widget::mouseMoveEvent(QMouseEvent *event)
 {
-  bool usingTablet = static_cast<TabletApplication *>(qApp)->isUsingTablet();
-
-  if (!usingTablet)
+  if (inputEnabled())
   {
-    if (!penDown)
-    {
-      QPointF mousePos = event->localPos();
-      qreal pressure = 1;
+    bool usingTablet = static_cast<TabletApplication *>(qApp)->isUsingTablet();
 
-      Qt::KeyboardModifiers keyboardModifiers = event->modifiers();
-      mouseAndTabletEvent(mousePos, event->button(), event->buttons(), keyboardModifiers, QTabletEvent::Pen, event->type(), pressure, false);
+    if (!usingTablet)
+    {
+      if (!penDown)
+      {
+        QPointF mousePos = event->localPos();
+        qreal pressure = 1;
+
+        Qt::KeyboardModifiers keyboardModifiers = event->modifiers();
+        mouseAndTabletEvent(mousePos, event->button(), event->buttons(), keyboardModifiers, QTabletEvent::Pen, event->type(), pressure, false);
+      }
     }
   }
 }
 
 void Widget::mouseReleaseEvent(QMouseEvent *event)
 {
-  bool usingTablet = static_cast<TabletApplication *>(qApp)->isUsingTablet();
-
-  if (!usingTablet)
+  if (inputEnabled())
   {
-    if (!penDown)
-    {
-      QPointF mousePos = event->localPos();
-      qreal pressure = 1;
+    bool usingTablet = static_cast<TabletApplication *>(qApp)->isUsingTablet();
 
-      Qt::KeyboardModifiers keyboardModifiers = event->modifiers();
-      mouseAndTabletEvent(mousePos, event->button(), event->buttons(), keyboardModifiers, QTabletEvent::Pen, event->type(), pressure, false);
+    if (!usingTablet)
+    {
+      if (!penDown)
+      {
+        QPointF mousePos = event->localPos();
+        qreal pressure = 1;
+
+        Qt::KeyboardModifiers keyboardModifiers = event->modifiers();
+        mouseAndTabletEvent(mousePos, event->button(), event->buttons(), keyboardModifiers, QTabletEvent::Pen, event->type(), pressure, false);
+      }
     }
+    penDown = false;
   }
-  penDown = false;
 }
 
 void Widget::mouseDoubleClickEvent(QMouseEvent* event)
 {
-  (void)event;
-  emit quickmenu();
+  (void) event;
 }
 
 void Widget::setPreviousTool()

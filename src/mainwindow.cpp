@@ -89,8 +89,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
   createMenus();
   createToolBars();
 
-  quickMenu = new QuickMenu(this);
-
   updateGUI();
 }
 
@@ -1088,8 +1086,13 @@ void MainWindow::modified()
 
 void MainWindow::quickmenu()
 {
+  mainWidget->disableInput();
+  auto quickMenu = new QuickMenu(this);
   quickMenu->move(QCursor::pos() - QPoint(quickMenu->width() / 2, quickMenu->height() / 2));
+  quickMenu->setAttribute(Qt::WA_DeleteOnClose);
   quickMenu->exec();
+  mainWidget->enableInput();
+  mainWidget->letGoSelection();
 }
 
 void MainWindow::black()

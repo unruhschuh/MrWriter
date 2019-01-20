@@ -4,7 +4,7 @@
 #define MIN_ZOOM 0.1
 #define MAX_ZOOM 10.0
 
-#define INVISIBLE_BUFFER_FACTOR 10.0
+// #define INVISIBLE_BUFFER_FACTOR 10.0
 
 #include <QWidget>
 #include <QOpenGLWidget>
@@ -23,11 +23,10 @@
 #include "document.h"
 
 class Widget : public QWidget
-// class Widget : public QOpenGLWidget
 {
   Q_OBJECT
 public:
-  explicit Widget(QWidget *parent = 0);
+  explicit Widget(QWidget *parent = nullptr);
 
   enum class tool
   {
@@ -175,6 +174,8 @@ private:
 
   qreal count;
 
+  bool m_inputEnabled = true;
+
   void scrollDocumentToPageNum(size_t pageNum);
 
   QVector<qreal> currentPattern = MrDoc::solidLinePattern;
@@ -318,6 +319,12 @@ protected:
 signals:
 
 public slots:
+  void enableInput();
+  void disableInput();
+
+public:
+  bool inputEnabled();
+
 };
 
 #endif // WIDGET_H

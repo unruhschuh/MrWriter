@@ -103,8 +103,6 @@ private:
   Widget *mainWidget;
   QScrollArea *scrollArea;
 
-  QDialog *quickMenu;
-
   void createActions();
   void createToolBars();
   void createMenus();
