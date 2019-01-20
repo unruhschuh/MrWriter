@@ -1,7 +1,7 @@
-branches:
-  only:
-  - master
-  - polymorph
+#branches:
+#  only:
+#  - master
+#  - polymorph
 
 language: cpp
 
