@@ -2,6 +2,10 @@
 
 set -x
 
+export CC=gcc-7
+export CXX=g++-7
+g++ --version
+
 source /opt/qt*/bin/qt*-env.sh
 mkdir build
 cd build

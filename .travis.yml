@@ -20,6 +20,7 @@ matrix:
 
 before_install:
     - eval "${MATRIX_EVAL}"
+    - g++ --version
 
 install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then travis/install_osx.sh ; fi
