@@ -1,6 +1,8 @@
 #include "stroke.h"
 #include "tools.h"
 
+#include <memory>
+
 namespace MrDoc
 {
 
