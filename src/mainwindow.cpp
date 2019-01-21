@@ -220,7 +220,7 @@ void MainWindow::createActions()
   connect(cutAct, SIGNAL(triggered()), mainWidget, SLOT(cut()));
   this->addAction(cutAct); // add to make shortcut work if menubar is hidden
 
-  deleteAct = new QAction(tr("Delete"), this);
+  deleteAct = new QAction(QIcon(":/images/deleteIcon_48.png"), tr("Delete"), this);
   deleteAct->setShortcut(QKeySequence::Delete);
   deleteAct->setStatusTip(tr("Cut"));
   connect(deleteAct, SIGNAL(triggered()), mainWidget, SLOT(deleteSlot()));
@@ -1039,6 +1039,7 @@ void MainWindow::copy()
 void MainWindow::cut()
 {
   mainWidget->cut();
+  updateGUI();
 }
 
 void MainWindow::paste()
@@ -1049,6 +1050,7 @@ void MainWindow::paste()
 void MainWindow::deleteSlot()
 {
   mainWidget->deleteSlot();
+  updateGUI();
 }
 
 void MainWindow::letGoSelection()
@@ -1463,11 +1465,13 @@ void MainWindow::updateGUI()
   {
     cutAct->setEnabled(true);
     copyAct->setEnabled(true);
+    deleteAct->setEnabled(true);
   }
   else
   {
     cutAct->setDisabled(true);
     copyAct->setDisabled(true);
+    deleteAct->setDisabled(true);
   }
   //    toolbarAct->setChecked()
 
@@ -1534,6 +1538,31 @@ bool MainWindow::loadXOJ(QString fileName)
 bool MainWindow::loadMOJ(QString fileName)
 {
   return mainWidget->currentDocument.loadMOJ(fileName);
+}
+
+Widget::tool MainWindow::currentTool()
+{
+  return mainWidget->getCurrentTool();
+}
+
+QColor MainWindow::currentColor()
+{
+  return mainWidget->getCurrentColor();
+}
+
+Widget::state MainWindow::currentState()
+{
+  return mainWidget->getCurrentState();
+}
+
+bool MainWindow::showingGrid()
+{
+  return mainWidget->showingGrid();
+}
+
+bool MainWindow::snappingToGrid()
+{
+  return mainWidget->snappingToGrid();
 }
 
 void MainWindow::pageSettings()

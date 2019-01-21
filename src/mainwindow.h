@@ -13,13 +13,20 @@ class MainWindow : public QMainWindow
   Q_OBJECT
 
 public:
-  explicit MainWindow(QWidget *parent = 0);
+  explicit MainWindow(QWidget *parent = nullptr);
   //    MainWindow();
-  ~MainWindow();
+  ~MainWindow() override;
 
   void setTitle();
   bool loadXOJ(QString fileName);
   bool loadMOJ(QString fileName);
+
+  Widget::tool currentTool();
+  QColor currentColor();
+  Widget::state currentState();
+
+  bool showingGrid();
+  bool snappingToGrid();
 
 protected:
   void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;

@@ -499,6 +499,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
     }
   }
 
+  /*
   if (currentState == state::IDLE && button == Qt::RightButton)
   {
     previousTool = currentTool;
@@ -513,6 +514,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
     startSelecting(mousePos);
     return;
   }
+  */
 
   if (currentState == state::MOVING_SELECTION)
   {
@@ -2087,6 +2089,7 @@ void Widget::copy()
     clipboard->setImage(clipboardImage);
   }
   update();
+  emit updateGUI();
 }
 
 void Widget::paste()
@@ -2124,6 +2127,7 @@ void Widget::paste()
 
     currentDocument.setDocumentChanged(true);
     emit modified();
+    emit updateGUI();
   }
 }
 
@@ -2131,12 +2135,14 @@ void Widget::cut()
 {
   CutCommand *cutCommand = new CutCommand(this);
   undoStack.push(cutCommand);
+  emit updateGUI();
 }
 
 void Widget::deleteSlot()
 {
   DeleteCommand *deleteCommand = new DeleteCommand(this);
   undoStack.push(deleteCommand);
+  emit updateGUI();
 }
 
 void Widget::undo()

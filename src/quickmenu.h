@@ -3,6 +3,7 @@
 
 #include <QtWidgets/QWidget>
 #include <QMainWindow>
+#include "mainwindow.h"
 
 namespace Ui {
 class QuickMenu;
@@ -16,7 +17,7 @@ public:
   explicit QuickMenu(QWidget *parent = nullptr);
   ~QuickMenu() override;
 
-  void setupSignalsAndSlots(QMainWindow * mainWindow);
+  void setupSignalsAndSlots(MainWindow * mainWindow);
 
 private:
   Ui::QuickMenu *ui;

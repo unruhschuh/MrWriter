@@ -2,14 +2,13 @@
 #include "ui_quickmenu.h"
 #include <QtDebug>
 #include "mainwindow.h"
+#include "widget.h"
 
 QuickMenu::QuickMenu(QWidget *parent) : QWidget(parent, Qt::FramelessWindowHint | Qt::Window), ui(new Ui::QuickMenu)
 {
   qDebug() << "constr";
   ui->setupUi(this);
   setAttribute(Qt::WA_Hover);
-  //setWindowFlag(Qt::FramelessWindowHint | Qt::Window);
-  //setWindowFlag(Qt::CustomizeWindowHint);
 }
 
 QuickMenu::~QuickMenu()
@@ -17,7 +16,7 @@ QuickMenu::~QuickMenu()
   delete ui;
 }
 
-void QuickMenu::setupSignalsAndSlots(QMainWindow* mainWindow)
+void QuickMenu::setupSignalsAndSlots(MainWindow* mainWindow)
 {
   if (mainWindow)
   {
@@ -83,15 +82,6 @@ void QuickMenu::setupSignalsAndSlots(QMainWindow* mainWindow)
     connect(ui->magentaButton, SIGNAL(clicked()), mainWindow, SLOT(magenta()));
     connect(ui->magentaButton, SIGNAL(clicked()), this, SLOT(close()));
 
-    // connect(ui->orangeButton, SIGNAL(clicked()), mainWindow, SLOT(orange()));
-    // connect(ui->orangeButton, SIGNAL(clicked()), this, SLOT(close()));
-
-    // connect(ui->yellowButton, SIGNAL(clicked()), mainWindow, SLOT(yellow()));
-    // connect(ui->yellowButton, SIGNAL(clicked()), this, SLOT(close()));
-
-    // connect(ui->whiteButton, SIGNAL(clicked()), mainWindow, SLOT(white()));
-    // connect(ui->whiteButton, SIGNAL(clicked()), this, SLOT(close()));
-
     // copy paste cut buttons
     connect(ui->copyButton, SIGNAL(clicked()), mainWindow, SLOT(copy()));
     connect(ui->copyButton, SIGNAL(clicked()), this, SLOT(close()));
@@ -115,6 +105,32 @@ void QuickMenu::setupSignalsAndSlots(QMainWindow* mainWindow)
 
     // close event
     connect(this, SIGNAL(destroyed()), mainWindow, SLOT(quickmenuClose()));
+
+    QColor currentColor = mainWindow->currentColor();
+
+    ui->blackButton->setChecked(currentColor == MrDoc::black);
+    ui->blueButton->setChecked(currentColor == MrDoc::blue);
+    ui->redButton->setChecked(currentColor == MrDoc::red);
+    ui->greenButton->setChecked(currentColor == MrDoc::green);
+    ui->grayButton->setChecked(currentColor == MrDoc::gray);
+    ui->lightblueButton->setChecked(currentColor == MrDoc::lightblue);
+    ui->lightgreenButton->setChecked(currentColor == MrDoc::lightgreen);
+    ui->magentaButton->setChecked(currentColor == MrDoc::magenta);
+
+    Widget::tool currentTool = mainWindow->currentTool();
+
+    ui->penButton->setChecked(currentTool == Widget::tool::PEN);
+    ui->rulerButton->setChecked(currentTool == Widget::tool::RULER);
+    ui->circleButton->setChecked(currentTool == Widget::tool::CIRCLE);
+    ui->rectButton->setChecked(currentTool == Widget::tool::RECT);
+    ui->eraserButton->setChecked(currentTool == Widget::tool::ERASER);
+    ui->strokeEraserButton->setChecked(currentTool == Widget::tool::STROKE_ERASER);
+    ui->selectButton->setChecked(currentTool == Widget::tool::SELECT);
+    ui->rectSelectButton->setChecked(currentTool == Widget::tool::RECT_SELECT);
+    ui->handButton->setChecked(currentTool == Widget::tool::HAND);
+
+    ui->showGridButton->setChecked(mainWindow->showingGrid());
+    ui->snapToGridButton->setChecked(mainWindow->snappingToGrid());
   }
 }
 
@@ -131,7 +147,6 @@ void QuickMenu::leaveEvent(QEvent* event)
 }
 
 void QuickMenu::changeEvent(QEvent* event)
-// clang-format off
 {
   QWidget::changeEvent(event);
   if (event->type() == QEvent::ActivationChange)
@@ -148,4 +163,3 @@ void QuickMenu::changeEvent(QEvent* event)
   }
 }
 
-// clang-format on
