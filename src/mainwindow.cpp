@@ -1294,15 +1294,18 @@ void MainWindow::statusbar()
 
 void MainWindow::fullscreen()
 {
-  if (fullscreenAct->isChecked())
+  //if (fullscreenAct->isChecked())
+  if (!isFullScreen())
   {
     showFullScreen();
     menuBar()->hide();
+    fullscreenAct->setChecked(true);
   }
   else
   {
     showNormal();
     menuBar()->show();
+    fullscreenAct->setChecked(false);
   }
 }
 

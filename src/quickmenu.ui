@@ -75,13 +75,13 @@
       </widget>
      </item>
      <item row="4" column="9">
-      <widget class="QToolButton" name="magentaButton">
+      <widget class="QToolButton" name="fullscreenButton">
        <property name="text">
         <string>...</string>
        </property>
        <property name="icon">
         <iconset resource="../myresource.qrc">
-         <normaloff>:/images/magentaIcon.png</normaloff>:/images/magentaIcon.png</iconset>
+         <normaloff>:/images/fullscreenIcon.png</normaloff>:/images/fullscreenIcon.png</iconset>
        </property>
        <property name="iconSize">
         <size>

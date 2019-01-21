@@ -79,9 +79,6 @@ void QuickMenu::setupSignalsAndSlots(MainWindow* mainWindow)
     connect(ui->lightgreenButton, SIGNAL(clicked()), mainWindow, SLOT(lightgreen()));
     connect(ui->lightgreenButton, SIGNAL(clicked()), this, SLOT(close()));
 
-    connect(ui->magentaButton, SIGNAL(clicked()), mainWindow, SLOT(magenta()));
-    connect(ui->magentaButton, SIGNAL(clicked()), this, SLOT(close()));
-
     // copy paste cut buttons
     connect(ui->copyButton, SIGNAL(clicked()), mainWindow, SLOT(copy()));
     connect(ui->copyButton, SIGNAL(clicked()), this, SLOT(close()));
@@ -103,6 +100,10 @@ void QuickMenu::setupSignalsAndSlots(MainWindow* mainWindow)
     connect(ui->showGridButton, SIGNAL(clicked()), mainWindow, SLOT(showGrid()));
     connect(ui->snapToGridButton, SIGNAL(clicked()), mainWindow, SLOT(snapToGrid()));
 
+    // other buttons
+    connect(ui->fullscreenButton, SIGNAL(clicked()), mainWindow, SLOT(fullscreen()));
+    connect(ui->fullscreenButton, SIGNAL(clicked()), this, SLOT(close()));
+
     // close event
     connect(this, SIGNAL(destroyed()), mainWindow, SLOT(quickmenuClose()));
 
@@ -115,7 +116,6 @@ void QuickMenu::setupSignalsAndSlots(MainWindow* mainWindow)
     ui->grayButton->setChecked(currentColor == MrDoc::gray);
     ui->lightblueButton->setChecked(currentColor == MrDoc::lightblue);
     ui->lightgreenButton->setChecked(currentColor == MrDoc::lightgreen);
-    ui->magentaButton->setChecked(currentColor == MrDoc::magenta);
 
     Widget::tool currentTool = mainWindow->currentTool();
 
@@ -131,6 +131,8 @@ void QuickMenu::setupSignalsAndSlots(MainWindow* mainWindow)
 
     ui->showGridButton->setChecked(mainWindow->showingGrid());
     ui->snapToGridButton->setChecked(mainWindow->snappingToGrid());
+
+    ui->fullscreenButton->setChecked(mainWindow->isFullScreen());
   }
 }
 
