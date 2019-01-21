@@ -731,7 +731,6 @@ void Widget::tabletEvent(QTabletEvent *event)
   if (inputEnabled())
   {
     event->accept();
-
     QPointF mousePos = QPointF(event->hiResGlobalX(), event->hiResGlobalY()) - mapToGlobal(QPoint(0, 0));
     qreal pressure = event->pressure();
 

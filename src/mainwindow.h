@@ -69,6 +69,7 @@ private slots:
 
   void modified();
   void quickmenu();
+  void quickmenuClose();
 
   void toolbar();
   void statusbar();

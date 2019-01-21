@@ -1123,10 +1123,16 @@ void MainWindow::modified()
 void MainWindow::quickmenu()
 {
   mainWidget->disableInput();
-  auto quickMenu = new QuickMenu(this);
+  auto quickMenu = new QuickMenu();
+  quickMenu->setupSignalsAndSlots(this);
   quickMenu->move(QCursor::pos() - QPoint(quickMenu->width() / 2, quickMenu->height() / 2));
+//  quickMenu->setWindowModality(Qt::WindowModal);
   quickMenu->setAttribute(Qt::WA_DeleteOnClose);
-  quickMenu->exec();
+  quickMenu->show();
+}
+
+void MainWindow::quickmenuClose()
+{
   mainWidget->enableInput();
   updateGUI();
 }

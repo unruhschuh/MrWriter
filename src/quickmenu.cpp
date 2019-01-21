@@ -3,15 +3,21 @@
 #include <QtDebug>
 #include "mainwindow.h"
 
-QuickMenu::QuickMenu(QWidget *parent) : QDialog(parent), ui(new Ui::QuickMenu)
+QuickMenu::QuickMenu(QWidget *parent) : QWidget(parent), ui(new Ui::QuickMenu)
 {
   qDebug() << "constr";
   ui->setupUi(this);
   setAttribute(Qt::WA_Hover);
   setWindowFlag(Qt::FramelessWindowHint);
+}
 
-  MainWindow *mainWindow = dynamic_cast<MainWindow*>(parent);
+QuickMenu::~QuickMenu()
+{
+  delete ui;
+}
 
+void QuickMenu::setupSignalsAndSlots(QMainWindow* mainWindow)
+{
   if (mainWindow)
   {
     // tool buttons
@@ -105,12 +111,10 @@ QuickMenu::QuickMenu(QWidget *parent) : QDialog(parent), ui(new Ui::QuickMenu)
     // grid buttons
     connect(ui->showGridButton, SIGNAL(clicked()), mainWindow, SLOT(showGrid()));
     connect(ui->snapToGridButton, SIGNAL(clicked()), mainWindow, SLOT(snapToGrid()));
-  }
-}
 
-QuickMenu::~QuickMenu()
-{
-  delete ui;
+    // close event
+    connect(this, SIGNAL(destroyed()), mainWindow, SLOT(quickmenuClose()));
+  }
 }
 
 
@@ -124,3 +128,23 @@ void QuickMenu::leaveEvent(QEvent* event)
   (void)event;
   close();
 }
+
+void QuickMenu::changeEvent(QEvent* event)
+// clang-format off
+{
+  QWidget::changeEvent(event);
+  if (event->type() == QEvent::ActivationChange)
+  {
+    if(this->isActiveWindow())
+    {
+      // widget is now active
+    }
+    else
+    {
+      // widget is now inactive
+      close();
+    }
+  }
+}
+
+// clang-format on
