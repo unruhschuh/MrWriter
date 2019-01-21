@@ -3,12 +3,13 @@
 #include <QtDebug>
 #include "mainwindow.h"
 
-QuickMenu::QuickMenu(QWidget *parent) : QWidget(parent), ui(new Ui::QuickMenu)
+QuickMenu::QuickMenu(QWidget *parent) : QWidget(parent, Qt::FramelessWindowHint | Qt::Window), ui(new Ui::QuickMenu)
 {
   qDebug() << "constr";
   ui->setupUi(this);
   setAttribute(Qt::WA_Hover);
-  setWindowFlag(Qt::FramelessWindowHint);
+  //setWindowFlag(Qt::FramelessWindowHint | Qt::Window);
+  //setWindowFlag(Qt::CustomizeWindowHint);
 }
 
 QuickMenu::~QuickMenu()
