@@ -20,8 +20,8 @@ public:
   qreal width() const;
   qreal height() const;
 
-  int pixelHeight(const qreal zoom, int devicePixelRatio) const;
-  int pixelWidth(const qreal zoom, int devicePixelRatio) const;
+  int pixelHeight(const qreal zoom, int devicePixelRatio = 1) const;
+  int pixelWidth(const qreal zoom, int devicePixelRatio = 1) const;
 
   void setWidth(qreal width);
   void setHeight(qreal height);

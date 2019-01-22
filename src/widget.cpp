@@ -327,7 +327,8 @@ void Widget::paintEvent(QPaintEvent *event)
     for (size_t i = 0; i < drawingOnPage; ++i)
     {
       //trans = trans.translate(0, -(pageBuffer.at(i).height() + PAGE_GAP*devicePixelRatio()));
-      trans = trans.translate(0, -(currentDocument.pages.at(i).pixelHeight(m_zoom, devicePixelRatio()) + PAGE_GAP*devicePixelRatio()));
+      //trans = trans.translate(0, -(currentDocument.pages.at(i).pixelHeight(m_zoom, devicePixelRatio()) + PAGE_GAP*devicePixelRatio()));
+      trans = trans.translate(0, -(currentDocument.pages.at(i).pixelHeight(m_zoom) + PAGE_GAP) * devicePixelRatio());
     }
     trans = trans.scale(devicePixelRatio(),devicePixelRatio());
     rectSource = trans.mapRect(event->rect());
@@ -364,8 +365,8 @@ void Widget::paintEvent(QPaintEvent *event)
     }
 
     auto & page = currentDocument.pages.at(i);
-    int pixelHeight = page.pixelHeight(m_zoom, devicePixelRatio());
-    painter.translate(QPointF(0.0, pixelHeight + PAGE_GAP * devicePixelRatio()));
+    int pixelHeight = page.pixelHeight(m_zoom, 1);
+    painter.translate(QPointF(0.0, pixelHeight + PAGE_GAP));
     //painter.translate(QPointF(0.0, rectSource.height()/devicePixelRatio() + PAGE_GAP * devicePixelRatio()));
   }
 }
@@ -1318,7 +1319,7 @@ void Widget::erase(QPointF mousePos, bool lineEraser)
 
   const std::vector<std::unique_ptr<MrDoc::Element>> &elements = currentDocument.pages[pageNum].elements();
 
-  qreal eraserWidth = 10;
+  qreal eraserWidth = 10 * devicePixelRatio();
 
   //    QLineF lineA = QLineF(pagePos + QPointF(-eraserWidth,-eraserWidth) / 2.0, pagePos + QPointF( eraserWidth,  eraserWidth) / 2.0);
   //    QLineF lineB = QLineF(pagePos + QPointF( eraserWidth,-eraserWidth) / 2.0, pagePos + QPointF(-eraserWidth,  eraserWidth) / 2.0); // lineA and lineB
@@ -1690,10 +1691,10 @@ size_t Widget::getPageFromMousePos(QPointF mousePos) const
   qreal y = mousePos.y(); // - currentCOSPos.y();
   size_t pageNum = 0;
   // while (y > (floor(currentDocument.pages[pageNum].height() * m_zoom)) + PAGE_GAP)
-  while (y > (floor(currentDocument.pages[pageNum].pixelHeight(m_zoom, devicePixelRatio()))) + PAGE_GAP)
+  while (y > (floor(currentDocument.pages[pageNum].pixelHeight(m_zoom, 1))) + PAGE_GAP)
   {
     // y -= (floor(currentDocument.pages[pageNum].height() * m_zoom)) + PAGE_GAP;
-    y -= (floor(currentDocument.pages[pageNum].pixelHeight(m_zoom, devicePixelRatio()))) + PAGE_GAP;
+    y -= (floor(currentDocument.pages[pageNum].pixelHeight(m_zoom, 1))) + PAGE_GAP;
     pageNum += 1;
     if (pageNum >= currentDocument.pages.size())
     {
@@ -1723,7 +1724,7 @@ QPointF Widget::getPagePosFromMousePos(QPointF mousePos, size_t pageNum) const
     //        y -= (currentDocument.pages[i].height() * zoom + PAGE_GAP); // THIS DOESN'T WORK PROPERLY (should be floor(...height(), or just use
     //        pageBuffer[i].height()/devicePixelRatio())
     // y -= (pageBuffer[i].height()/devicePixelRatio() + PAGE_GAP);
-    y -= (currentDocument.pages[pageNum].pixelHeight(m_zoom, devicePixelRatio()) + PAGE_GAP);
+    y -= (currentDocument.pages[pageNum].pixelHeight(m_zoom) + PAGE_GAP);
   }
   //    y -= (pageNum) * (currentDocument.pages[0].height() * zoom + PAGE_GAP);
 
