@@ -45,7 +45,10 @@ SOURCES += \
     src/pagesettingsdialog.cpp \
     src/colorbutton.cpp \
     src/stroke.cpp \
-    src/tools.cpp
+    src/tools.cpp \
+    src/element.cpp \
+    src/quickmenu.cpp \
+    src/settingsdialog.cpp
 
 HEADERS  += \
     src/pagesettingsdialog.h \
@@ -62,9 +65,14 @@ HEADERS  += \
     src/tictoc.h \
     src/tabletapplication.h \
     src/version.h \
-    src/tools.h
+    src/tools.h \
+    src/element.h \
+    src/quickmenu.h \
+    src/settingsdialog.h
 
-FORMS    +=
+FORMS    += \
+    src/quickmenu.ui \
+    src/settingsdialog.ui
 
 RESOURCES += \
     myresource.qrc
@@ -90,7 +98,7 @@ DISTFILES += \
     COPYING \
     MrWriter.icns
 
-CONFIG += c++11
+CONFIG += c++14
 
 #QMAKE_CXXFLAGS_RELEASE -= -O
 #QMAKE_CXXFLAGS_RELEASE -= -O1

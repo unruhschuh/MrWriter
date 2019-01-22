@@ -1,7 +1,10 @@
 #ifndef PAGE_H
 #define PAGE_H
 
+#include <memory>
+
 #include "stroke.h"
+#include "element.h"
 
 namespace MrDoc
 {
@@ -10,12 +13,15 @@ class Page
 {
 public:
   Page();
+  Page(const Page & page);
+  Page &operator=(Page const & page);
+  virtual ~Page() { }
 
   qreal width() const;
   qreal height() const;
 
-  int pixelHeight(const qreal zoom, int devicePixelRatio) const;
-  int pixelWidth(const qreal zoom, int devicePixelRatio) const;
+  int pixelHeight(const qreal zoom, int devicePixelRatio = 1) const;
+  int pixelWidth(const qreal zoom, int devicePixelRatio = 1) const;
 
   void setWidth(qreal width);
   void setHeight(qreal height);
@@ -26,25 +32,24 @@ public:
   const QRectF &dirtyRect() const;
   void clearDirtyRect();
 
-  bool changePenWidth(int strokeNum, qreal penWidth);
-  bool changeStrokeColor(int strokeNum, QColor color);
-  bool changeStrokePattern(int strokeNum, QVector<qreal> pattern);
+  bool changePenWidth(size_t strokeNum, qreal penWidth);
+  bool changeStrokeColor(size_t strokeNum, QColor color);
+  bool changeStrokePattern(size_t strokeNum, QVector<qreal> pattern);
 
-  const QVector<Stroke> &strokes();
+  const std::vector<std::unique_ptr<Element> >& elements();
 
-  QVector<QPair<Stroke, int>> getStrokes(QPolygonF selectionPolygon);
-  QVector<QPair<Stroke, int>> removeStrokes(QPolygonF selectionPolygon);
-  void removeStrokeAt(int i);
-  void removeLastStroke();
+  std::vector<QPair<std::unique_ptr<Element>, size_t> > getElements(QPolygonF selectionPolygon);
+  std::vector<QPair<std::unique_ptr<Element>, size_t> > removeElements(QPolygonF selectionPolygon);
+  void removeElementAt(size_t i);
+  void removeLastElement();
 
-  void insertStrokes(const QVector<QPair<Stroke, int>> &strokesAndPositions);
-  void insertStroke(int position, const Stroke &stroke);
+  void insertElements(const std::vector<QPair<std::unique_ptr<Element>, size_t> >& elementsAndPositions);
+  void insertElement(size_t position, std::unique_ptr<Element> element);
 
-  void appendStroke(const Stroke &stroke);
-  void appendStrokes(const QVector<Stroke> &strokes);
-  void prependStroke(const Stroke &stroke);
+  void appendElement(std::unique_ptr<Element> element);
+  void appendElements(const std::vector<std::unique_ptr<Element> >& elements);
+  void prependElement(std::unique_ptr<Element> element);
 
-  //    virtual void paint(QPainter &painter, qreal zoom);
   /**
    * @brief paint
    * @param painter
@@ -53,10 +58,8 @@ public:
    */
   virtual void paint(QPainter &painter, qreal zoom, QRectF region = QRect(0, 0, 0, 0));
 
-  //    QVector<Stroke> strokes;
-
 protected:
-  QVector<Stroke> m_strokes;
+  std::vector<std::unique_ptr<Element>> m_elements;
 
 private:
   QColor m_backgroundColor;

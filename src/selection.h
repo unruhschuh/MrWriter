@@ -27,8 +27,8 @@ public:
 
   Selection();
 
-  void setPageNum(int pageNum);
-  int pageNum() const;
+  void setPageNum(size_t pageNum);
+  size_t pageNum() const;
 
   void setSelectionPolygon(QPolygonF selectionPolygon);
   QPolygonF selectionPolygon() const;
@@ -45,11 +45,15 @@ public:
 
   virtual void paint(QPainter &painter, qreal zoom, QRectF region = QRect(0, 0, 0, 0)) override;
 
-  void transform(QTransform transform, int pageNum);
+  void transform(QTransform transform, size_t pageNum);
 
   void finalize();
 
   void updateBuffer(qreal zoom);
+
+  const QImage & buffer();
+
+  bool empty();
 
 private:
   QImage m_buffer;
@@ -66,7 +70,7 @@ private:
 
   bool m_finalized = false;
 
-  int m_pageNum;
+  size_t m_pageNum;
 
   qreal constexpr static m_rotateRectRadius = 8.0;
   qreal constexpr static m_rotateRectCenter = 20;

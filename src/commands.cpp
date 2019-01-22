@@ -1,117 +1,116 @@
 #include "commands.h"
 #include "mainwindow.h"
 #include <QDebug>
+#include <memory>
+#include "element.h"
+#include "tools.h"
 
 /******************************************************************************
-** AddStrokeCommand
+** AddElementCommand
 */
 
 /**
- * @brief AddStrokeCommand::AddStrokeCommand
+ * @brief AddElementCommand::AddElementCommand
  * @param newWidget
  * @param newPageNum
- * @param newStroke
- * @param newStrokeNum
+ * @param newElement
+ * @param newElementNum
  * @param newUpdate
  * @param newUpdateSuccessive
  * @param parent
  * @todo remove parameter newUpdate
  */
-AddStrokeCommand::AddStrokeCommand(Widget *newWidget, int newPageNum, const MrDoc::Stroke &newStroke, int newStrokeNum, bool newUpdate,
-                                   bool newUpdateSuccessive, QUndoCommand *parent)
+AddElementCommand::AddElementCommand(Widget *newWidget, size_t newPageNum, std::unique_ptr<MrDoc::Element> newElement, bool newAtEnd, size_t newElementNum, bool newUpdate, bool newUpdateSuccessive, QUndoCommand *parent)
     : QUndoCommand(parent)
 {
-  setText(MainWindow::tr("Add Stroke"));
+  setText(MainWindow::tr("Add Element"));
   pageNum = newPageNum;
   widget = newWidget;
-  stroke = newStroke;
-  strokeNum = newStrokeNum;
+  element = std::move(newElement);
+  elementNum = newElementNum;
   update = newUpdate;
   updateSuccessive = newUpdateSuccessive;
+  atEnd = newAtEnd;
 
   // delete duplicate points
-  for (int i = stroke.points.length() - 1; i > 0; --i)
+  /*
+  for (int i = element.points.length() - 1; i > 0; --i)
   {
-    if (stroke.points.at(i) == stroke.points.at(i - 1))
+    if (element.points.at(i) == element.points.at(i - 1))
     {
-      stroke.points.removeAt(i);
-      stroke.pressures.removeAt(i);
+      element.points.removeAt(i);
+      element.pressures.removeAt(i);
     }
+  }
+  */
+}
+
+void AddElementCommand::undo()
+{
+  if (atEnd)
+  {
+    widget->currentDocument.pages[pageNum].removeElementAt(widget->currentDocument.pages[pageNum].elements().size() - 1);
+  }
+  else
+  {
+    widget->currentDocument.pages[pageNum].removeElementAt(elementNum);
   }
 }
 
-void AddStrokeCommand::undo()
+void AddElementCommand::redo()
 {
-  if (stroke.points.length() > 0)
+  if (atEnd)
   {
-    if (strokeNum == -1)
-    {
-      widget->currentDocument.pages[pageNum].removeStrokeAt(widget->currentDocument.pages[pageNum].strokes().size() - 1);
-    }
-    else
-    {
-      widget->currentDocument.pages[pageNum].removeStrokeAt(strokeNum);
-    }
+    widget->currentDocument.pages[pageNum].appendElement(element->clone());
   }
-}
-
-void AddStrokeCommand::redo()
-{
-  if (stroke.points.length() > 0)
+  else
   {
-    if (strokeNum == -1)
-    {
-      widget->currentDocument.pages[pageNum].appendStroke(stroke);
-    }
-    else
-    {
-      widget->currentDocument.pages[pageNum].insertStroke(strokeNum, stroke);
-    }
+    widget->currentDocument.pages[pageNum].insertElement(elementNum, element->clone());
   }
 }
 
 /******************************************************************************
-** RemoveStrokeCommand
+** RemoveElementCommand
 */
 
 /**
- * @brief RemoveStrokeCommand::RemoveStrokeCommand
+ * @brief RemoveElementCommand::RemoveElementCommand
  * @param newWidget
  * @param newPageNum
- * @param newStrokeNum
+ * @param newElementNum
  * @param newUpdate
  * @param parent
  * @todo remove parameter newUpdate
  */
-RemoveStrokeCommand::RemoveStrokeCommand(Widget *newWidget, int newPageNum, int newStrokeNum, bool newUpdate, QUndoCommand *parent) : QUndoCommand(parent)
+RemoveElementCommand::RemoveElementCommand(Widget *newWidget, size_t newPageNum, size_t newElementNum, bool newUpdate, QUndoCommand *parent) : QUndoCommand(parent)
 {
-  setText(MainWindow::tr("Remove Stroke"));
+  setText(MainWindow::tr("Remove Element"));
   pageNum = newPageNum;
   widget = newWidget;
-  strokeNum = newStrokeNum;
-  stroke = widget->currentDocument.pages[pageNum].strokes()[strokeNum];
+  elementNum = newElementNum;
+  element = widget->currentDocument.pages[pageNum].elements()[elementNum]->clone();
   update = newUpdate;
 }
 
-void RemoveStrokeCommand::undo()
+void RemoveElementCommand::undo()
 {
-  widget->currentDocument.pages[pageNum].insertStroke(strokeNum, stroke);
+  widget->currentDocument.pages[pageNum].insertElement(elementNum, element->clone());
 
   qreal zoom = widget->m_zoom;
-  QRect updateRect = stroke.points.boundingRect().toRect();
+  QRect updateRect = element->boundingRect().toRect();
   updateRect = QRect(zoom * updateRect.topLeft(), zoom * updateRect.bottomRight());
-  int delta = zoom * 10;
+  int delta = static_cast<int>(zoom * 10.0);
   updateRect.adjust(-delta, -delta, delta, delta);
 }
 
-void RemoveStrokeCommand::redo()
+void RemoveElementCommand::redo()
 {
-  widget->currentDocument.pages[pageNum].removeStrokeAt(strokeNum);
+  widget->currentDocument.pages[pageNum].removeElementAt(elementNum);
 
   qreal zoom = widget->m_zoom;
-  QRect updateRect = stroke.points.boundingRect().toRect();
+  QRect updateRect = element->boundingRect().toRect();
   updateRect = QRect(zoom * updateRect.topLeft(), zoom * updateRect.bottomRight());
-  int delta = zoom * 10;
+  int delta = static_cast<int>(zoom * 10.0);
   updateRect.adjust(-delta, -delta, delta, delta);
 }
 
@@ -119,7 +118,7 @@ void RemoveStrokeCommand::redo()
 ** CreateSelectionCommand
 */
 
-CreateSelectionCommand::CreateSelectionCommand(Widget *widget, int pageNum, MrDoc::Selection selection, QUndoCommand *parent) : QUndoCommand(parent)
+CreateSelectionCommand::CreateSelectionCommand(Widget *widget, size_t pageNum, const MrDoc::Selection & selection, QUndoCommand *parent) : QUndoCommand(parent)
 {
   setText(MainWindow::tr("Create Selection"));
   m_widget = widget;
@@ -127,11 +126,11 @@ CreateSelectionCommand::CreateSelectionCommand(Widget *widget, int pageNum, MrDo
   m_selection = selection;
   m_selectionPolygon = selection.selectionPolygon();
 
-  m_strokesAndPositions = widget->currentDocument.pages[pageNum].getStrokes(m_selectionPolygon);
+  m_elementsAndPositions = widget->currentDocument.pages[pageNum].getElements(m_selectionPolygon);
 
-  for (auto sAndP : m_strokesAndPositions)
+  for (auto &sAndP : m_elementsAndPositions)
   {
-    m_selection.prependStroke(sAndP.first);
+    m_selection.prependElement(sAndP.first->clone());
   }
   m_selection.finalize();
   m_selection.updateBuffer(m_widget->m_zoom);
@@ -139,16 +138,16 @@ CreateSelectionCommand::CreateSelectionCommand(Widget *widget, int pageNum, MrDo
 
 void CreateSelectionCommand::undo()
 {
-  m_widget->currentDocument.pages[m_pageNum].insertStrokes(m_strokesAndPositions);
+  m_widget->currentDocument.pages[m_pageNum].insertElements(m_elementsAndPositions);
 
   m_widget->setCurrentState(Widget::state::IDLE);
 }
 
 void CreateSelectionCommand::redo()
 {
-  for (auto &sAndP : m_strokesAndPositions)
+  for (auto &sAndP : m_elementsAndPositions)
   {
-    m_widget->currentDocument.pages[m_pageNum].removeStrokeAt(sAndP.second);
+    m_widget->currentDocument.pages[m_pageNum].removeElementAt(sAndP.second);
   }
   m_widget->currentSelection = m_selection;
   m_widget->setCurrentState(Widget::state::SELECTED);
@@ -158,7 +157,7 @@ void CreateSelectionCommand::redo()
 ** ReleaseSelectionCommand
 */
 
-ReleaseSelectionCommand::ReleaseSelectionCommand(Widget *newWidget, int newPageNum, QUndoCommand *parent) : QUndoCommand(parent)
+ReleaseSelectionCommand::ReleaseSelectionCommand(Widget *newWidget, size_t newPageNum, QUndoCommand *parent) : QUndoCommand(parent)
 {
   setText(MainWindow::tr("Release Selection"));
 
@@ -170,17 +169,17 @@ ReleaseSelectionCommand::ReleaseSelectionCommand(Widget *newWidget, int newPageN
 void ReleaseSelectionCommand::undo()
 {
   widget->currentSelection = selection;
-  for (int i = 0; i < widget->currentSelection.strokes().size(); ++i)
+  for (size_t i = 0; i < widget->currentSelection.elements().size(); ++i)
   {
-    widget->currentDocument.pages[pageNum].removeLastStroke();
+    widget->currentDocument.pages[pageNum].removeLastElement();
   }
   widget->setCurrentState(Widget::state::SELECTED);
 }
 
 void ReleaseSelectionCommand::redo()
 {
-  int pageNum = widget->currentSelection.pageNum();
-  widget->currentDocument.pages[pageNum].appendStrokes(widget->currentSelection.strokes());
+  size_t pageNum = widget->currentSelection.pageNum();
+  widget->currentDocument.pages[pageNum].appendElements(widget->currentSelection.elements());
   widget->setCurrentState(Widget::state::IDLE);
 }
 
@@ -188,7 +187,7 @@ void ReleaseSelectionCommand::redo()
 ** TransformSelectionCommand
 */
 
-TransformSelectionCommand::TransformSelectionCommand(Widget *newWidget, int newPageNum, QTransform newTransform, QUndoCommand *parent) : QUndoCommand(parent)
+TransformSelectionCommand::TransformSelectionCommand(Widget *newWidget, size_t newPageNum, QTransform newTransform, QUndoCommand *parent) : QUndoCommand(parent)
 {
   setText(MainWindow::tr("Transform Selection"));
 
@@ -238,7 +237,7 @@ void ChangeColorOfSelectionCommand::undo()
 
 void ChangeColorOfSelectionCommand::redo()
 {
-  for (int i = 0; i < m_widget->currentSelection.strokes().size(); ++i)
+  for (size_t i = 0; i < m_widget->currentSelection.elements().size(); ++i)
   {
     m_widget->currentSelection.changeStrokeColor(i, m_color);
   }
@@ -264,7 +263,7 @@ void ChangePatternOfSelectionCommand::undo()
 
 void ChangePatternOfSelectionCommand::redo()
 {
-  for (int i = 0; i < m_widget->currentSelection.strokes().size(); ++i)
+  for (size_t i = 0; i < m_widget->currentSelection.elements().size(); ++i)
   {
     m_widget->currentSelection.changeStrokePattern(i, m_pattern);
   }
@@ -290,7 +289,7 @@ void ChangePenWidthOfSelectionCommand::undo()
 
 void ChangePenWidthOfSelectionCommand::redo()
 {
-  for (int i = 0; i < widget->currentSelection.strokes().size(); ++i)
+  for (size_t i = 0; i < widget->currentSelection.elements().size(); ++i)
   {
     widget->currentSelection.changePenWidth(i, m_penWidth);
   }
@@ -300,7 +299,7 @@ void ChangePenWidthOfSelectionCommand::redo()
 ** AddPageCommand
 */
 
-AddPageCommand::AddPageCommand(Widget *newWidget, int newPageNum, QUndoCommand *parent) : QUndoCommand(parent)
+AddPageCommand::AddPageCommand(Widget *newWidget, size_t newPageNum, QUndoCommand *parent) : QUndoCommand(parent)
 {
   setText(MainWindow::tr("Add Page"));
   widget = newWidget;
@@ -309,15 +308,15 @@ AddPageCommand::AddPageCommand(Widget *newWidget, int newPageNum, QUndoCommand *
 
 void AddPageCommand::undo()
 {
-  widget->currentDocument.pages.removeAt(pageNum);
-  widget->pageBuffer.removeAt(pageNum);
+  widget->currentDocument.pages.erase(widget->currentDocument.pages.begin() + static_cast<long>(pageNum));
+  widget->pageBuffer.erase(widget->pageBuffer.begin() + static_cast<long>(pageNum));
   widget->update();
 }
 
 void AddPageCommand::redo()
 {
   page = MrDoc::Page();
-  int pageNumForSettings;
+  size_t pageNumForSettings;
 
   if (pageNum == 0)
     pageNumForSettings = pageNum;
@@ -328,8 +327,8 @@ void AddPageCommand::redo()
   page.setHeight(widget->currentDocument.pages[pageNumForSettings].height());
   page.setBackgroundColor(widget->currentDocument.pages[pageNumForSettings].backgroundColor());
 
-  widget->currentDocument.pages.insert(pageNum, page);
-  widget->pageBuffer.insert(pageNum, QPixmap());
+  widget->currentDocument.pages.insert(widget->currentDocument.pages.begin() + static_cast<long>(pageNum), page);
+  widget->pageBuffer.insert(widget->pageBuffer.begin() + static_cast<long>(pageNum), QPixmap());
   widget->updateBuffer(pageNum);
   widget->update();
 }
@@ -338,7 +337,7 @@ void AddPageCommand::redo()
 ** RemovePageCommand
 */
 
-RemovePageCommand::RemovePageCommand(Widget *newWidget, int newPageNum, QUndoCommand *parent) : QUndoCommand(parent)
+RemovePageCommand::RemovePageCommand(Widget *newWidget, size_t newPageNum, QUndoCommand *parent) : QUndoCommand(parent)
 {
   setText(MainWindow::tr("Remove Page"));
   widget = newWidget;
@@ -348,16 +347,16 @@ RemovePageCommand::RemovePageCommand(Widget *newWidget, int newPageNum, QUndoCom
 
 void RemovePageCommand::undo()
 {
-  widget->currentDocument.pages.insert(pageNum, page);
-  widget->pageBuffer.insert(pageNum, QPixmap());
+  widget->currentDocument.pages.insert(widget->currentDocument.pages.begin() + static_cast<long>(pageNum), page);
+  widget->pageBuffer.insert(widget->pageBuffer.begin() + static_cast<long>(pageNum), QPixmap());
   widget->updateBuffer(pageNum);
   widget->update();
 }
 
 void RemovePageCommand::redo()
 {
-  widget->currentDocument.pages.removeAt(pageNum);
-  widget->pageBuffer.removeAt(pageNum);
+  widget->currentDocument.pages.erase(widget->currentDocument.pages.begin() + static_cast<long>(pageNum));
+  widget->pageBuffer.erase(widget->pageBuffer.begin() + static_cast<long>(pageNum));
   widget->update();
 }
 
@@ -365,7 +364,7 @@ void RemovePageCommand::redo()
 ** RemovePageCommand
 */
 
-PasteCommand::PasteCommand(Widget *newWidget, MrDoc::Selection newSelection, QUndoCommand *parent) : QUndoCommand(parent)
+PasteCommand::PasteCommand(Widget *newWidget, const MrDoc::Selection & newSelection, QUndoCommand *parent) : QUndoCommand(parent)
 {
   setText(MainWindow::tr("Paste"));
   widget = newWidget;
@@ -414,10 +413,34 @@ void CutCommand::redo()
 }
 
 /******************************************************************************
+** DeleteCommand
+*/
+
+DeleteCommand::DeleteCommand(Widget *newWidget, QUndoCommand *parent) : QUndoCommand(parent)
+{
+  setText(MainWindow::tr("Delete"));
+  widget = newWidget;
+  previousSelection = widget->currentSelection;
+  previousState = widget->getCurrentState();
+}
+
+void DeleteCommand::undo()
+{
+  widget->currentSelection = previousSelection;
+  widget->setCurrentState(previousState);
+}
+
+void DeleteCommand::redo()
+{
+  widget->currentSelection = MrDoc::Selection();
+  widget->setCurrentState(Widget::state::IDLE);
+}
+
+/******************************************************************************
 ** ChangePageSettingsCommand
 */
 
-ChangePageSettingsCommand::ChangePageSettingsCommand(Widget *newWidget, int newPageNum, QSizeF newSize, QColor newBackgroundColor, QUndoCommand *parent)
+ChangePageSettingsCommand::ChangePageSettingsCommand(Widget *newWidget, size_t newPageNum, QSizeF newSize, QColor newBackgroundColor, QUndoCommand *parent)
     : QUndoCommand(parent)
 {
   widget = newWidget;

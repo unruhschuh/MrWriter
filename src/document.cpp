@@ -26,20 +26,20 @@ Document::Document()
   for (int i = 0; i < 1; ++i)
   {
     Page nextPage;
-    pages.append(nextPage);
+    pages.push_back(nextPage);
   }
   setDocumentChanged(false);
 }
 
 Document::Document(const Document &doc)
 {
-  for (int i = 0; i < doc.pages.size(); ++i)
+  for (size_t i = 0; i < doc.pages.size(); ++i)
   {
-    pages.append(doc.pages.at(i));
+    pages.push_back(doc.pages.at(i));
   }
 }
 
-void Document::paintPage(int pageNum, QPainter &painter, qreal zoom)
+void Document::paintPage(size_t pageNum, QPainter &painter, qreal zoom)
 {
   pages[pageNum].paint(painter, zoom);
 }
@@ -94,7 +94,7 @@ void Document::exportPDF(QString fileName)
 
   painter.begin(&pdfWriter);
   painter.setRenderHint(QPainter::Antialiasing, true);
-  for (int pageNum = 0; pageNum < pages.size(); ++pageNum)
+  for (size_t pageNum = 0; pageNum < pages.size(); ++pageNum)
   {
     if (pages[pageNum].backgroundColor() != QColor("white"))
     {
@@ -166,14 +166,15 @@ bool Document::loadXOJ(QString fileName)
       newPage.setWidth(width.toDouble());
       newPage.setHeight(height.toDouble());
 
-      pages.append(newPage);
+      pages.push_back(std::move(newPage));
+      // pages.push_back(std::make_unique<Page>(newPage));
     }
     if (reader.name() == "background" && reader.tokenType() == QXmlStreamReader::StartElement)
     {
       QXmlStreamAttributes attributes = reader.attributes();
       QStringRef color = attributes.value("", "color");
       QColor newColor = stringToColor(color.toString());
-      pages.last().setBackgroundColor(newColor);
+      pages.back().setBackgroundColor(newColor);
     }
     if (reader.name() == "stroke" && reader.tokenType() == QXmlStreamReader::StartElement)
     {
@@ -203,7 +204,8 @@ bool Document::loadXOJ(QString fileName)
         {
           newStroke.pressures.append(1.0);
         }
-        pages.last().appendStroke(newStroke);
+        //pages.back().appendElement(std::make_unique<Element>(newStroke));
+        pages.back().appendElement(newStroke.clone());
         strokeCount++;
         qDebug() << strokeCount;
       }
@@ -254,7 +256,7 @@ bool Document::saveXOJ(QString fileName)
   writer.writeCharacters("Xournal document - see http://math.mit.edu/~auroux/software/xournal/");
   writer.writeEndElement();
 
-  for (int i = 0; i < pages.size(); ++i)
+  for (size_t i = 0; i < pages.size(); ++i)
   {
     writer.writeStartElement("page");
     writer.writeAttribute(QXmlStreamAttribute("width", QString::number(pages[i].width())));
@@ -266,30 +268,34 @@ bool Document::saveXOJ(QString fileName)
     writer.writeStartElement("layer");
 
     //    for (int j = 0; j < pages[i].m_strokes.size(); ++j)
-    for (auto strokes : pages[i].strokes())
+    for (auto & element : pages[i].elements())
     {
-      writer.writeStartElement("stroke");
-      writer.writeAttribute(QXmlStreamAttribute("tool", "pen"));
-      writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(strokes.color.name(QColor::HexArgb))));
-      qreal width = strokes.penWidth;
-      QString widthString;
-      widthString.append(QString::number(width));
-      for (int k = 0; k < strokes.pressures.size() - 1; ++k)
+      auto stroke = dynamic_cast<Stroke*>(element.get());
+      if (nullptr != stroke)
       {
-        qreal p0 = strokes.pressures[k];
-        qreal p1 = strokes.pressures[k + 1];
-        widthString.append(' ');
-        widthString.append(QString::number(0.5 * (p0 + p1) * width));
+        writer.writeStartElement("stroke");
+        writer.writeAttribute(QXmlStreamAttribute("tool", "pen"));
+        writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(stroke->color.name(QColor::HexArgb))));
+        qreal width = stroke->penWidth;
+        QString widthString;
+        widthString.append(QString::number(width));
+        for (int k = 0; k < stroke->pressures.size() - 1; ++k)
+        {
+          qreal p0 = stroke->pressures[k];
+          qreal p1 = stroke->pressures[k + 1];
+          widthString.append(' ');
+          widthString.append(QString::number(0.5 * (p0 + p1) * width));
+        }
+        writer.writeAttribute(QXmlStreamAttribute("width", widthString));
+        for (int k = 0; k < stroke->points.size(); ++k)
+        {
+          writer.writeCharacters(QString::number(stroke->points[k].x()));
+          writer.writeCharacters(" ");
+          writer.writeCharacters(QString::number(stroke->points[k].y()));
+          writer.writeCharacters(" ");
+        }
+        writer.writeEndElement(); // closing "stroke"
       }
-      writer.writeAttribute(QXmlStreamAttribute("width", widthString));
-      for (int k = 0; k < strokes.points.size(); ++k)
-      {
-        writer.writeCharacters(QString::number(strokes.points[k].x()));
-        writer.writeCharacters(" ");
-        writer.writeCharacters(QString::number(strokes.points[k].y()));
-        writer.writeCharacters(" ");
-      }
-      writer.writeEndElement(); // closing "stroke"
     }
 
     writer.writeEndElement(); // closing "layer"
@@ -380,14 +386,14 @@ bool Document::loadMOJ(QString fileName)
       newPage.setWidth(width.toDouble());
       newPage.setHeight(height.toDouble());
 
-      pages.append(newPage);
+      pages.push_back(std::move(newPage));
     }
     if (reader.name() == "background" && reader.tokenType() == QXmlStreamReader::StartElement)
     {
       QXmlStreamAttributes attributes = reader.attributes();
       QStringRef color = attributes.value("", "color");
       QColor newColor = stringToColor(color.toString());
-      pages.last().setBackgroundColor(newColor);
+      pages.back().setBackgroundColor(newColor);
     }
     if (reader.name() == "stroke" && reader.tokenType() == QXmlStreamReader::StartElement)
     {
@@ -445,7 +451,7 @@ bool Document::loadMOJ(QString fileName)
         {
           return false;
         }
-        pages.last().appendStroke(newStroke);
+        pages.back().appendElement(newStroke.clone());
         strokeCount++;
         qDebug() << strokeCount;
       }
@@ -500,7 +506,7 @@ bool Document::saveMOJ(QString fileName)
   writer.writeCharacters("MrWriter document - see http://unruhschuh.com/mrwriter/");
   writer.writeEndElement();
 
-  for (int i = 0; i < pages.size(); ++i)
+  for (size_t i = 0; i < pages.size(); ++i)
   {
     writer.writeStartElement("page");
     writer.writeAttribute(QXmlStreamAttribute("width", QString::number(pages[i].width())));
@@ -512,51 +518,55 @@ bool Document::saveMOJ(QString fileName)
     writer.writeStartElement("layer");
 
     //    for (int j = 0; j < pages[i].m_strokes.size(); ++j)
-    for (auto strokes : pages[i].strokes())
+    for (auto & element : pages[i].elements())
     {
-      writer.writeStartElement("stroke");
-      writer.writeAttribute(QXmlStreamAttribute("tool", "pen"));
-      writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(strokes.color.name(QColor::HexArgb))));
-      QString patternString;
-      if (strokes.pattern == MrDoc::solidLinePattern)
+      auto stroke = dynamic_cast<Stroke*>(element.get());
+      if (nullptr != stroke)
       {
-        patternString = "solid";
+        writer.writeStartElement("stroke");
+        writer.writeAttribute(QXmlStreamAttribute("tool", "pen"));
+        writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(stroke->color.name(QColor::HexArgb))));
+        QString patternString;
+        if (stroke->pattern == MrDoc::solidLinePattern)
+        {
+          patternString = "solid";
+        }
+        else if (stroke->pattern == MrDoc::dashLinePattern)
+        {
+          patternString = "dash";
+        }
+        else if (stroke->pattern == MrDoc::dashDotLinePattern)
+        {
+          patternString = "dashdot";
+        }
+        else if (stroke->pattern == MrDoc::dotLinePattern)
+        {
+          patternString = "dot";
+        }
+        else
+        {
+          patternString = "solid";
+        }
+        writer.writeAttribute(QXmlStreamAttribute("style", patternString));
+        qreal width = stroke->penWidth;
+        writer.writeAttribute(QXmlStreamAttribute("width", QString::number(width)));
+        QString pressures;
+        for (int k = 0; k < stroke->pressures.length(); ++k)
+        {
+          pressures.append(QString::number(stroke->pressures[k])).append(" ");
+        }
+        writer.writeAttribute((QXmlStreamAttribute("pressures", pressures.trimmed())));
+        QString points;
+        for (int k = 0; k < stroke->points.size(); ++k)
+        {
+          points.append(QString::number(stroke->points[k].x()));
+          points.append(" ");
+          points.append(QString::number(stroke->points[k].y()));
+          points.append(" ");
+        }
+        writer.writeCharacters(points.trimmed());
+        writer.writeEndElement(); // closing "stroke"
       }
-      else if (strokes.pattern == MrDoc::dashLinePattern)
-      {
-        patternString = "dash";
-      }
-      else if (strokes.pattern == MrDoc::dashDotLinePattern)
-      {
-        patternString = "dashdot";
-      }
-      else if (strokes.pattern == MrDoc::dotLinePattern)
-      {
-        patternString = "dot";
-      }
-      else
-      {
-        patternString = "solid";
-      }
-      writer.writeAttribute(QXmlStreamAttribute("style", patternString));
-      qreal width = strokes.penWidth;
-      writer.writeAttribute(QXmlStreamAttribute("width", QString::number(width)));
-      QString pressures;
-      for (int k = 0; k < strokes.pressures.length(); ++k)
-      {
-        pressures.append(QString::number(strokes.pressures[k])).append(" ");
-      }
-      writer.writeAttribute((QXmlStreamAttribute("pressures", pressures.trimmed())));
-      QString points;
-      for (int k = 0; k < strokes.points.size(); ++k)
-      {
-        points.append(QString::number(strokes.points[k].x()));
-        points.append(" ");
-        points.append(QString::number(strokes.points[k].y()));
-        points.append(" ");
-      }
-      writer.writeCharacters(points.trimmed());
-      writer.writeEndElement(); // closing "stroke"
     }
 
     writer.writeEndElement(); // closing "layer"

@@ -1,10 +1,27 @@
+#branches:
+#  only:
+#  - master
+#  - polymorph
+
 language: cpp
 
 matrix:
   include:
     - os: linux
       dist: trusty
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-7
+      env:
+        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
     - os: osx
+
+before_install:
+    - eval "${MATRIX_EVAL}"
+    - g++ --version
 
 install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then travis/install_osx.sh ; fi

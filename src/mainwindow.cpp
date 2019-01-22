@@ -27,6 +27,10 @@
 #include "pagesettingsdialog.h"
 #include "commands.h"
 #include "tabletapplication.h"
+#include "quickmenu.h"
+#include "ui_quickmenu.h"
+#include "settingsdialog.h"
+#include "ui_settingsdialog.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
@@ -48,6 +52,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
   connect(mainWidget, SIGNAL(updateGUI()), this, SLOT(updateGUI()));
 
   connect(mainWidget, SIGNAL(modified()), this, SLOT(modified()));
+
+  connect(mainWidget, SIGNAL(quickmenu()), this, SLOT(quickmenu()));
 
   scrollArea = new QScrollArea(this);
   scrollArea->setWidget(mainWidget);
@@ -155,7 +161,6 @@ void MainWindow::createActions()
 
   exportPDFAct = new QAction(QIcon(":/images/savePDFIcon.png"), tr("Export PDF"), this);
   exportPDFAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_E));
-  //    zoomFitWidthAct->setShortcut(QKeySequence(Qt::Key_Z));
   exportPDFAct->setStatusTip(tr("Export PDF"));
   connect(exportPDFAct, SIGNAL(triggered()), this, SLOT(exportPDF()));
 
@@ -170,12 +175,10 @@ void MainWindow::createActions()
   exitAct = new QAction(tr("E&xit"), this);
   exitAct->setShortcuts(QKeySequence::Quit);
   exitAct->setStatusTip(tr("Exit MrWriter"));
-  //    TabletApplication *qTabApp = static_cast<TabletApplication*>(qApp); // I have no idea what this was for (TOM)
   connect(exitAct, SIGNAL(triggered()), this, SLOT(exit()));
   this->addAction(exitAct); // add to make shortcut work if menubar is hidden
 
   undoAct = mainWidget->undoStack.createUndoAction(this);
-  //    undoAct = new QAction(QIcon(":/images/undoIcon.png"), tr("&Undo"), this);
   undoAct->setIcon(QIcon(":/images/undoIcon.png"));
   undoAct->setShortcut(QKeySequence::Undo);
   undoAct->setStatusTip(tr("Undo"));
@@ -185,7 +188,6 @@ void MainWindow::createActions()
   this->addAction(undoAct); // add to make shortcut work if menubar is hidden
 
   redoAct = mainWidget->undoStack.createRedoAction(this);
-  //    redoAct = new QAction(QIcon(":/images/redoIcon.png"), tr("&Redo"), this);
   redoAct->setIcon(QIcon(":/images/redoIcon.png"));
   redoAct->setShortcut(QKeySequence::Redo);
   redoAct->setStatusTip(tr("Redo"));
@@ -217,6 +219,12 @@ void MainWindow::createActions()
   cutAct->setStatusTip(tr("Cut"));
   connect(cutAct, SIGNAL(triggered()), mainWidget, SLOT(cut()));
   this->addAction(cutAct); // add to make shortcut work if menubar is hidden
+
+  deleteAct = new QAction(QIcon(":/images/deleteIcon_48.png"), tr("Delete"), this);
+  deleteAct->setShortcut(QKeySequence::Delete);
+  deleteAct->setStatusTip(tr("Cut"));
+  connect(deleteAct, SIGNAL(triggered()), mainWidget, SLOT(deleteSlot()));
+  this->addAction(deleteAct); // add to make shortdelete work if menubar is hidden
 
   zoomInAct = new QAction(QIcon(":/images/zoomInIcon.png"), tr("Zoom &In"), this);
   zoomInAct->setShortcut(QKeySequence::ZoomIn);
@@ -286,6 +294,10 @@ void MainWindow::createActions()
   pageSettingsAct = new QAction(tr("Page Settings"), this);
   pageSettingsAct->setStatusTip(tr("Page Settings"));
   connect(pageSettingsAct, SIGNAL(triggered()), this, SLOT(pageSettings()));
+
+  settingsAct = new QAction(tr("Settings"), this);
+  settingsAct->setStatusTip(tr("Settings"));
+  connect(settingsAct, SIGNAL(triggered()), this, SLOT(settings()));
 
   saveMyStateAct = new QAction(tr("Save window state"), this);
   saveMyStateAct->setStatusTip(tr("Save window state"));
@@ -575,6 +587,7 @@ void MainWindow::createMenus()
   editMenu->addAction(undoAct);
   editMenu->addAction(redoAct);
   editMenu->addSeparator();
+  editMenu->addAction(deleteAct);
   editMenu->addAction(cutAct);
   editMenu->addAction(copyAct);
   editMenu->addAction(pasteAct);
@@ -582,6 +595,8 @@ void MainWindow::createMenus()
   editMenu->addAction(selectAllAct);
   editMenu->addSeparator();
   editMenu->addAction(rotateAct);
+  editMenu->addSeparator();
+  editMenu->addAction(settingsAct);
 
   pageMenu = menuBar()->addMenu(tr("&Page"));
   pageMenu->addAction(pageAddBeforeAct);
@@ -684,6 +699,7 @@ void MainWindow::createToolBars()
 
   editToolBar = addToolBar(tr("Edit"));
   editToolBar->setObjectName("editToolBar");
+  editToolBar->addAction(deleteAct);
   editToolBar->addAction(cutAct);
   editToolBar->addAction(copyAct);
   editToolBar->addAction(pasteAct);
@@ -1005,6 +1021,44 @@ void MainWindow::zoomFitHeight()
   mainWidget->zoomFitHeight();
 }
 
+void MainWindow::undo()
+{
+  mainWidget->undo();
+}
+
+void MainWindow::redo()
+{
+  mainWidget->redo();
+}
+
+void MainWindow::copy()
+{
+  mainWidget->copy();
+}
+
+void MainWindow::cut()
+{
+  mainWidget->cut();
+  updateGUI();
+}
+
+void MainWindow::paste()
+{
+  mainWidget->paste();
+}
+
+void MainWindow::deleteSlot()
+{
+  mainWidget->deleteSlot();
+  updateGUI();
+}
+
+void MainWindow::letGoSelection()
+{
+  mainWidget->letGoSelection();
+}
+
+
 void MainWindow::pen()
 {
   mainWidget->setCurrentTool(Widget::tool::PEN);
@@ -1066,6 +1120,23 @@ void MainWindow::hand()
 void MainWindow::modified()
 {
   setWindowModified(mainWidget->currentDocument.documentChanged());
+}
+
+void MainWindow::quickmenu()
+{
+  mainWidget->disableInput();
+  auto quickMenu = new QuickMenu();
+  quickMenu->setupSignalsAndSlots(this);
+  quickMenu->move(QCursor::pos() - QPoint(quickMenu->width() / 2, quickMenu->height() / 2));
+//  quickMenu->setWindowModality(Qt::WindowModal);
+  quickMenu->setAttribute(Qt::WA_DeleteOnClose);
+  quickMenu->show();
+}
+
+void MainWindow::quickmenuClose()
+{
+  mainWidget->enableInput();
+  updateGUI();
 }
 
 void MainWindow::black()
@@ -1173,8 +1244,8 @@ void MainWindow::about()
   aboutText.append(PRODUCT_NAME);
   aboutText.append(" ");
   aboutText.append(version);
-  aboutText.append(" Build ");
-  aboutText.append(BUILD);
+//  aboutText.append(" Build ");
+//  aboutText.append(BUILD);
   aboutText.append("<br/><br/>Written by Thomas Leitz<br/><br/><a href='");
   aboutText.append(PRODUCT_URL);
   aboutText.append("'>");
@@ -1223,15 +1294,18 @@ void MainWindow::statusbar()
 
 void MainWindow::fullscreen()
 {
-  if (fullscreenAct->isChecked())
+  //if (fullscreenAct->isChecked())
+  if (!isFullScreen())
   {
     showFullScreen();
     menuBar()->hide();
+    fullscreenAct->setChecked(true);
   }
   else
   {
     showNormal();
     menuBar()->show();
+    fullscreenAct->setChecked(false);
   }
 }
 
@@ -1251,12 +1325,7 @@ void MainWindow::snapToGrid()
 
 void MainWindow::verticalScrolling()
 {
-  QSize size = scrollArea->size();
-  QPoint globalMousePos = QPoint(size.width() / 2.0, size.height() / 2.0) + scrollArea->pos() + this->pos();
-  QPoint pos = mainWidget->mapFromGlobal(globalMousePos);
-  int pageNum = mainWidget->getPageFromMousePos(pos);
-
-  pageNum = mainWidget->getCurrentPage();
+  size_t pageNum = mainWidget->getCurrentPage();
 
   if (pageNum == mainWidget->currentDocument.pages.size() - 1)
   {
@@ -1271,7 +1340,7 @@ void MainWindow::verticalScrolling()
     pageDownAct->setStatusTip(tr("Page Down"));
   }
 
-  int Npages = mainWidget->currentDocument.pages.size();
+  size_t Npages = mainWidget->currentDocument.pages.size();
 
   QString statusMsg = QString("%1 / %2").arg(QString::number(pageNum + 1), QString::number(Npages));
 
@@ -1292,6 +1361,7 @@ void MainWindow::showEvent(QShowEvent *event)
   Widget::cursor storedValue = static_cast<Widget::cursor>(
               settings.value("cursorIcon").toInt());
   mainWidget->setCurrentPenCursor(storedValue);
+
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -1398,11 +1468,13 @@ void MainWindow::updateGUI()
   {
     cutAct->setEnabled(true);
     copyAct->setEnabled(true);
+    deleteAct->setEnabled(true);
   }
   else
   {
     cutAct->setDisabled(true);
     copyAct->setDisabled(true);
+    deleteAct->setDisabled(true);
   }
   //    toolbarAct->setChecked()
 
@@ -1464,18 +1536,41 @@ void MainWindow::maximize()
 bool MainWindow::loadXOJ(QString fileName)
 {
   return mainWidget->currentDocument.loadXOJ(fileName);
-  updateGUI();
 }
 
 bool MainWindow::loadMOJ(QString fileName)
 {
   return mainWidget->currentDocument.loadMOJ(fileName);
-  updateGUI();
+}
+
+Widget::tool MainWindow::currentTool()
+{
+  return mainWidget->getCurrentTool();
+}
+
+QColor MainWindow::currentColor()
+{
+  return mainWidget->getCurrentColor();
+}
+
+Widget::state MainWindow::currentState()
+{
+  return mainWidget->getCurrentState();
+}
+
+bool MainWindow::showingGrid()
+{
+  return mainWidget->showingGrid();
+}
+
+bool MainWindow::snappingToGrid()
+{
+  return mainWidget->snappingToGrid();
 }
 
 void MainWindow::pageSettings()
 {
-  int pageNum = mainWidget->getCurrentPage();
+  size_t pageNum = mainWidget->getCurrentPage();
   qreal width = mainWidget->currentDocument.pages[pageNum].width();
   qreal height = mainWidget->currentDocument.pages[pageNum].height();
   PageSettingsDialog *pageDialog = new PageSettingsDialog(QSizeF(width, height), mainWidget->currentDocument.pages[pageNum].backgroundColor(), this);
@@ -1490,6 +1585,12 @@ void MainWindow::pageSettings()
     }
   }
   delete pageDialog;
+}
+
+void MainWindow::settings()
+{
+  SettingsDialog * settingsDialog = new SettingsDialog(this);
+  settingsDialog->exec();
 }
 
 void MainWindow::saveMyState()
@@ -1524,3 +1625,4 @@ void MainWindow::exit()
 {
   static_cast<TabletApplication *>(qApp)->exit();
 }
+

@@ -4,7 +4,7 @@
 #define MIN_ZOOM 0.1
 #define MAX_ZOOM 10.0
 
-#define INVISIBLE_BUFFER_FACTOR 10.0
+// #define INVISIBLE_BUFFER_FACTOR 10.0
 
 #include <QWidget>
 #include <QOpenGLWidget>
@@ -23,11 +23,10 @@
 #include "document.h"
 
 class Widget : public QWidget
-// class Widget : public QOpenGLWidget
 {
   Q_OBJECT
 public:
-  explicit Widget(QWidget *parent = 0);
+  explicit Widget(QWidget *parent = nullptr);
 
   enum class tool
   {
@@ -92,24 +91,24 @@ public:
   void mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::MouseButtons buttons, Qt::KeyboardModifiers keyboardModifiers,
                            QTabletEvent::PointerType pointerType, QEvent::Type eventType, qreal pressure, bool tabletEvent);
 
-  bool pageVisible(int buffNum) const;
-  int firstVisiblePage() const;
-  int lastVisiblePage() const;
+  bool pageVisible(size_t buffNum) const;
+  size_t firstVisiblePage() const;
+  size_t lastVisiblePage() const;
   /**
    * @brief updateAllPageBuffers
    * @todo use std::unique_lock
    */
   void updateAllPageBuffers(bool force = false);
-  void updateImageBuffer(int buffNum);
-  void updateBuffer(int i);
-  void updateBufferRegion(int buffNum, QRectF const &clipRect);
-  void drawGrid(QPainter &painter, int buffNum);
+  void updateImageBuffer(size_t buffNum);
+  void updateBuffer(size_t i);
+  void updateBufferRegion(size_t buffNum, QRectF const &clipRect);
+  void drawGrid(QPainter &painter, size_t buffNum);
   void drawOnBuffer(bool last = false);
-  int getPageFromMousePos(QPointF mousePos) const;
-  QPointF getPagePosFromMousePos(QPointF mousePos, int pageNum) const;
+  size_t getPageFromMousePos(QPointF mousePos) const;
+  QPointF getPagePosFromMousePos(QPointF mousePos, size_t pageNum) const;
   QPointF getAbsolutePagePosFromMousePos(QPointF mousePos) const;
   QRect getWidgetGeometry() const;
-  int getCurrentPage() const;
+  size_t getCurrentPage() const;
 
   void setCurrentState(state newState);
   state getCurrentState();
@@ -118,7 +117,6 @@ public:
   QColor getCurrentColor();
 
   void setDocument(const MrDoc::Document &newDocument);
-  void letGoSelection();
 
   void newFile();
   //    void openFile();
@@ -138,8 +136,8 @@ public:
   void rotateSelection(qreal angle);
 
   MrDoc::Document currentDocument;
-  QVector<QPixmap> pageBuffer;
-  QVector<QImage> pageImageBuffer;
+  std::vector<QPixmap> pageBuffer;
+  std::vector<QImage> pageImageBuffer;
   QMutex pageImageBufferMutex;
 
   QColor currentColor;
@@ -155,7 +153,7 @@ public:
   MrDoc::Selection currentSelection;
   MrDoc::Selection &clipboard = static_cast<TabletApplication *>(qApp)->clipboard;
 
-  int selectingOnPage;
+  size_t selectingOnPage;
 
   QScrollArea *scrollArea;
 
@@ -175,7 +173,9 @@ private:
 
   qreal count;
 
-  void scrollDocumentToPageNum(int pageNum);
+  bool m_inputEnabled = true;
+
+  void scrollDocumentToPageNum(size_t pageNum);
 
   QVector<qreal> currentPattern = MrDoc::solidLinePattern;
 
@@ -191,7 +191,7 @@ private:
   state currentState;
 
   bool penDown = false;
-  int drawingOnPage;
+  size_t drawingOnPage;
 
   tool currentTool;
   tool previousTool;
@@ -249,9 +249,7 @@ private:
 
   void erase(QPointF mousePos, bool invertEraser = false);
 
-private slots:
-  void updateAllDirtyBuffers();
-
+public slots:
   void undo();
   void redo();
 
@@ -259,6 +257,11 @@ private slots:
   void copy();
   void paste();
   void cut();
+  void deleteSlot();
+
+private slots:
+  void updateAllDirtyBuffers();
+
 
   void pageFirst();
   void pageLast();
@@ -303,17 +306,27 @@ signals:
 
   void modified();
 
+  void quickmenu();
+
 protected:
   void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
   void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
   void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
   void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+  virtual void mouseDoubleClickEvent(QMouseEvent *event) override;
 
   void tabletEvent(QTabletEvent *event) Q_DECL_OVERRIDE;
 
 signals:
 
 public slots:
+  void letGoSelection();
+  void enableInput();
+  void disableInput();
+
+public:
+  bool inputEnabled();
+
 };
 
 #endif // WIDGET_H

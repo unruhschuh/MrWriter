@@ -13,13 +13,20 @@ class MainWindow : public QMainWindow
   Q_OBJECT
 
 public:
-  explicit MainWindow(QWidget *parent = 0);
+  explicit MainWindow(QWidget *parent = nullptr);
   //    MainWindow();
-  ~MainWindow();
+  ~MainWindow() override;
 
   void setTitle();
   bool loadXOJ(QString fileName);
   bool loadMOJ(QString fileName);
+
+  Widget::tool currentTool();
+  QColor currentColor();
+  Widget::state currentState();
+
+  bool showingGrid();
+  bool snappingToGrid();
 
 protected:
   void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
@@ -48,6 +55,15 @@ private slots:
   void zoomFitWidth();
   void zoomFitHeight();
 
+  void undo();
+  void redo();
+  void copy();
+  void cut();
+  void paste();
+  void deleteSlot();
+
+  void letGoSelection();
+
   void pen();
   void ruler();
   void circle();
@@ -59,6 +75,8 @@ private slots:
   void hand();
 
   void modified();
+  void quickmenu();
+  void quickmenuClose();
 
   void toolbar();
   void statusbar();
@@ -68,6 +86,7 @@ private slots:
   void maximize();
 
   void pageSettings();
+  void settings();
 
   void black();
   void blue();
@@ -133,6 +152,7 @@ private:
   QAction *copyAct;
   QAction *pasteAct;
   QAction *cutAct;
+  QAction *deleteAct;
 
   QAction *zoomInAct;
   QAction *zoomOutAct;
@@ -152,6 +172,7 @@ private:
   QAction *pageRemoveAct;
 
   QAction *pageSettingsAct;
+  QAction *settingsAct;
 
   QAction *penAct;
   QAction *rulerAct;

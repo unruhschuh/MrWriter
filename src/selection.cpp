@@ -11,17 +11,18 @@ namespace MrDoc
 
 Selection::Selection()
 {
+  m_pageNum = 0;
   setWidth(10.0);
   setHeight(10.0);
   setBackgroundColor(QColor(255, 255, 255, 0)); // transparent
 }
 
-void Selection::setPageNum(int pageNum)
+void Selection::setPageNum(size_t pageNum)
 {
   m_pageNum = pageNum;
 }
 
-int Selection::pageNum() const
+size_t Selection::pageNum() const
 {
   return m_pageNum;
 }
@@ -159,7 +160,7 @@ void Selection::updateBuffer(qreal zoom)
 {
   QPainter imgPainter;
   qreal upscale = 2.0;
-  m_buffer = QImage(upscale * zoom * width(), upscale * zoom * height(), QImage::Format_ARGB32_Premultiplied);
+  m_buffer = QImage(static_cast<int>(upscale * zoom * width()), static_cast<int>(upscale * zoom * height()), QImage::Format_ARGB32_Premultiplied);
   m_buffer.fill(qRgba(0, 0, 0, 0));
   m_buffer.setAlphaChannel(m_buffer);
   imgPainter.begin(&m_buffer);
@@ -167,6 +168,21 @@ void Selection::updateBuffer(qreal zoom)
 
   imgPainter.translate(-upscale * zoom * m_selectionPolygon.boundingRect().topLeft());
   Page::paint(imgPainter, upscale * zoom);
+}
+
+const QImage&Selection::buffer()
+{
+  return m_buffer;
+}
+
+bool Selection::empty()
+{
+  if (m_elements.size() == 0)
+  {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 void Selection::paint(QPainter &painter, qreal zoom, QRectF region __attribute__((unused)))
@@ -241,25 +257,17 @@ void Selection::paint(QPainter &painter, qreal zoom, QRectF region __attribute__
   painter.setTransform(paintTrans.inverted(), true);
 }
 
-void Selection::transform(QTransform transform, int pageNum)
+void Selection::transform(QTransform transform, size_t pageNum)
 {
   m_selectionPolygon = transform.map(m_selectionPolygon);
 
   qreal sx = transform.m11();
   qreal sy = transform.m22();
-  qreal s = (sx + sy) / 2.0;
+  // qreal s = (sx + sy) / 2.0;
 
-  for (int i = 0; i < m_strokes.size(); ++i)
+  for (size_t i = 0; i < m_elements.size(); ++i)
   {
-    m_strokes[i].points = transform.map(m_strokes[i].points);
-    /*
-    'if (!transform.isRotating())' doesn't work, since rotation of 180 and 360 degrees is treated as a scaling transformation. Same goes for
-    'if (transform.isScaling())'
-    */
-    if (transform.determinant() != 1)
-    {
-      m_strokes[i].penWidth = m_strokes[i].penWidth * s;
-    }
+    m_elements[i]->transform(transform);
   }
   if (transform.determinant() != 1)
   {
@@ -280,9 +288,10 @@ void Selection::transform(QTransform transform, int pageNum)
 void Selection::finalize()
 {
   QRectF boundingRect;
-  for (int i = 0; i < m_strokes.size(); ++i)
+  for (size_t i = 0; i < m_elements.size(); ++i)
   {
-    boundingRect = boundingRect.united(m_strokes[i].boundingRectSansPenWidth());
+    // boundingRect = boundingRect.united(m_elements[i].boundingRectSansPenWidth());
+    boundingRect = boundingRect.united(m_elements[i]->boundingRect());
   }
 
   //  boundingRect.adjust(-m_ad, -m_ad, m_ad, m_ad);

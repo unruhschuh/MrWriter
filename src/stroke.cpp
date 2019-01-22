@@ -1,4 +1,7 @@
 #include "stroke.h"
+#include "tools.h"
+
+#include <memory>
 
 namespace MrDoc
 {
@@ -50,6 +53,66 @@ void Stroke::paint(QPainter &painter, qreal zoom, bool last)
       if (tmpPenWidth != 0)
         dashOffset += 1.0 / tmpPenWidth * (QLineF(zoom * points.at(j - 1), zoom * points.at(j))).length();
     }
+  }
+}
+
+std::unique_ptr<Element> Stroke::clone() const
+{
+  return std::make_unique<Stroke>(*this);
+}
+
+bool Stroke::containedInPolygon(QPolygonF selectionPolygon)
+{
+  bool containsStroke = false;
+  if (MrWriter::polygonIsClockwise(selectionPolygon))
+  {
+    containsStroke = false;
+    for (int j = 0; j < points.size(); ++j)
+    {
+      if (selectionPolygon.containsPoint(points.at(j), Qt::OddEvenFill))
+      {
+        containsStroke = true;
+        break;
+      }
+    }
+    if (MrWriter::polygonLinesIntersect(points, selectionPolygon))
+    {
+      containsStroke = true;
+    }
+  }
+  else
+  {
+    containsStroke = true;
+    for (int j = 0; j < points.size(); ++j)
+    {
+      if (!selectionPolygon.containsPoint(points.at(j), Qt::OddEvenFill))
+      {
+        containsStroke = false;
+        break;
+      }
+    }
+    if (MrWriter::polygonLinesIntersect(points, selectionPolygon))
+    {
+      containsStroke = false;
+    }
+  }
+  return containsStroke;
+}
+
+void Stroke::transform(QTransform _transform)
+{
+  qreal sx = _transform.m11();
+  qreal sy = _transform.m22();
+  qreal s = (sx + sy) / 2.0;
+
+  this->points = _transform.map(this->points);
+  /*
+  'if (!transform.isRotating())' doesn't work, since rotation of 180 and 360 degrees is treated as a scaling transformation. Same goes for
+  'if (transform.isScaling())'
+  */
+  if (_transform.determinant() != 1)
+  {
+    this->penWidth = this->penWidth * s;
   }
 }
 
