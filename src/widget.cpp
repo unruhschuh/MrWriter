@@ -26,10 +26,8 @@
 #include <QRectF>
 
 Widget::Widget(QWidget *parent) : QWidget(parent)
-// Widget::Widget(QWidget *parent) : QOpenGLWidget(parent)
 {
   QSettings settings;
-  //    qDebug() << settings.applicationVersion();
 
   currentState = state::IDLE;
 
@@ -295,17 +293,11 @@ QRect Widget::getWidgetGeometry() const
   int height = 0;
   for (size_t i = 0; i < static_cast<size_t>(pageBuffer.size()); ++i)
   {
-    height += currentDocument.pages.at(i).pixelHeight(m_zoom, 1 /*devicePixelRatio()*/) + PAGE_GAP;
-    if (currentDocument.pages.at(i).pixelWidth(m_zoom, 1 /*devicePixelRatio()*/) > width)
+    height += currentDocument.pages.at(i).pixelHeight(m_zoom, 1) + PAGE_GAP;
+    if (currentDocument.pages.at(i).pixelWidth(m_zoom, 1) > width)
     {
-      width = currentDocument.pages.at(i).pixelWidth(m_zoom, 1); //devicePixelRatio());
+      width = currentDocument.pages.at(i).pixelWidth(m_zoom, 1);
     }
-
-    /*
-    height += pageBuffer[i].height()/devicePixelRatio() + PAGE_GAP;
-    if (pageBuffer[i].width()/devicePixelRatio() > width)
-      width = pageBuffer[i].width()/devicePixelRatio();
-      */
   }
   height -= PAGE_GAP;
   return QRect(0, 0, width, height);
@@ -313,7 +305,6 @@ QRect Widget::getWidgetGeometry() const
 
 void Widget::paintEvent(QPaintEvent *event)
 {
-  //    QRect widgetGeometry = getWidgetGeometry();
   QPalette p(palette());
   setAutoFillBackground(true);
   setPalette(p);
@@ -326,21 +317,15 @@ void Widget::paintEvent(QPaintEvent *event)
     QTransform trans;
     for (size_t i = 0; i < drawingOnPage; ++i)
     {
-      //trans = trans.translate(0, -(pageBuffer.at(i).height() + PAGE_GAP*devicePixelRatio()));
-      //trans = trans.translate(0, -(currentDocument.pages.at(i).pixelHeight(m_zoom, devicePixelRatio()) + PAGE_GAP*devicePixelRatio()));
       trans = trans.translate(0, -(currentDocument.pages.at(i).pixelHeight(m_zoom) + PAGE_GAP) * devicePixelRatio());
     }
     trans = trans.scale(devicePixelRatio(),devicePixelRatio());
     rectSource = trans.mapRect(event->rect());
 
-    //        QPixmap tmp = QPixmap::fromImage(pageBuffer.at(drawingOnPage));
     painter.drawPixmap(event->rect(), pageBuffer[drawingOnPage], rectSource);
 
-    //        painter.drawImage(event->rect(), pageBuffer.at(drawingOnPage), rectSource);
     return;
   }
-
-  //    painter.setRenderHint(QPainter::Antialiasing, true);
 
   for (size_t i = 0; i < static_cast<size_t>(pageBuffer.size()); ++i)
   {
@@ -350,7 +335,6 @@ void Widget::paintEvent(QPaintEvent *event)
     rectSource.setHeight(pageBuffer.at(i).height());
 
     QRectF rectTarget;
-    //        rectTarget.setTopLeft(QPointF(0.0, currentYPos));
     rectTarget.setTopLeft(QPointF(0.0, 0.0));
     rectTarget.setWidth(pageBuffer.at(i).width()/devicePixelRatio());
     rectTarget.setHeight(pageBuffer.at(i).height()/devicePixelRatio());
@@ -367,7 +351,6 @@ void Widget::paintEvent(QPaintEvent *event)
     auto & page = currentDocument.pages.at(i);
     int pixelHeight = page.pixelHeight(m_zoom, 1);
     painter.translate(QPointF(0.0, pixelHeight + PAGE_GAP));
-    //painter.translate(QPointF(0.0, rectSource.height()/devicePixelRatio() + PAGE_GAP * devicePixelRatio()));
   }
 }
 
@@ -585,7 +568,6 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
     }
     if (eventType == QEvent::MouseMove)
     {
-      //            QtConcurrent::run(this, &Widget::continueDrawing, mousePos, pressure);
       continueDrawing(mousePos, pressure);
       return;
     }
@@ -1053,15 +1035,6 @@ void Widget::continueRuling(QPointF mousePos)
   updateBufferRegion(drawingOnPage, clipRect);
   drawOnBuffer();
 
-  /*
-  QRect updateRect(firstMousePos.toPoint(), mousePos.toPoint());
-  QRect oldUpdateRect(firstMousePos.toPoint(), previousMousePos.toPoint());
-  updateRect = updateRect.normalized().united(oldUpdateRect.normalized());
-  int rad = static_cast<int>(currentPenWidth * zoom / 2) + 2;
-  updateRect = updateRect.normalized().adjusted(-rad, -rad, +rad, +rad);
-
-  update(updateRect);
-  */
   update();
 
   previousMousePos = mousePos;
@@ -1108,8 +1081,6 @@ void Widget::startCircling(QPointF mousePos)
   size_t pageNum = getPageFromMousePos(mousePos);
 
   MrDoc::Stroke newStroke;
-  //    newStroke.points.append(pagePos);
-  //    newStroke.pressures.append(1);
   newStroke.pattern = currentPattern;
   newStroke.penWidth = currentPenWidth;
   newStroke.color = currentColor;
@@ -1189,8 +1160,6 @@ void Widget::startRecting(QPointF mousePos)
   size_t pageNum = getPageFromMousePos(mousePos);
 
   MrDoc::Stroke newStroke;
-  //    newStroke.points.append(pagePos);
-  //    newStroke.pressures.append(1);
   newStroke.pattern = currentPattern;
   newStroke.penWidth = currentPenWidth;
   newStroke.color = currentColor;
@@ -1281,7 +1250,6 @@ void Widget::startDrawing(QPointF mousePos, qreal pressure)
   newStroke.penWidth = currentPenWidth;
   newStroke.color = currentColor;
   currentStroke = newStroke;
-  //    drawing = true;
   currentState = state::DRAWING;
 
   previousMousePos = mousePos;
@@ -1334,10 +1302,6 @@ void Widget::erase(QPointF mousePos, bool lineEraser)
   const std::vector<std::unique_ptr<MrDoc::Element>> &elements = currentDocument.pages[pageNum].elements();
 
   qreal eraserWidth = 10 * devicePixelRatio();
-
-  //    QLineF lineA = QLineF(pagePos + QPointF(-eraserWidth,-eraserWidth) / 2.0, pagePos + QPointF( eraserWidth,  eraserWidth) / 2.0);
-  //    QLineF lineB = QLineF(pagePos + QPointF( eraserWidth,-eraserWidth) / 2.0, pagePos + QPointF(-eraserWidth,  eraserWidth) / 2.0); // lineA and lineB
-  //    form a cross X
 
   QLineF lineA = QLineF(pagePos + QPointF(-eraserWidth, -eraserWidth) / 2.0, pagePos + QPointF(-eraserWidth, eraserWidth) / 2.0);
   QLineF lineB = QLineF(pagePos + QPointF(-eraserWidth, eraserWidth) / 2.0, pagePos + QPointF(eraserWidth, eraserWidth) / 2.0);
@@ -1418,7 +1382,6 @@ void Widget::erase(QPointF mousePos, bool lineEraser)
                 undoStack.push(addElementCommand);
                 addElementCommand = new AddElementCommand(this, pageNum, splitStrokeA.clone(), false, i, false, false);
                 undoStack.push(addElementCommand);
-                //                            strokes.insert(i, splitStrokeA);
                 i += 2;
                 break;
               }
@@ -1428,7 +1391,6 @@ void Widget::erase(QPointF mousePos, bool lineEraser)
       }
     }
   }
-  //    return;
 
   eraserWidth = eraserWidth * 0.99;
   lineA = QLineF(pagePos + QPointF(-eraserWidth, -eraserWidth) / 2.0, pagePos + QPointF(-eraserWidth, eraserWidth) / 2.0);
@@ -1478,11 +1440,9 @@ void Widget::erase(QPointF mousePos, bool lineEraser)
     currentDocument.setDocumentChanged(true);
     emit modified();
 
-    //    QRect updateRect;
     std::sort(strokesToDelete.begin(), strokesToDelete.end(), std::greater<int>());
     for (size_t i = 0; i < strokesToDelete.size(); ++i)
     {
-      //      updateRect = updateRect.united(currentDocument.pages[pageNum].m_strokes.at(strokesToDelete.at(i)).points.boundingRect().toRect());
       RemoveElementCommand *removeCommand = new RemoveElementCommand(this, pageNum, strokesToDelete[i]);
       undoStack.push(removeCommand);
     }
@@ -1509,7 +1469,6 @@ void Widget::continueMovingSelection(QPointF mousePos)
 {
   size_t pageNum = getPageFromMousePos(mousePos);
   QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
-  //    currentSelection.move(1 * (pagePos - previousPagePos));
 
   if (snapToGrid)
   {
@@ -1521,12 +1480,10 @@ void Widget::continueMovingSelection(QPointF mousePos)
   QTransform transform;
   transform.translate(delta.x(), delta.y());
 
-  //    currentSelection.transform(transform, pageNum);
   TransformSelectionCommand *transSelectCommand = new TransformSelectionCommand(this, pageNum, transform);
   undoStack.push(transSelectCommand);
 
   previousPagePos = pagePos;
-  //    update(currentSelection.selectionPolygon.boundingRect().toRect());
 }
 
 void Widget::startRotatingSelection(QPointF mousePos)
@@ -1704,10 +1661,8 @@ size_t Widget::getPageFromMousePos(QPointF mousePos) const
 {
   qreal y = mousePos.y(); // - currentCOSPos.y();
   size_t pageNum = 0;
-  // while (y > (floor(currentDocument.pages[pageNum].height() * m_zoom)) + PAGE_GAP)
   while (y > (floor(currentDocument.pages[pageNum].pixelHeight(m_zoom, 1))) + PAGE_GAP)
   {
-    // y -= (floor(currentDocument.pages[pageNum].height() * m_zoom)) + PAGE_GAP;
     y -= (floor(currentDocument.pages[pageNum].pixelHeight(m_zoom, 1))) + PAGE_GAP;
     pageNum += 1;
     if (pageNum >= currentDocument.pages.size())
@@ -1726,7 +1681,6 @@ size_t Widget::getCurrentPage() const
   size_t pageNum = this->getPageFromMousePos(pos);
 
   return pageNum;
-  //    return getPageFromMousePos(QPointF(0.0, 2.0));
 }
 
 QPointF Widget::getPagePosFromMousePos(QPointF mousePos, size_t pageNum) const
@@ -1735,12 +1689,8 @@ QPointF Widget::getPagePosFromMousePos(QPointF mousePos, size_t pageNum) const
   qreal y = mousePos.y();
   for (size_t i = 0; i < pageNum; ++i)
   {
-    //        y -= (currentDocument.pages[i].height() * zoom + PAGE_GAP); // THIS DOESN'T WORK PROPERLY (should be floor(...height(), or just use
-    //        pageBuffer[i].height()/devicePixelRatio())
-    // y -= (pageBuffer[i].height()/devicePixelRatio() + PAGE_GAP);
     y -= (currentDocument.pages[pageNum].pixelHeight(m_zoom) + PAGE_GAP);
   }
-  //    y -= (pageNum) * (currentDocument.pages[0].height() * zoom + PAGE_GAP);
 
   QPointF pagePos = (QPointF(x, y)) / m_zoom;
 
@@ -1755,7 +1705,6 @@ QPointF Widget::getAbsolutePagePosFromMousePos(QPointF mousePos) const
   qreal y = 0.0;
   for (size_t i = 0; i < pageNum; ++i)
   {
-    //y += (pageBuffer[i].height()/devicePixelRatio() + PAGE_GAP);
     y += (currentDocument.pages[pageNum].pixelHeight(m_zoom, devicePixelRatio()) + PAGE_GAP);
   }
   y *= m_zoom;
