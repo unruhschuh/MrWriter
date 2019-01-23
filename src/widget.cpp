@@ -3,6 +3,7 @@
 #include "commands.h"
 #include "tabletapplication.h"
 #include "tools.h"
+#include "image.h"
 
 #include <QClipboard>
 #include <QMouseEvent>
@@ -17,7 +18,11 @@
 #include <QtConcurrent>
 #include <QSettings>
 #include <QTimer>
+#include <QImage>
+#include <QImageReader>
 #include <qmath.h>
+
+#include <memory>
 
 #define PAGE_GAP 10.0
 #define ZOOM_STEP 1.2
@@ -30,6 +35,8 @@ Widget::Widget(QWidget *parent) : QWidget(parent)
   QSettings settings;
 
   currentState = state::IDLE;
+
+  setAcceptDrops(true);
 
   // setup cursors
   QPixmap penCursorBitmap = QPixmap(":/images/penCursor3.png");
@@ -2285,3 +2292,64 @@ void Widget::setCurrentPenCursor(Widget::cursor cursorType)
         break;
     }
 }
+
+void Widget::dragEnterEvent(QDragEnterEvent* event)
+{
+  qDebug() << Q_FUNC_INFO;
+  if (event->mimeData()->hasUrls() && event->mimeData()->urls().size() == 1)
+  {
+    QString filename = event->mimeData()->urls().at(0).toLocalFile();
+    QFileInfo fileInfo(filename);
+    auto supportedImageFormats = QImageReader::supportedImageFormats();
+    auto suffix = fileInfo.suffix();
+    bool imageFormatSupported = false;
+    for (auto imageFormat : supportedImageFormats)
+    {
+      if (suffix.compare(imageFormat, Qt::CaseInsensitive) == 0)
+      {
+        imageFormatSupported = true;
+      }
+    }
+    if (imageFormatSupported)
+    {
+      qDebug() << "Image format supported!";
+      event->acceptProposedAction();
+    }
+  }
+}
+
+
+void Widget::dragMoveEvent(QDragMoveEvent* event)
+{
+}
+
+
+void Widget::dragLeaveEvent(QDragLeaveEvent* event)
+{
+}
+
+
+void Widget::dropEvent(QDropEvent* event)
+{
+  qDebug() << Q_FUNC_INFO;
+  if (event->mimeData()->hasUrls() && event->mimeData()->urls().size() == 1)
+  {
+    //auto mousePos = mapFromGlobal(event->pos());
+    auto mousePos = event->pos();
+    auto pageNum = getPageFromMousePos(mousePos);
+    auto pagePos = getPagePosFromMousePos(mousePos, pageNum);
+    QString filename = event->mimeData()->urls().at(0).toLocalFile();
+    MrDoc::Image image;
+    qDebug() << filename;
+    image.m_image = QImage(filename);
+    image.m_pos = pagePos;
+    currentDocument.pages.at(pageNum).appendElement(std::make_unique<MrDoc::Image>(image));
+    updateAllPageBuffers(true);
+    update();
+
+    event->acceptProposedAction();
+  }
+
+}
+
+
