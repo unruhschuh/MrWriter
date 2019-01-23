@@ -27,6 +27,7 @@ public:
   std::unique_ptr<Element> clone() const override;
   bool containedInPolygon(QPolygonF selectionPolygon) override;
   void transform(QTransform _transform) override;
+  void finalize();
 
   QRectF boundingRect() const override;
   QRectF boundingRectSansPenWidth() const;

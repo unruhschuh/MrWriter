@@ -134,4 +134,15 @@ QRectF Stroke::boundingRectSansPenWidth() const
   }
   return bRect;
 }
+
+void Stroke::finalize()
+{
+  if (points.boundingRect().width() * points.boundingRect().width() + points.boundingRect().height() * points.boundingRect().height() < 1.0)
+  {
+    QPointF point = points.at(1);
+    points.clear();
+    points.append(point);
+  }
+}
+
 }

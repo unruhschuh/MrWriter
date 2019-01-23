@@ -904,12 +904,24 @@ void Widget::continueSelecting(QPointF mousePos)
   if (currentTool == Widget::tool::SELECT)
   {
     currentSelection.appendToSelectionPolygon(pagePos);
-  } else if (currentTool == Widget::tool::RECT_SELECT) {
+  }
+  else if (currentTool == Widget::tool::RECT_SELECT)
+  {
     QPolygonF selectionPolygon;
-    selectionPolygon.append(QPointF(firstPagePos.x(), firstPagePos.y()));
-    selectionPolygon.append(QPointF(firstPagePos.x(), pagePos.y()));
-    selectionPolygon.append(QPointF(pagePos.x(), pagePos.y()));
-    selectionPolygon.append(QPointF(pagePos.x(), firstPagePos.y()));
+    if ( ( pagePos.x() > firstPagePos.x() && pagePos.y() > firstPagePos.y() ) || ( pagePos.x() < firstPagePos.x() && pagePos.y() > firstPagePos.y() ) )
+    {
+      selectionPolygon.append(QPointF(firstPagePos.x(), firstPagePos.y()));
+      selectionPolygon.append(QPointF(firstPagePos.x(), pagePos.y()));
+      selectionPolygon.append(QPointF(pagePos.x(), pagePos.y()));
+      selectionPolygon.append(QPointF(pagePos.x(), firstPagePos.y()));
+    }
+    else
+    {
+      selectionPolygon.append(QPointF(firstPagePos.x(), firstPagePos.y()));
+      selectionPolygon.append(QPointF(pagePos.x(), firstPagePos.y()));
+      selectionPolygon.append(QPointF(pagePos.x(), pagePos.y()));
+      selectionPolygon.append(QPointF(firstPagePos.x(), pagePos.y()));
+    }
     currentSelection.setSelectionPolygon(selectionPolygon);
   }
 
@@ -1301,6 +1313,8 @@ void Widget::stopDrawing(QPointF mousePos, qreal pressure)
 
   currentStroke.points.append(pagePos);
   currentStroke.pressures.append(pressure);
+  currentStroke.finalize();
+
   drawOnBuffer();
 
   AddElementCommand *addCommand = new AddElementCommand(this, drawingOnPage, currentStroke.clone(), true, 0, false, true);

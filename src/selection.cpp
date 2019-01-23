@@ -290,12 +290,13 @@ void Selection::finalize()
   QRectF boundingRect;
   for (size_t i = 0; i < m_elements.size(); ++i)
   {
-    // boundingRect = boundingRect.united(m_elements[i].boundingRectSansPenWidth());
     boundingRect = boundingRect.united(m_elements[i]->boundingRect());
   }
 
-  //  boundingRect.adjust(-m_ad, -m_ad, m_ad, m_ad);
-  boundingRect.adjust(-m_x_padding, -m_y_padding, m_x_padding, m_y_padding);
+  if (boundingRect.width() < 10.0 || boundingRect.height() < 10.0)
+  {
+    boundingRect.adjust(-m_x_padding, -m_y_padding, m_x_padding, m_y_padding);
+  }
   m_selectionPolygon = QPolygonF(boundingRect);
 
   setWidth(boundingRect.width());
