@@ -80,3 +80,22 @@ bool MrWriter::polygonLinesIntersect(const QPolygonF &polygonA, const QPolygonF 
   }
   return false;
 }
+
+QTransform MrWriter::reallyScaleTransform(QTransform transform, qreal factor)
+{
+  qreal m11 = transform.m11() * factor;
+  qreal m12 = transform.m12() * factor;
+  qreal m13 = transform.m13();
+
+  qreal m21 = transform.m21() * factor;
+  qreal m22 = transform.m22() * factor;
+  qreal m23 = transform.m23();
+
+  qreal m31 = transform.m31() * factor;
+  qreal m32 = transform.m32() * factor;
+  qreal m33 = transform.m33();
+
+  QTransform scaledTransform;
+  scaledTransform.setMatrix(m11, m12, m13, m21, m22, m23, m31, m32, m33);
+  return scaledTransform;
+}

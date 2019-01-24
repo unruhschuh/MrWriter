@@ -9,16 +9,16 @@ namespace MrDoc
 class Image : public Element
 {
 public:
-  Image();
+  explicit Image(QPointF position);
 
   void paint(QPainter &painter, qreal zoom, bool last = false) override;
   std::unique_ptr<Element> clone() const override;
   bool containedInPolygon(QPolygonF selectionPolygon) override;
   void transform(QTransform transform) override;
+  QPolygonF boundingPolygon() const;
   QRectF boundingRect() const override;
 
   QImage m_image;
-  QPointF m_pos;
   QTransform m_transform;
 };
 

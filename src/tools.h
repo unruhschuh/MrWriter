@@ -2,6 +2,7 @@
 #define TOOLS_H
 
 #include <QPolygonF>
+#include <QTransform>
 
 #define DEBUG_PRINT_EXPR(var) qDebug() << #var << " = " << var << " in " << __FILE__ "/" << __func__ << ":" << __LINE__
 
@@ -11,6 +12,8 @@ double polygonSignedArea(const QPolygonF &polygon);
 bool polygonIsClockwise(const QPolygonF &polygon);
 
 bool polygonLinesIntersect(const QPolygonF &polygonA, const QPolygonF &polygonB);
+
+QTransform reallyScaleTransform(QTransform transform, qreal factor);
 
 }
 

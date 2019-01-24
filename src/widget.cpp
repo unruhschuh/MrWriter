@@ -2339,11 +2339,16 @@ void Widget::dropEvent(QDropEvent* event)
     auto pageNum = getPageFromMousePos(mousePos);
     auto pagePos = getPagePosFromMousePos(mousePos, pageNum);
     QString filename = event->mimeData()->urls().at(0).toLocalFile();
-    MrDoc::Image image;
+    MrDoc::Image image(pagePos);
     qDebug() << filename;
     image.m_image = QImage(filename);
-    image.m_pos = pagePos;
-    currentDocument.pages.at(pageNum).appendElement(std::make_unique<MrDoc::Image>(image));
+
+
+    //currentDocument.pages.at(pageNum).appendElement(std::make_unique<MrDoc::Image>(image));
+    AddElementCommand *addCommand = new AddElementCommand(this, drawingOnPage, image.clone(), true, 0, false, true);
+    undoStack.push(addCommand);
+
+
     updateAllPageBuffers(true);
     update();
 

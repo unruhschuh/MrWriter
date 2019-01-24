@@ -64,7 +64,7 @@ std::unique_ptr<Element> Stroke::clone() const
 
 bool Stroke::containedInPolygon(QPolygonF selectionPolygon)
 {
-  bool containsStroke = false;
+  bool containsStroke;
   if (MrWriter::polygonIsClockwise(selectionPolygon))
   {
     containsStroke = false;

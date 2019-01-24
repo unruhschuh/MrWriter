@@ -1,12 +1,15 @@
 #include "image.h"
+#include "tools.h"
 #include <QDebug>
 
 namespace MrDoc
 {
 
-Image::Image()
+Image::Image(QPointF position)
 {
-
+  QTransform transform;
+  transform.translate(position.x(), position.y());
+  m_transform = transform;
 }
 
 void Image::paint(QPainter& painter, qreal zoom, bool last)
@@ -14,13 +17,21 @@ void Image::paint(QPainter& painter, qreal zoom, bool last)
   (void)last;
 
   QTransform oldTransform = painter.transform();
-  QTransform newTransform = m_transform;
+  //QTransform newTransform = m_transform * zoom;
+  QTransform newTransform = MrWriter::reallyScaleTransform(m_transform, zoom);
   painter.setTransform(newTransform, true);
-  QRectF targetRect = QRectF(m_image.rect()).translated(zoom * m_pos);
-  targetRect.setWidth(zoom * targetRect.width());
-  targetRect.setHeight(zoom * targetRect.height());
-  painter.drawImage(targetRect, m_image, m_image.rect());
+
+  painter.drawImage(m_image.rect(), m_image, m_image.rect());
   painter.setTransform(oldTransform);
+
+  /*
+  QPolygonF poly = boundingPolygon();
+  for (auto &point : poly)
+  {
+    point *= zoom;
+  }
+  painter.drawPolygon(poly);
+  */
 }
 
 std::unique_ptr<Element> Image::clone() const
@@ -30,38 +41,61 @@ std::unique_ptr<Element> Image::clone() const
 
 bool Image::containedInPolygon(QPolygonF selectionPolygon)
 {
-  QRectF rect = boundingRect();
-  if (selectionPolygon.containsPoint(rect.topLeft(), Qt::OddEvenFill) &&
-      selectionPolygon.containsPoint(rect.topRight(), Qt::OddEvenFill) &&
-      selectionPolygon.containsPoint(rect.bottomLeft(), Qt::OddEvenFill) &&
-      selectionPolygon.containsPoint(rect.bottomRight(), Qt::OddEvenFill) )
+
+  QPolygonF poly = boundingPolygon();
+
+  bool containsImage;
+  if (MrWriter::polygonIsClockwise(selectionPolygon))
   {
-    return true;
+    if (selectionPolygon.intersects(poly))
+    {
+      containsImage = true;
+    }
+    else
+    {
+      containsImage = false;
+    }
   }
   else
   {
-    return false;
+    containsImage = true;
+    for (auto & point : poly)
+    {
+      if (!selectionPolygon.containsPoint(point, Qt::OddEvenFill))
+      {
+        containsImage = false;
+      }
+    }
+    if (MrWriter::polygonLinesIntersect(selectionPolygon, poly))
+    {
+      containsImage = false;
+    }
   }
+
+  return containsImage;
 }
 
 void Image::transform(QTransform transform)
 {
-  m_pos = transform.map(m_pos);
-  transform.translate(-transform.dx(), -transform.dy());
-  qDebug() << transform.dx();
-  qDebug() << transform.dy();
+  //m_pos = transform.map(m_pos);
   m_transform = m_transform * transform;
 }
 
-QRectF Image::boundingRect() const
+QPolygonF Image::boundingPolygon() const
 {
   QRectF rect = m_image.rect();
 
   QPolygonF poly(rect);
-  m_transform.map(poly);
-  rect.translate(m_pos);
+  poly = m_transform.map(poly);
 
-  rect = poly.boundingRect();
+  return poly;
+}
+
+QRectF Image::boundingRect() const
+{
+  QPolygonF poly = boundingPolygon();
+  QRectF rect = poly.boundingRect();
+
   return rect;
 }
 
