@@ -43,7 +43,7 @@ void Image::toXml(QXmlStreamWriter& writer)
   m_image.save(&buffer, "PNG");
 
   writer.writeStartElement("image");
-  writer.writeAttribute(QXmlStreamAttribute("matrix", ""));
+  writer.writeAttribute(QXmlStreamAttribute("matrix", MrWriter::transformToString(m_transform)));
   writer.writeCDATA(ba.toBase64());
   writer.writeEndElement();
   qDebug() << ba;
@@ -51,12 +51,13 @@ void Image::toXml(QXmlStreamWriter& writer)
 
 void Image::fromXml(QXmlStreamReader& reader)
 {
+  QXmlStreamAttributes attributes = reader.attributes();
   QString elementText = reader.readElementText();
   QByteArray ba = QByteArray::fromBase64(elementText.toUtf8());
   m_image.loadFromData(ba);
-  //QBuffer buffer(&ba);
-  //buffer.open(QIODevice::ReadOnly);
-  //m_image.load(&buffer,)
+
+  QString matrixString = attributes.value("", "matrix").toString();
+  m_transform = MrWriter::stringToTransform(matrixString);
 }
 
 std::unique_ptr<Element> Image::clone() const

@@ -2365,6 +2365,9 @@ void Widget::dropEvent(QDropEvent* event)
     updateAllPageBuffers(true);
     update();
 
+    currentDocument.setDocumentChanged(true);
+    emit modified();
+
     event->acceptProposedAction();
   }
 }

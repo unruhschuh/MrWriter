@@ -99,3 +99,39 @@ QTransform MrWriter::reallyScaleTransform(QTransform transform, qreal factor)
   scaledTransform.setMatrix(m11, m12, m13, m21, m22, m23, m31, m32, m33);
   return scaledTransform;
 }
+
+QString MrWriter::transformToString(const QTransform & transform)
+{
+  QString string;
+  string
+      .append(QString::number(transform.m11())).append(" ")
+      .append(QString::number(transform.m12())).append(" ")
+      .append(QString::number(transform.m13())).append(" ")
+      .append(QString::number(transform.m21())).append(" ")
+      .append(QString::number(transform.m22())).append(" ")
+      .append(QString::number(transform.m23())).append(" ")
+      .append(QString::number(transform.m31())).append(" ")
+      .append(QString::number(transform.m32())).append(" ")
+      .append(QString::number(transform.m33()));
+  return string;
+}
+
+QTransform MrWriter::stringToTransform(const QString & string)
+{
+  QTransform transform;
+  QStringList list = string.split(" ", QString::SkipEmptyParts);
+  if (list.size() < 9)
+  {
+    return transform;
+  }
+  qreal m11 = list.at(0).toDouble();
+  qreal m12 = list.at(1).toDouble();
+  qreal m13 = list.at(2).toDouble();
+  qreal m21 = list.at(3).toDouble();
+  qreal m22 = list.at(4).toDouble();
+  qreal m23 = list.at(5).toDouble();
+  qreal m31 = list.at(6).toDouble();
+  qreal m32 = list.at(7).toDouble();
+  qreal m33 = list.at(8).toDouble();
+  transform.setMatrix(m11, m12, m13, m21, m22, m23, m31, m32, m33);
+}

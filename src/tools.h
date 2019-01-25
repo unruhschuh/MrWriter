@@ -15,6 +15,9 @@ bool polygonLinesIntersect(const QPolygonF &polygonA, const QPolygonF &polygonB)
 
 QTransform reallyScaleTransform(QTransform transform, qreal factor);
 
+QString transformToString(const QTransform & transform);
+QTransform stringToTransform(const QString & string);
+
 }
 
 #endif // TOOLS_H
