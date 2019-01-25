@@ -214,6 +214,10 @@ void MainWindow::createActions()
   connect(pasteAct, SIGNAL(triggered()), mainWidget, SLOT(paste()));
   this->addAction(pasteAct); // add to make shortcut work if menubar is hidden
 
+  pasteImageAct = new QAction(tr("Paste &Image"), this);
+  pasteImageAct->setStatusTip(tr("Paste"));
+  connect(pasteImageAct, SIGNAL(triggered()), mainWidget, SLOT(pasteImage()));
+
   cutAct = new QAction(QIcon(":/images/cutIcon.png"), tr("Cut"), this);
   cutAct->setShortcuts(QKeySequence::Cut);
   cutAct->setStatusTip(tr("Cut"));
@@ -591,6 +595,7 @@ void MainWindow::createMenus()
   editMenu->addAction(cutAct);
   editMenu->addAction(copyAct);
   editMenu->addAction(pasteAct);
+  editMenu->addAction(pasteImageAct);
   editMenu->addSeparator();
   editMenu->addAction(selectAllAct);
   editMenu->addSeparator();

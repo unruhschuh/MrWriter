@@ -151,6 +151,7 @@ private:
   QAction *selectAllAct;
   QAction *copyAct;
   QAction *pasteAct;
+  QAction *pasteImageAct;
   QAction *cutAct;
   QAction *deleteAct;
 

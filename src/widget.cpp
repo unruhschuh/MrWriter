@@ -180,7 +180,7 @@ void Widget::updateImageBuffer(size_t buffNum)
 
   QPainter painter;
   painter.begin(&image);
-  painter.setRenderHint(QPainter::Antialiasing, true);
+  painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
 
   if (showGrid)
   {
@@ -208,7 +208,7 @@ void Widget::updateBuffer(size_t buffNum)
 
   QPainter painter;
   painter.begin(&pixmap);
-  painter.setRenderHint(QPainter::Antialiasing, true);
+  painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
 
   if (showGrid)
   {
@@ -226,7 +226,7 @@ void Widget::updateBufferRegion(size_t buffNum, QRectF const &clipRect)
 {
   QPainter painter;
   painter.begin(&pageBuffer[buffNum]);
-  painter.setRenderHint(QPainter::Antialiasing, true);
+  painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
   painter.setClipRect(clipRect);
   painter.setClipping(true);
 
@@ -289,7 +289,7 @@ void Widget::drawOnBuffer(bool last)
 {
   QPainter painter;
   painter.begin(&pageBuffer[drawingOnPage]);
-  painter.setRenderHint(QPainter::Antialiasing, true);
+  painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
 
   currentStroke.paint(painter, m_zoom, last);
 }
@@ -2101,6 +2101,33 @@ void Widget::paste()
   }
 }
 
+void Widget::pasteImage()
+{
+  const QClipboard *clipboard = QApplication::clipboard();
+  const QMimeData *mimeData = clipboard->mimeData();
+
+  if (mimeData->hasImage())
+  {
+    MrDoc::Image image(QPointF(0,0));
+
+    image.m_image = qvariant_cast<QImage>(mimeData->imageData());
+
+    QTransform transform;
+    transform.scale(0.5, 0.5);
+    //transform.translate(pagePos.x(), pagePos.y());
+    image.transform(transform);
+
+    AddElementCommand *addCommand = new AddElementCommand(this, getCurrentPage(), image.clone(), true, 0, false, true);
+    undoStack.push(addCommand);
+
+    updateAllPageBuffers(true);
+    update();
+
+    currentDocument.setDocumentChanged(true);
+    emit modified();
+  }
+}
+
 void Widget::cut()
 {
   CutCommand *cutCommand = new CutCommand(this);
@@ -2359,7 +2386,7 @@ void Widget::dropEvent(QDropEvent* event)
     transform.translate(pagePos.x(), pagePos.y());
     image.transform(transform);
 
-    AddElementCommand *addCommand = new AddElementCommand(this, drawingOnPage, image.clone(), true, 0, false, true);
+    AddElementCommand *addCommand = new AddElementCommand(this, pageNum, image.clone(), true, 0, false, true);
     undoStack.push(addCommand);
 
     updateAllPageBuffers(true);

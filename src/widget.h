@@ -257,6 +257,7 @@ public slots:
   void selectAll();
   void copy();
   void paste();
+  void pasteImage();
   void cut();
   void deleteSlot();
 

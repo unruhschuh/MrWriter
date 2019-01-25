@@ -164,7 +164,7 @@ void Selection::updateBuffer(qreal zoom)
   m_buffer.fill(qRgba(0, 0, 0, 0));
   m_buffer.setAlphaChannel(m_buffer);
   imgPainter.begin(&m_buffer);
-  imgPainter.setRenderHint(QPainter::Antialiasing, true);
+  imgPainter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
 
   imgPainter.translate(-upscale * zoom * m_selectionPolygon.boundingRect().topLeft());
   Page::paint(imgPainter, upscale * zoom);
