@@ -73,7 +73,8 @@ bool Image::containedInPolygon(QPolygonF selectionPolygon)
   bool containsImage;
   if (MrWriter::polygonIsClockwise(selectionPolygon))
   {
-    if (selectionPolygon.intersects(poly))
+    //if (selectionPolygon.intersects(poly)) // requires Qt >= 5.10
+    if (!selectionPolygon.intersected(poly).empty())
     {
       containsImage = true;
     }
