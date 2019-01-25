@@ -1476,6 +1476,14 @@ void MainWindow::updateGUI()
     copyAct->setDisabled(true);
     deleteAct->setDisabled(true);
   }
+  if (!mainWidget->clipboard.empty())
+  {
+    pasteAct->setEnabled(true);
+  }
+  else
+  {
+    pasteAct->setDisabled(true);
+  }
   //    toolbarAct->setChecked()
 
   QPixmap pixmap(16, 16);
