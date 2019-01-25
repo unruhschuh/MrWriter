@@ -1,5 +1,8 @@
 #include "document.h"
 
+#include "stroke.h"
+#include "image.h"
+
 #include "qcompressor.h"
 #include "version.h"
 
@@ -173,7 +176,7 @@ bool Document::loadXOJ(QString fileName)
     {
       QXmlStreamAttributes attributes = reader.attributes();
       QStringRef color = attributes.value("", "color");
-      QColor newColor = stringToColor(color.toString());
+      QColor newColor = MrDoc::stringToColor(color.toString());
       pages.back().setBackgroundColor(newColor);
     }
     if (reader.name() == "stroke" && reader.tokenType() == QXmlStreamReader::StartElement)
@@ -185,7 +188,7 @@ bool Document::loadXOJ(QString fileName)
         Stroke newStroke;
         newStroke.pattern = MrDoc::solidLinePattern;
         QStringRef color = attributes.value("", "color");
-        newStroke.color = stringToColor(color.toString());
+        newStroke.color = MrDoc::stringToColor(color.toString());
         QStringRef strokeWidth = attributes.value("", "width");
         QStringList strokeWidthList = strokeWidth.toString().split(" ");
         newStroke.penWidth = strokeWidthList.at(0).toDouble();
@@ -263,7 +266,7 @@ bool Document::saveXOJ(QString fileName)
     writer.writeAttribute(QXmlStreamAttribute("height", QString::number(pages[i].height())));
     writer.writeEmptyElement("background");
     writer.writeAttribute(QXmlStreamAttribute("type", "solid"));
-    writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(pages[i].backgroundColor().name(QColor::HexArgb))));
+    writer.writeAttribute(QXmlStreamAttribute("color", MrDoc::toRGBA(pages[i].backgroundColor().name(QColor::HexArgb))));
     writer.writeAttribute(QXmlStreamAttribute("style", "plain"));
     writer.writeStartElement("layer");
 
@@ -275,7 +278,7 @@ bool Document::saveXOJ(QString fileName)
       {
         writer.writeStartElement("stroke");
         writer.writeAttribute(QXmlStreamAttribute("tool", "pen"));
-        writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(stroke->color.name(QColor::HexArgb))));
+        writer.writeAttribute(QXmlStreamAttribute("color", MrDoc::toRGBA(stroke->color.name(QColor::HexArgb))));
         qreal width = stroke->penWidth;
         QString widthString;
         widthString.append(QString::number(width));
@@ -392,7 +395,7 @@ bool Document::loadMOJ(QString fileName)
     {
       QXmlStreamAttributes attributes = reader.attributes();
       QStringRef color = attributes.value("", "color");
-      QColor newColor = stringToColor(color.toString());
+      QColor newColor = MrDoc::stringToColor(color.toString());
       pages.back().setBackgroundColor(newColor);
     }
     if (reader.name() == "stroke" && reader.tokenType() == QXmlStreamReader::StartElement)
@@ -402,51 +405,7 @@ bool Document::loadMOJ(QString fileName)
       if (tool == "pen")
       {
         Stroke newStroke;
-        newStroke.pattern = MrDoc::solidLinePattern;
-        QStringRef color = attributes.value("", "color");
-        newStroke.color = stringToColor(color.toString());
-        QStringRef style = attributes.value("", "style");
-        if (style.toString().compare("solid") == 0)
-        {
-          newStroke.pattern = MrDoc::solidLinePattern;
-        }
-        else if (style.toString().compare("dash") == 0)
-        {
-          newStroke.pattern = MrDoc::dashLinePattern;
-        }
-        else if (style.toString().compare("dashdot") == 0)
-        {
-          newStroke.pattern = MrDoc::dashDotLinePattern;
-        }
-        else if (style.toString().compare("dot") == 0)
-        {
-          newStroke.pattern = MrDoc::dotLinePattern;
-        }
-        else
-        {
-          newStroke.pattern = MrDoc::solidLinePattern;
-        }
-        QStringRef strokeWidth = attributes.value("", "width");
-        newStroke.penWidth = strokeWidth.toDouble();
-        QString elementText = reader.readElementText();
-        QStringList elementTextList = elementText.trimmed().split(" ");
-        for (int i = 0; i + 1 < elementTextList.size(); i = i + 2)
-        {
-          newStroke.points.append(QPointF(elementTextList.at(i).toDouble(), elementTextList.at(i + 1).toDouble()));
-        }
-        QStringRef pressures = attributes.value("pressures");
-        QStringList pressuresList = pressures.toString().trimmed().split(" ");
-        for (int i = 0; i < pressuresList.length(); ++i)
-        {
-          if (pressuresList.length() == 0)
-          {
-            newStroke.pressures.append(1.0);
-          }
-          else
-          {
-            newStroke.pressures.append(pressuresList.at(i).toDouble());
-          }
-        }
+        newStroke.fromXml(reader);
         if (newStroke.pressures.size() != newStroke.points.size())
         {
           return false;
@@ -455,6 +414,12 @@ bool Document::loadMOJ(QString fileName)
         strokeCount++;
         qDebug() << strokeCount;
       }
+    }
+    if (reader.name() == "image" && reader.tokenType() == QXmlStreamReader::StartElement)
+    {
+      Image newImage(QPointF(0,0));
+      newImage.fromXml(reader);
+      pages.back().appendElement(newImage.clone());
     }
   }
 
@@ -513,60 +478,14 @@ bool Document::saveMOJ(QString fileName)
     writer.writeAttribute(QXmlStreamAttribute("height", QString::number(pages[i].height())));
     writer.writeEmptyElement("background");
     writer.writeAttribute(QXmlStreamAttribute("type", "solid"));
-    writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(pages[i].backgroundColor().name(QColor::HexArgb))));
+    writer.writeAttribute(QXmlStreamAttribute("color", MrDoc::toRGBA(pages[i].backgroundColor().name(QColor::HexArgb))));
     writer.writeAttribute(QXmlStreamAttribute("style", "plain"));
     writer.writeStartElement("layer");
 
     //    for (int j = 0; j < pages[i].m_strokes.size(); ++j)
     for (auto & element : pages[i].elements())
     {
-      auto stroke = dynamic_cast<Stroke*>(element.get());
-      if (nullptr != stroke)
-      {
-        writer.writeStartElement("stroke");
-        writer.writeAttribute(QXmlStreamAttribute("tool", "pen"));
-        writer.writeAttribute(QXmlStreamAttribute("color", toRGBA(stroke->color.name(QColor::HexArgb))));
-        QString patternString;
-        if (stroke->pattern == MrDoc::solidLinePattern)
-        {
-          patternString = "solid";
-        }
-        else if (stroke->pattern == MrDoc::dashLinePattern)
-        {
-          patternString = "dash";
-        }
-        else if (stroke->pattern == MrDoc::dashDotLinePattern)
-        {
-          patternString = "dashdot";
-        }
-        else if (stroke->pattern == MrDoc::dotLinePattern)
-        {
-          patternString = "dot";
-        }
-        else
-        {
-          patternString = "solid";
-        }
-        writer.writeAttribute(QXmlStreamAttribute("style", patternString));
-        qreal width = stroke->penWidth;
-        writer.writeAttribute(QXmlStreamAttribute("width", QString::number(width)));
-        QString pressures;
-        for (int k = 0; k < stroke->pressures.length(); ++k)
-        {
-          pressures.append(QString::number(stroke->pressures[k])).append(" ");
-        }
-        writer.writeAttribute((QXmlStreamAttribute("pressures", pressures.trimmed())));
-        QString points;
-        for (int k = 0; k < stroke->points.size(); ++k)
-        {
-          points.append(QString::number(stroke->points[k].x()));
-          points.append(" ");
-          points.append(QString::number(stroke->points[k].y()));
-          points.append(" ");
-        }
-        writer.writeCharacters(points.trimmed());
-        writer.writeEndElement(); // closing "stroke"
-      }
+      element->toXml(writer);
     }
 
     writer.writeEndElement(); // closing "layer"
@@ -631,61 +550,4 @@ void Document::setDocumentChanged(bool changed)
   m_documentChanged = changed;
 }
 
-QString Document::toARGB(QString rgba)
-{
-  // #RRGGBBAA
-  // 012345678
-  QString argb;
-  if (rgba.length() == 9)
-  {
-    argb.append('#');
-    argb.append(rgba.mid(7, 2));
-    argb.append(rgba.mid(1, 6));
-  }
-  else
-  {
-    argb = QString("");
-  }
-
-  return argb;
-}
-
-QString Document::toRGBA(QString argb)
-{
-  // #AARRGGBB
-  // 012345678
-  QString rgba;
-  if (argb.length() == 9)
-  {
-    rgba.append('#');
-    rgba.append(argb.mid(3, 6));
-    rgba.append(argb.mid(1, 2));
-  }
-  else
-  {
-    rgba = QString("");
-  }
-
-  return rgba;
-}
-
-QColor Document::stringToColor(QString colorString)
-{
-  QColor color;
-  if (colorString.left(1).compare("#") == 0)
-  {
-    color = QColor(toARGB(colorString));
-  }
-  else
-  {
-    for (int i = 0; i < standardColors.size(); ++i)
-    {
-      if (standardColorNames[i].compare(colorString) == 0)
-      {
-        color = standardColors.at(i);
-      }
-    }
-  }
-  return color;
-}
 }

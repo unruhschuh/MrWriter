@@ -1,6 +1,7 @@
 #include "image.h"
 #include "tools.h"
 #include <QDebug>
+#include <QBuffer>
 
 namespace MrDoc
 {
@@ -32,6 +33,30 @@ void Image::paint(QPainter& painter, qreal zoom, bool last)
   }
   painter.drawPolygon(poly);
   */
+}
+
+void Image::toXml(QXmlStreamWriter& writer)
+{
+  QByteArray ba;
+  QBuffer buffer(&ba);
+  buffer.open(QIODevice::WriteOnly);
+  m_image.save(&buffer, "PNG");
+
+  writer.writeStartElement("image");
+  writer.writeAttribute(QXmlStreamAttribute("matrix", ""));
+  writer.writeCDATA(ba.toBase64());
+  writer.writeEndElement();
+  qDebug() << ba;
+}
+
+void Image::fromXml(QXmlStreamReader& reader)
+{
+  QString elementText = reader.readElementText();
+  QByteArray ba = QByteArray::fromBase64(elementText.toUtf8());
+  m_image.loadFromData(ba);
+  //QBuffer buffer(&ba);
+  //buffer.open(QIODevice::ReadOnly);
+  //m_image.load(&buffer,)
 }
 
 std::unique_ptr<Element> Image::clone() const

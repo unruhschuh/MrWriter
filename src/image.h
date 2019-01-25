@@ -12,6 +12,8 @@ public:
   explicit Image(QPointF position);
 
   void paint(QPainter &painter, qreal zoom, bool last = false) override;
+  void toXml(QXmlStreamWriter & writer) override;
+  void fromXml(QXmlStreamReader & reader) override;
   std::unique_ptr<Element> clone() const override;
   bool containedInPolygon(QPolygonF selectionPolygon) override;
   void transform(QTransform transform) override;

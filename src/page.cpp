@@ -1,4 +1,5 @@
 #include "page.h"
+#include "stroke.h"
 #include "mrdoc.h"
 #include "tools.h"
 #include <QDebug>

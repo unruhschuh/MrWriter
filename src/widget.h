@@ -21,6 +21,7 @@
 #include "tabletapplication.h"
 #include "mrdoc.h"
 #include "document.h"
+#include "stroke.h"
 
 class Widget : public QWidget
 {

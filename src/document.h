@@ -36,11 +36,6 @@ public:
   std::vector<MrDoc::Page> pages;
   //std::vector<std::unique_ptr<MrDoc::Page>> pages;
 
-  QString toRGBA(QString argb);
-  QString toARGB(QString rgba);
-
-  QColor stringToColor(QString colorString);
-
 private:
   bool m_documentChanged;
 

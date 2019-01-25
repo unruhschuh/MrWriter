@@ -57,6 +57,106 @@ void Stroke::paint(QPainter &painter, qreal zoom, bool last)
   }
 }
 
+void Stroke::toXml(QXmlStreamWriter& writer)
+{
+  writer.writeStartElement("stroke");
+  writer.writeAttribute(QXmlStreamAttribute("tool", "pen"));
+  writer.writeAttribute(QXmlStreamAttribute("color", MrDoc::toRGBA(this->color.name(QColor::HexArgb))));
+  QString patternString;
+  if (this->pattern == MrDoc::solidLinePattern)
+  {
+    patternString = "solid";
+  }
+  else if (this->pattern == MrDoc::dashLinePattern)
+  {
+    patternString = "dash";
+  }
+  else if (this->pattern == MrDoc::dashDotLinePattern)
+  {
+    patternString = "dashdot";
+  }
+  else if (this->pattern == MrDoc::dotLinePattern)
+  {
+    patternString = "dot";
+  }
+  else
+  {
+    patternString = "solid";
+  }
+  writer.writeAttribute(QXmlStreamAttribute("style", patternString));
+  qreal width = this->penWidth;
+  writer.writeAttribute(QXmlStreamAttribute("width", QString::number(width)));
+  QString pressures;
+  for (int k = 0; k < this->pressures.length(); ++k)
+  {
+    pressures.append(QString::number(this->pressures[k])).append(" ");
+  }
+  writer.writeAttribute((QXmlStreamAttribute("pressures", pressures.trimmed())));
+  QString points;
+  for (int k = 0; k < this->points.size(); ++k)
+  {
+    points.append(QString::number(this->points[k].x()));
+    points.append(" ");
+    points.append(QString::number(this->points[k].y()));
+    points.append(" ");
+  }
+  writer.writeCharacters(points.trimmed());
+  writer.writeEndElement(); // closing "stroke"
+}
+
+void Stroke::fromXml(QXmlStreamReader& reader)
+{
+  this->pattern.clear();
+  this->points.clear();
+  this->pressures.clear();
+
+  QXmlStreamAttributes attributes = reader.attributes();
+  QStringRef color = attributes.value("", "color");
+  this->color = stringToColor(color.toString());
+  QStringRef style = attributes.value("", "style");
+  if (style.toString().compare("solid") == 0)
+  {
+    this->pattern = MrDoc::solidLinePattern;
+  }
+  else if (style.toString().compare("dash") == 0)
+  {
+    this->pattern = MrDoc::dashLinePattern;
+  }
+  else if (style.toString().compare("dashdot") == 0)
+  {
+    this->pattern = MrDoc::dashDotLinePattern;
+  }
+  else if (style.toString().compare("dot") == 0)
+  {
+    this->pattern = MrDoc::dotLinePattern;
+  }
+  else
+  {
+    this->pattern = MrDoc::solidLinePattern;
+  }
+  QStringRef strokeWidth = attributes.value("", "width");
+  this->penWidth = strokeWidth.toDouble();
+  QString elementText = reader.readElementText();
+  QStringList elementTextList = elementText.trimmed().split(" ");
+  for (int i = 0; i + 1 < elementTextList.size(); i = i + 2)
+  {
+    this->points.append(QPointF(elementTextList.at(i).toDouble(), elementTextList.at(i + 1).toDouble()));
+  }
+  QStringRef pressures = attributes.value("pressures");
+  QStringList pressuresList = pressures.toString().trimmed().split(" ");
+  for (int i = 0; i < pressuresList.length(); ++i)
+  {
+    if (pressuresList.length() == 0)
+    {
+      this->pressures.append(1.0);
+    }
+    else
+    {
+      this->pressures.append(pressuresList.at(i).toDouble());
+    }
+  }
+}
+
 std::unique_ptr<Element> Stroke::clone() const
 {
   return std::make_unique<Stroke>(*this);
@@ -139,9 +239,12 @@ void Stroke::finalize()
 {
   if (points.boundingRect().width() * points.boundingRect().width() + points.boundingRect().height() * points.boundingRect().height() < 1.0)
   {
-    QPointF point = points.at(1);
+    QPointF point = points.at(0);
+    qreal pressure = pressures.at(0);
     points.clear();
     points.append(point);
+    pressures.clear();
+    pressures.append(pressure);
   }
 }
 

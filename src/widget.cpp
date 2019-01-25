@@ -719,7 +719,6 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
 
 void Widget::tabletEvent(QTabletEvent *event)
 {
-  qDebug() << Q_FUNC_INFO;
   if (inputEnabled())
   {
     event->accept();
@@ -2296,6 +2295,10 @@ void Widget::setCurrentPenCursor(Widget::cursor cursorType)
 void Widget::dragEnterEvent(QDragEnterEvent* event)
 {
   qDebug() << Q_FUNC_INFO;
+  if (event->mimeData()->hasImage())
+  {
+    event->acceptProposedAction();
+  }
   if (event->mimeData()->hasUrls() && event->mimeData()->urls().size() == 1)
   {
     QString filename = event->mimeData()->urls().at(0).toLocalFile();
@@ -2332,29 +2335,38 @@ void Widget::dragLeaveEvent(QDragLeaveEvent* event)
 void Widget::dropEvent(QDropEvent* event)
 {
   qDebug() << Q_FUNC_INFO;
-  if (event->mimeData()->hasUrls() && event->mimeData()->urls().size() == 1)
+  if (event->mimeData()->hasImage() || (event->mimeData()->hasUrls() && event->mimeData()->urls().size() == 1))
   {
-    //auto mousePos = mapFromGlobal(event->pos());
     auto mousePos = event->pos();
     auto pageNum = getPageFromMousePos(mousePos);
     auto pagePos = getPagePosFromMousePos(mousePos, pageNum);
-    QString filename = event->mimeData()->urls().at(0).toLocalFile();
+
     MrDoc::Image image(pagePos);
-    qDebug() << filename;
-    image.m_image = QImage(filename);
 
+    if (event->mimeData()->hasImage())
+    {
+      image.m_image = qvariant_cast<QImage>(event->mimeData()->imageData());
+    }
 
-    //currentDocument.pages.at(pageNum).appendElement(std::make_unique<MrDoc::Image>(image));
+    if (event->mimeData()->hasUrls() && event->mimeData()->urls().size() == 1)
+    {
+      QString filename = event->mimeData()->urls().at(0).toLocalFile();
+      image.m_image = QImage(filename);
+    }
+
+    QTransform transform;
+    transform.scale(0.5, 0.5);
+    transform.translate(pagePos.x(), pagePos.y());
+    image.transform(transform);
+
     AddElementCommand *addCommand = new AddElementCommand(this, drawingOnPage, image.clone(), true, 0, false, true);
     undoStack.push(addCommand);
-
 
     updateAllPageBuffers(true);
     update();
 
     event->acceptProposedAction();
   }
-
 }
 
 

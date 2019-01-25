@@ -72,6 +72,12 @@ const QVector<qreal> solidLinePattern = {1, 0};
 const QVector<qreal> dashLinePattern = {6, 3};
 const QVector<qreal> dashDotLinePattern = {6, 3, 0.5, 3};
 const QVector<qreal> dotLinePattern = {0.5, 3};
+
+QString toARGB(QString rgba);
+QString toRGBA(QString argb);
+QColor stringToColor(QString colorString);
+
+
 }
 
 #endif // MRDOC_H

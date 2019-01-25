@@ -3,6 +3,8 @@
 
 #include <QPainter>
 #include <memory>
+#include <QXmlStreamWriter>
+#include <QXmlStreamReader>
 
 namespace MrDoc {
 
@@ -13,6 +15,8 @@ public:
   virtual ~Element() { }
 
   virtual void paint(QPainter &painter, qreal zoom, bool last = false) = 0;
+  virtual void toXml(QXmlStreamWriter & writer) = 0;
+  virtual void fromXml(QXmlStreamReader & reader) = 0;
   virtual std::unique_ptr<Element> clone() const = 0;
   virtual QRectF boundingRect() const = 0;
   virtual void transform(QTransform _transform) = 0;

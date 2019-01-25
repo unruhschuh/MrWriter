@@ -7,6 +7,7 @@
 #QMAKE_POST_LINK=make_doc.sh
 
 QT       += core gui
+QT       += core
 QT       += xml
 QT       += printsupport
 QT       += concurrent
@@ -49,7 +50,8 @@ SOURCES += \
     src/element.cpp \
     src/quickmenu.cpp \
     src/settingsdialog.cpp \
-    src/image.cpp
+    src/image.cpp \
+    src/mrdoc.cpp
 
 HEADERS  += \
     src/pagesettingsdialog.h \

@@ -3,7 +3,6 @@
 
 #include <memory>
 
-#include "stroke.h"
 #include "element.h"
 
 namespace MrDoc
