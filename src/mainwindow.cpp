@@ -218,6 +218,10 @@ void MainWindow::createActions()
   pasteImageAct->setStatusTip(tr("Paste"));
   connect(pasteImageAct, SIGNAL(triggered()), mainWidget, SLOT(pasteImage()));
 
+  pasteTextAct = new QAction(tr("Paste &Text"), this);
+  pasteTextAct->setStatusTip(tr("Paste"));
+  connect(pasteTextAct, SIGNAL(triggered()), mainWidget, SLOT(pasteText()));
+
   cutAct = new QAction(QIcon(":/images/cutIcon.png"), tr("Cut"), this);
   cutAct->setShortcuts(QKeySequence::Cut);
   cutAct->setStatusTip(tr("Cut"));
@@ -596,6 +600,7 @@ void MainWindow::createMenus()
   editMenu->addAction(copyAct);
   editMenu->addAction(pasteAct);
   editMenu->addAction(pasteImageAct);
+  editMenu->addAction(pasteTextAct);
   editMenu->addSeparator();
   editMenu->addAction(selectAllAct);
   editMenu->addSeparator();

@@ -67,7 +67,6 @@ std::unique_ptr<Element> Image::clone() const
 
 bool Image::containedInPolygon(QPolygonF selectionPolygon)
 {
-
   QPolygonF poly = boundingPolygon();
 
   bool containsImage;
@@ -104,7 +103,6 @@ bool Image::containedInPolygon(QPolygonF selectionPolygon)
 
 void Image::transform(QTransform transform)
 {
-  //m_pos = transform.map(m_pos);
   m_transform = m_transform * transform;
 }
 

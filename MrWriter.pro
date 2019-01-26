@@ -51,7 +51,8 @@ SOURCES += \
     src/quickmenu.cpp \
     src/settingsdialog.cpp \
     src/image.cpp \
-    src/mrdoc.cpp
+    src/mrdoc.cpp \
+    src/text.cpp
 
 HEADERS  += \
     src/pagesettingsdialog.h \
@@ -72,7 +73,8 @@ HEADERS  += \
     src/element.h \
     src/quickmenu.h \
     src/settingsdialog.h \
-    src/image.h
+    src/image.h \
+    src/text.h
 
 FORMS    += \
     src/quickmenu.ui \

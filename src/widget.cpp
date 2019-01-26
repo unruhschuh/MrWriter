@@ -4,6 +4,7 @@
 #include "tabletapplication.h"
 #include "tools.h"
 #include "image.h"
+#include "text.h"
 
 #include <QClipboard>
 #include <QMouseEvent>
@@ -2118,6 +2119,27 @@ void Widget::pasteImage()
 
     MrDoc::Selection selection;
     selection.appendElement(image.clone());
+    selection.finalize();
+    MrDoc::Selection prevClipboard = this->clipboard;
+    this->clipboard = selection;
+    paste();
+    this->clipboard = prevClipboard;
+  }
+}
+
+void Widget::pasteText()
+{
+  const QClipboard *clipboard = QApplication::clipboard();
+  const QMimeData *mimeData = clipboard->mimeData();
+
+  if (mimeData->hasText())
+  {
+    MrDoc::Text text;
+
+    text.m_text = mimeData->text();
+
+    MrDoc::Selection selection;
+    selection.appendElement(text.clone());
     selection.finalize();
     MrDoc::Selection prevClipboard = this->clipboard;
     this->clipboard = selection;

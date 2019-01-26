@@ -258,6 +258,7 @@ public slots:
   void copy();
   void paste();
   void pasteImage();
+  void pasteText();
   void cut();
   void deleteSlot();
 
@@ -333,7 +334,6 @@ public slots:
 
 public:
   bool inputEnabled();
-
 };
 
 #endif // WIDGET_H

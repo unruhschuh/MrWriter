@@ -1,5 +1,6 @@
 #include "page.h"
 #include "stroke.h"
+#include "text.h"
 #include "mrdoc.h"
 #include "tools.h"
 #include <QDebug>
@@ -145,6 +146,12 @@ bool Page::changeStrokeColor(size_t elementNum, QColor color)
       stroke->color = color;
       m_dirtyRect = m_dirtyRect.united(stroke->boundingRect());
       return true;
+    }
+    auto text = dynamic_cast<Text*>(m_elements[elementNum].get());
+    if (nullptr != text)
+    {
+      text->m_color = color;
+      m_dirtyRect = m_dirtyRect.united(text->boundingRect());
     }
   }
   return false;
