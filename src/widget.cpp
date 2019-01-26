@@ -2114,17 +2114,15 @@ void Widget::pasteImage()
 
     QTransform transform;
     transform.scale(0.5, 0.5);
-    //transform.translate(pagePos.x(), pagePos.y());
     image.transform(transform);
 
-    AddElementCommand *addCommand = new AddElementCommand(this, getCurrentPage(), image.clone(), true, 0, false, true);
-    undoStack.push(addCommand);
-
-    updateAllPageBuffers(true);
-    update();
-
-    currentDocument.setDocumentChanged(true);
-    emit modified();
+    MrDoc::Selection selection;
+    selection.appendElement(image.clone());
+    selection.finalize();
+    MrDoc::Selection prevClipboard = this->clipboard;
+    this->clipboard = selection;
+    paste();
+    this->clipboard = prevClipboard;
   }
 }
 
@@ -2364,6 +2362,8 @@ void Widget::dropEvent(QDropEvent* event)
   qDebug() << Q_FUNC_INFO;
   if (event->mimeData()->hasImage() || (event->mimeData()->hasUrls() && event->mimeData()->urls().size() == 1))
   {
+    letGoSelection();
+
     auto mousePos = event->pos();
     auto pageNum = getPageFromMousePos(mousePos);
     auto pagePos = getPagePosFromMousePos(mousePos, pageNum);
@@ -2381,19 +2381,43 @@ void Widget::dropEvent(QDropEvent* event)
       image.m_image = QImage(filename);
     }
 
-    QTransform transform;
-    transform.scale(0.5, 0.5);
-    transform.translate(pagePos.x(), pagePos.y());
-    image.transform(transform);
+    // add image as selection
+    MrDoc::Selection tmpSelection;
+    tmpSelection.appendElement(image.clone());
+    tmpSelection.setPageNum(pageNum);
 
-    AddElementCommand *addCommand = new AddElementCommand(this, pageNum, image.clone(), true, 0, false, true);
-    undoStack.push(addCommand);
+    // center the selection
+    pagePos -= QPointF(image.m_image.width(), image.m_image.height()) / 2.0;
 
-    updateAllPageBuffers(true);
-    update();
+
+    if (snapToGrid)
+    {
+      pagePos = pagePosToGrid(pagePos);
+    }
+
+    QTransform myTrans;
+    myTrans.scale(0.5, 0.5);
+    myTrans = myTrans.translate(pagePos.x(), pagePos.y());
+
+    tmpSelection.transform(myTrans, tmpSelection.pageNum());
+
+    tmpSelection.finalize();
+    tmpSelection.updateBuffer(m_zoom);
+
+    undoStack.beginMacro("Drop image");
+    if (currentState == state::SELECTED)
+    {
+      letGoSelection();
+    }
+    PasteCommand *pasteCommand = new PasteCommand(this, tmpSelection);
+    undoStack.push(pasteCommand);
+    undoStack.endMacro();
 
     currentDocument.setDocumentChanged(true);
     emit modified();
+    emit updateGUI();
+
+    update();
 
     event->acceptProposedAction();
   }
