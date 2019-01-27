@@ -21,6 +21,8 @@
 #include <QTimer>
 #include <QImage>
 #include <QImageReader>
+#include <QPlainTextEdit>
+#include <QFontMetrics>
 #include <qmath.h>
 
 #include <memory>
@@ -395,6 +397,12 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
 
   size_t pageNum = getPageFromMousePos(mousePos);
   QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
+
+  if ((currentState == state::IDLE || currentState == state::SELECTED) && button & Qt::LeftButton && eventType == QEvent::MouseButtonRelease && pointerType == QTabletEvent::Pen && currentTool == tool::TEXT)
+  {
+    startTexting(mousePos);
+    return;
+  }
 
   bool invertEraser;
   if (keyboardModifiers & Qt::ShiftModifier)
@@ -1236,6 +1244,32 @@ void Widget::stopRecting(QPointF mousePos)
   update();
 }
 
+void Widget::startTexting(QPointF mousePos)
+{
+  disableInput();
+
+  size_t pageNum = getPageFromMousePos(mousePos);
+
+  auto * textEdit = new QPlainTextEdit(this);
+  textEdit->setGeometry(mousePos.x(), mousePos.y(), m_zoom * 100, m_zoom * 100);
+  QFont font;
+  font.setPointSizeF(13.0 * m_zoom);
+  //textEdit->document()->setDefaultFont(font);
+  textEdit->setFont(font);
+  textEdit->setWordWrapMode(QTextOption::NoWrap);
+  textEdit->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  textEdit->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  connect(textEdit, &QPlainTextEdit::textChanged, [=](){
+    QFontMetrics fm(textEdit->font());
+    QRectF textRect = fm.boundingRect(QRect(), Qt::AlignLeft, textEdit->toPlainText());
+    QRectF geometry = textEdit->geometry();
+    geometry.setWidth(textRect.width() + 10 * m_zoom);
+    geometry.setHeight(textRect.height()+10 * m_zoom);
+    textEdit->setGeometry(geometry.toRect());
+  });
+  textEdit->show();
+}
+
 void Widget::startDrawing(QPointF mousePos, qreal pressure)
 {
   updateTimer->start(33); // 33 -> 30 fps
@@ -1976,6 +2010,8 @@ void Widget::setCurrentTool(tool toolID)
       setCursor(circleCursor);
     if (toolID == tool::RECT)
       setCursor(penCursor); // todo rect cursor
+    if (toolID == tool::TEXT)
+      setCursor(Qt::CursorShape::IBeamCursor); // todo rect cursor
     if (toolID == tool::ERASER)
       setCursor(eraserCursor);
     if (toolID == tool::STROKE_ERASER)

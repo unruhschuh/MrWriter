@@ -36,6 +36,7 @@ public:
     RULER,
     CIRCLE,
     RECT,
+    TEXT,
     ERASER,
     STROKE_ERASER,
     SELECT,
@@ -49,6 +50,7 @@ public:
     RULING,
     CIRCLING,
     RECTING,
+    TEXTING,
     SELECTING,
     SELECTED,
     MOVING_SELECTION,
@@ -230,6 +232,8 @@ private:
   void startRecting(QPointF mousePos);
   void continueRecting(QPointF mousePos);
   void stopRecting(QPointF mousePos);
+
+  void startTexting(QPointF mousePos);
 
   void startSelecting(QPointF mousePos);
   void continueSelecting(QPointF mousePos);

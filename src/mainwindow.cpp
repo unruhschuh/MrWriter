@@ -348,6 +348,12 @@ void MainWindow::createActions()
   connect(rectAct, SIGNAL(triggered()), this, SLOT(rect()));
   this->addAction(rectAct); // add to make shortcut work if menubar is hidden
 
+  textAct = new QAction(tr("Text"), this);
+  textAct->setStatusTip(tr("Text Tool"));
+  textAct->setCheckable(true);
+  textAct->setChecked(false);
+  connect(textAct, SIGNAL(triggered()), this, SLOT(text()));
+
   eraserAct = new QAction(QIcon(":/images/eraserIcon.png"), tr("Eraser"), this);
   eraserAct->setStatusTip(tr("Eraser Tool"));
   eraserAct->setShortcut(QKeySequence(Qt::Key_5));
@@ -623,6 +629,7 @@ void MainWindow::createMenus()
   toolsMenu->addAction(rulerAct);
   toolsMenu->addAction(circleAct);
   toolsMenu->addAction(rectAct);
+  toolsMenu->addAction(textAct);
   toolsMenu->addAction(eraserAct);
   toolsMenu->addAction(strokeEraserAct);
   toolsMenu->addAction(selectAct);
@@ -744,6 +751,7 @@ void MainWindow::createToolBars()
   toolsToolBar->addAction(rulerAct);
   toolsToolBar->addAction(circleAct);
   toolsToolBar->addAction(rectAct);
+  toolsToolBar->addAction(textAct);
 
   eraserToolButton = new QToolButton();
   eraserToolButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
@@ -1093,6 +1101,12 @@ void MainWindow::rect()
   updateGUI();
 }
 
+void MainWindow::text()
+{
+  mainWidget->setCurrentTool(Widget::tool::TEXT);
+  updateGUI();
+}
+
 void MainWindow::eraser()
 {
   mainWidget->setCurrentTool(Widget::tool::ERASER);
@@ -1434,6 +1448,7 @@ void MainWindow::updateGUI()
   rulerAct->setChecked(currentTool == Widget::tool::RULER);
   circleAct->setChecked(currentTool == Widget::tool::CIRCLE);
   rectAct->setChecked(currentTool == Widget::tool::RECT);
+  textAct->setChecked(currentTool == Widget::tool::TEXT);
   eraserAct->setChecked(currentTool == Widget::tool::ERASER);
   strokeEraserAct->setChecked(currentTool == Widget::tool::STROKE_ERASER);
   selectAct->setChecked(currentTool == Widget::tool::SELECT);

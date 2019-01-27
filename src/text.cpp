@@ -104,18 +104,22 @@ QRectF Text::boundingRect() const
 
 QRectF Text::textRect() const
 {
-  int pixelWidth = 5;
-  int pixelHeight = 5;
-  QPainter painter;
-  QPixmap pixmap(pixelWidth, pixelHeight);
+  QFontMetricsF fontMetrics(m_font);
+  return fontMetrics.boundingRect(QRectF(0,0,5,5), Qt::AlignLeft, m_text);
 
-  painter.begin(&pixmap);
-  painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
 
-  QRectF rect;
-  painter.drawText(QRectF(0,0,5,5), Qt::AlignLeft, m_text, &rect);
-  painter.end();
-  return rect;
+//  int pixelWidth = 5;
+//  int pixelHeight = 5;
+//  QPainter painter;
+//  QPixmap pixmap(pixelWidth, pixelHeight);
+//
+//  painter.begin(&pixmap);
+//  painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+//
+//  QRectF rect;
+//  painter.drawText(QRectF(0,0,5,5), Qt::AlignLeft, m_text, &rect);
+//  painter.end();
+//  return rect;
 }
 
 }
