@@ -21,7 +21,6 @@
 #include <QTimer>
 #include <QImage>
 #include <QImageReader>
-#include <QPlainTextEdit>
 #include <QFontMetrics>
 #include <qmath.h>
 
@@ -378,6 +377,15 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
   // everywhere.
   keyboardModifiers = qApp->queryKeyboardModifiers();
 
+  if (!inputEnabled())
+  {
+    if (currentState == state::TEXTING && eventType == QEvent::MouseButtonRelease)
+    {
+      stopTexting(mousePos);
+    }
+    return;
+  }
+
   // benchmark
   if (eventType == QEvent::MouseButtonPress)
   {
@@ -728,7 +736,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
 
 void Widget::tabletEvent(QTabletEvent *event)
 {
-  if (inputEnabled())
+  //if (inputEnabled())
   {
     event->accept();
     QPointF mousePos = QPointF(event->hiResGlobalX(), event->hiResGlobalY()) - mapToGlobal(QPoint(0, 0));
@@ -756,15 +764,15 @@ void Widget::tabletEvent(QTabletEvent *event)
 
     mouseAndTabletEvent(mousePos, event->button(), event->buttons(), keyboardModifiers, event->pointerType(), eventType, pressure, true);
   }
-  else
-  {
-    event->ignore();
-  }
+  //else
+  //{
+  //  event->ignore();
+  //}
 }
 
 void Widget::mousePressEvent(QMouseEvent *event)
 {
-  if (inputEnabled())
+  //if (inputEnabled())
   {
     bool usingTablet = static_cast<TabletApplication *>(qApp)->isUsingTablet();
 
@@ -784,7 +792,7 @@ void Widget::mousePressEvent(QMouseEvent *event)
 
 void Widget::mouseMoveEvent(QMouseEvent *event)
 {
-  if (inputEnabled())
+  //if (inputEnabled())
   {
     bool usingTablet = static_cast<TabletApplication *>(qApp)->isUsingTablet();
 
@@ -804,7 +812,7 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
 
 void Widget::mouseReleaseEvent(QMouseEvent *event)
 {
-  if (inputEnabled())
+  //if (inputEnabled())
   {
     bool usingTablet = static_cast<TabletApplication *>(qApp)->isUsingTablet();
 
@@ -1249,8 +1257,11 @@ void Widget::startTexting(QPointF mousePos)
   disableInput();
 
   size_t pageNum = getPageFromMousePos(mousePos);
+  firstMousePos = mousePos;
 
-  auto * textEdit = new QPlainTextEdit(this);
+  setCurrentState(state::TEXTING);
+
+  textEdit = new QPlainTextEdit(this);
   textEdit->setGeometry(mousePos.x(), mousePos.y(), m_zoom * 100, m_zoom * 100);
   QFont font;
   font.setPointSizeF(13.0 * m_zoom);
@@ -1263,11 +1274,34 @@ void Widget::startTexting(QPointF mousePos)
     QFontMetrics fm(textEdit->font());
     QRectF textRect = fm.boundingRect(QRect(), Qt::AlignLeft, textEdit->toPlainText());
     QRectF geometry = textEdit->geometry();
-    geometry.setWidth(textRect.width() + 10 * m_zoom);
-    geometry.setHeight(textRect.height()+10 * m_zoom);
+    geometry.setWidth(textRect.width() + 5 * m_zoom);
+    geometry.setHeight(textRect.height()+5 * m_zoom);
     textEdit->setGeometry(geometry.toRect());
   });
   textEdit->show();
+}
+
+
+void Widget::stopTexting(QPointF mousePos)
+{
+  size_t pageNum = getPageFromMousePos(mousePos);
+  QPointF pagePos = getPagePosFromMousePos(firstMousePos, pageNum);
+
+  QTransform myTrans;
+  myTrans = myTrans.translate(pagePos.x(), pagePos.y());
+
+  MrDoc::Text text;
+  text.m_text = textEdit->toPlainText();
+  text.transform(myTrans);
+
+  auto addElem = new AddElementCommand(this, pageNum, text.clone());
+  undoStack.push(addElem);
+  update();
+  updateGUI();
+
+  textEdit->close();
+  setCurrentState(state::IDLE);
+  enableInput();
 }
 
 void Widget::startDrawing(QPointF mousePos, qreal pressure)

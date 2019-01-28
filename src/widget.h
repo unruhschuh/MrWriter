@@ -14,6 +14,7 @@
 #include <QUndoStack>
 #include <QScrollArea>
 #include <QMutex>
+#include <QPlainTextEdit>
 
 #include <QTime>
 #include <QTimer>
@@ -214,6 +215,7 @@ private:
   QPointF previousPagePos;
   MrDoc::Selection::GrabZone m_grabZone = MrDoc::Selection::GrabZone::None;
 
+  QPlainTextEdit * textEdit;
 
   QPointF pagePosToGrid(QPointF pagePos);
 
@@ -234,6 +236,7 @@ private:
   void stopRecting(QPointF mousePos);
 
   void startTexting(QPointF mousePos);
+  void stopTexting(QPointF mousePos);
 
   void startSelecting(QPointF mousePos);
   void continueSelecting(QPointF mousePos);
