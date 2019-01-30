@@ -1,5 +1,3 @@
-#include "widget.h"
-#include "mrdoc.h"
 #include "commands.h"
 #include "tabletapplication.h"
 #include "tools.h"
@@ -65,6 +63,21 @@ Widget::Widget(QWidget *parent) : QWidget(parent)
   QPixmap strokeEraserCursorMask = QPixmap(":/images/strokeEraserCursorMask.png");
   strokeEraserCursorBitmap.setMask(QBitmap(strokeEraserCursorMask));
   strokeEraserCursor = QCursor(strokeEraserCursorBitmap, -1, -1);
+
+  textEdit = new QPlainTextEdit(this);
+  textEdit->setWordWrapMode(QTextOption::NoWrap);
+  textEdit->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  textEdit->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  connect(textEdit, &QPlainTextEdit::textChanged, [=](){
+    QFontMetrics fm(textEdit->font());
+    QRectF textRect = fm.boundingRect(QRect(), Qt::AlignLeft, textEdit->toPlainText());
+    QRectF geometry = textEdit->geometry();
+    geometry.setWidth(textRect.width() + 5 * m_zoom);
+    geometry.setHeight(textRect.height()+5 * m_zoom);
+    textEdit->setGeometry(geometry.toRect());
+    currentText.m_text = textEdit->toPlainText();
+  });
+  textEdit->hide();
 
   currentTool = tool::PEN;
   previousTool = tool::NONE;
@@ -408,6 +421,16 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
 
   if ((currentState == state::IDLE || currentState == state::SELECTED) && button & Qt::LeftButton && eventType == QEvent::MouseButtonRelease && pointerType == QTabletEvent::Pen && currentTool == tool::TEXT)
   {
+    size_t index = 0;
+    for (auto & element : currentDocument.pages.at(pageNum).elements())
+    {
+      if (dynamic_cast<MrDoc::Text*>(element.get()) && element->boundingRect().contains(pagePos))
+      {
+        startEditingText(mousePos, index);
+        return;
+      }
+      index++;
+    }
     startTexting(mousePos);
     return;
   }
@@ -1256,28 +1279,17 @@ void Widget::startTexting(QPointF mousePos)
 {
   disableInput();
 
-  size_t pageNum = getPageFromMousePos(mousePos);
   firstMousePos = mousePos;
 
   setCurrentState(state::TEXTING);
 
-  textEdit = new QPlainTextEdit(this);
-  textEdit->setGeometry(mousePos.x(), mousePos.y(), m_zoom * 100, m_zoom * 100);
+  textEdit->setGeometry(static_cast<int>(mousePos.x()), static_cast<int>(mousePos.y() - 13.0 / 2.0 * m_zoom), 100, 100);
   QFont font;
   font.setPointSizeF(13.0 * m_zoom);
   //textEdit->document()->setDefaultFont(font);
   textEdit->setFont(font);
-  textEdit->setWordWrapMode(QTextOption::NoWrap);
-  textEdit->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-  textEdit->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-  connect(textEdit, &QPlainTextEdit::textChanged, [=](){
-    QFontMetrics fm(textEdit->font());
-    QRectF textRect = fm.boundingRect(QRect(), Qt::AlignLeft, textEdit->toPlainText());
-    QRectF geometry = textEdit->geometry();
-    geometry.setWidth(textRect.width() + 5 * m_zoom);
-    geometry.setHeight(textRect.height()+5 * m_zoom);
-    textEdit->setGeometry(geometry.toRect());
-  });
+  textEdit->setPlainText((""));
+  textEdit->setFocus();
   textEdit->show();
 }
 
@@ -1285,23 +1297,67 @@ void Widget::startTexting(QPointF mousePos)
 void Widget::stopTexting(QPointF mousePos)
 {
   size_t pageNum = getPageFromMousePos(mousePos);
-  QPointF pagePos = getPagePosFromMousePos(firstMousePos, pageNum);
+  QPointF pagePos = getPagePosFromMousePos(firstMousePos, pageNum) - QPointF(0.0, textEdit->font().pointSizeF() / 2.0 / m_zoom);
 
   QTransform myTrans;
   myTrans = myTrans.translate(pagePos.x(), pagePos.y());
 
   MrDoc::Text text;
   text.m_text = textEdit->toPlainText();
+  text.m_color = currentColor;
   text.transform(myTrans);
+  text.m_font = textEdit->font();
+  text.m_font.setPointSizeF(13.0);
 
-  auto addElem = new AddElementCommand(this, pageNum, text.clone());
-  undoStack.push(addElem);
-  update();
-  updateGUI();
+  if (text.m_text.size() != 0)
+  {
+    auto addElem = new AddElementCommand(this, pageNum, text.clone());
+    undoStack.push(addElem);
+    update();
+    updateGUI();
 
-  textEdit->close();
+    currentDocument.setDocumentChanged(true);
+    emit modified();
+  }
+
+  undoStack.endMacro();
+
+  textEdit->hide();
   setCurrentState(state::IDLE);
   enableInput();
+}
+
+void Widget::startEditingText(QPointF mousePos, size_t index)
+{
+  disableInput();
+
+  size_t pageNum = getPageFromMousePos(mousePos);
+  //QPointF pagePos = getPagePosFromMousePos(firstMousePos, pageNum) - QPointF(0.0, textEdit->font().pointSizeF() / 2.0 / m_zoom);
+  auto text = dynamic_cast<MrDoc::Text*>(currentDocument.pages.at(pageNum).elements().at(index).get());
+  /* todo check if text == nullptr which it shouldn't */
+  currentText.m_font = text->m_font;
+  currentText.m_text = text->m_text;
+  currentText.m_color = text->m_color;
+  currentText.m_transform = text->m_transform;
+  text = nullptr;
+
+  undoStack.beginMacro("Edit text");
+  auto remElem = new RemoveElementCommand(this, pageNum, index);
+  undoStack.push(remElem);
+
+  setCurrentState(state::TEXTING);
+
+  mousePos = getMousePosFromPagePos(QPointF(currentText.m_transform.m31(), currentText.m_transform.m32()), pageNum);
+
+  textEdit->setGeometry(static_cast<int>(mousePos.x()), static_cast<int>(mousePos.y()), 100, 100);
+  QFont font;
+  font.setPointSizeF(13.0 * m_zoom);
+  //textEdit->document()->setDefaultFont(font);
+  textEdit->setFont(font);
+  textEdit->setPlainText(currentText.m_text);
+  textEdit->setFocus();
+  textEdit->show();
+
 }
 
 void Widget::startDrawing(QPointF mousePos, qreal pressure)
@@ -1787,6 +1843,18 @@ QPointF Widget::getAbsolutePagePosFromMousePos(QPointF mousePos) const
   pagePos.setY(y + pagePos.y());
 
   return pagePos;
+}
+
+QPointF Widget::getMousePosFromPagePos(QPointF pagePos, size_t pageNum) const
+{
+  qreal y = 0.0;
+  for (size_t i = 0; i < pageNum; ++i)
+  {
+    y += (currentDocument.pages[pageNum].pixelHeight(m_zoom) + PAGE_GAP);
+  }
+  QPointF mousePos(pagePos.x() * m_zoom, pagePos.y() * m_zoom + y);
+
+  return mousePos;
 }
 
 void Widget::newFile()

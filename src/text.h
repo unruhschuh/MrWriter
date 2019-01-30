@@ -22,7 +22,6 @@ public:
   QString m_text;
   QColor m_color;
   QTransform m_transform;
-  qreal m_width;
   QFont m_font;
   QRectF textRect() const;
   QPolygonF boundingPolygon() const;

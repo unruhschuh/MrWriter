@@ -23,6 +23,7 @@
 #include "mrdoc.h"
 #include "document.h"
 #include "stroke.h"
+#include "text.h"
 
 class Widget : public QWidget
 {
@@ -111,6 +112,7 @@ public:
   size_t getPageFromMousePos(QPointF mousePos) const;
   QPointF getPagePosFromMousePos(QPointF mousePos, size_t pageNum) const;
   QPointF getAbsolutePagePosFromMousePos(QPointF mousePos) const;
+  QPointF getMousePosFromPagePos(QPointF pagePos, size_t pageNum) const;
   QRect getWidgetGeometry() const;
   size_t getCurrentPage() const;
 
@@ -192,6 +194,8 @@ private:
   MrDoc::Stroke currentStroke;
   QRect currentUpdateRect;
 
+  MrDoc::Text currentText;
+
   state currentState;
 
   bool penDown = false;
@@ -237,6 +241,7 @@ private:
 
   void startTexting(QPointF mousePos);
   void stopTexting(QPointF mousePos);
+  void startEditingText(QPointF mousePos, size_t index);
 
   void startSelecting(QPointF mousePos);
   void continueSelecting(QPointF mousePos);

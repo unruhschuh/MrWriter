@@ -1,5 +1,6 @@
 #include "text.h"
 #include "tools.h"
+#include "mrdoc.h"
 #include <QtDebug>
 
 namespace MrDoc
@@ -20,6 +21,7 @@ void Text::paint(QPainter& painter, qreal zoom, bool last)
   QTransform newTransform = MrWriter::reallyScaleTransform(m_transform, zoom);
   painter.setTransform(newTransform, true);
 
+  painter.setFont(m_font);
   qDebug() << "pointSize: " << painter.font().pointSizeF();
   //painter.drawText(boundingRect(), m_text);
   painter.drawText(textRect(), m_text);
@@ -28,12 +30,24 @@ void Text::paint(QPainter& painter, qreal zoom, bool last)
 
 void Text::toXml(QXmlStreamWriter& writer)
 {
+  writer.writeStartElement("text");
+  writer.writeAttribute(QXmlStreamAttribute("matrix", MrWriter::transformToString(m_transform)));
+  writer.writeAttribute(QXmlStreamAttribute("color", MrDoc::toRGBA(m_color.name(QColor::HexArgb))));
+  writer.writeCharacters(m_text);
+  writer.writeEndElement();
 
 }
 
 void Text::fromXml(QXmlStreamReader& reader)
 {
+  QXmlStreamAttributes attributes = reader.attributes();
+  m_text = reader.readElementText();
 
+  QString matrixString = attributes.value("", "matrix").toString();
+  m_transform = MrWriter::stringToTransform(matrixString);
+
+  QStringRef color = attributes.value("", "color");
+  m_color = stringToColor(color.toString());
 }
 
 std::unique_ptr<Element> Text::clone() const

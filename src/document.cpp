@@ -2,6 +2,7 @@
 
 #include "stroke.h"
 #include "image.h"
+#include "text.h"
 
 #include "qcompressor.h"
 #include "version.h"
@@ -420,6 +421,12 @@ bool Document::loadMOJ(QString fileName)
       Image newImage(QPointF(0,0));
       newImage.fromXml(reader);
       pages.back().appendElement(newImage.clone());
+    }
+    if (reader.name() == "text" && reader.tokenType() == QXmlStreamReader::StartElement)
+    {
+      Text newText;
+      newText.fromXml(reader);
+      pages.back().appendElement(newText.clone());
     }
   }
 
