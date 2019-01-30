@@ -1283,10 +1283,19 @@ void Widget::startTexting(QPointF mousePos)
 
   setCurrentState(state::TEXTING);
 
+  size_t pageNum = getPageFromMousePos(mousePos);
+  QPointF pagePos = getPagePosFromMousePos(firstMousePos, pageNum) - QPointF(0.0, textEdit->font().pointSizeF() / 2.0 / m_zoom);
+
+  QTransform myTrans;
+  myTrans = myTrans.translate(pagePos.x(), pagePos.y());
+  currentText.m_color = currentColor;
+  currentText.m_transform = myTrans;
+  currentText.m_font = textEdit->font();
+  currentText.m_font.setPointSizeF(13.0);
+
   textEdit->setGeometry(static_cast<int>(mousePos.x()), static_cast<int>(mousePos.y() - 13.0 / 2.0 * m_zoom), 100, 100);
   QFont font;
   font.setPointSizeF(13.0 * m_zoom);
-  //textEdit->document()->setDefaultFont(font);
   textEdit->setFont(font);
   textEdit->setPlainText((""));
   textEdit->setFocus();
@@ -1299,19 +1308,11 @@ void Widget::stopTexting(QPointF mousePos)
   size_t pageNum = getPageFromMousePos(mousePos);
   QPointF pagePos = getPagePosFromMousePos(firstMousePos, pageNum) - QPointF(0.0, textEdit->font().pointSizeF() / 2.0 / m_zoom);
 
-  QTransform myTrans;
-  myTrans = myTrans.translate(pagePos.x(), pagePos.y());
+  currentText.m_text = textEdit->toPlainText();
 
-  MrDoc::Text text;
-  text.m_text = textEdit->toPlainText();
-  text.m_color = currentColor;
-  text.transform(myTrans);
-  text.m_font = textEdit->font();
-  text.m_font.setPointSizeF(13.0);
-
-  if (text.m_text.size() != 0)
+  if (currentText.m_text.size() != 0)
   {
-    auto addElem = new AddElementCommand(this, pageNum, text.clone());
+    auto addElem = new AddElementCommand(this, pageNum, currentText.clone());
     undoStack.push(addElem);
     update();
     updateGUI();
@@ -1332,7 +1333,6 @@ void Widget::startEditingText(QPointF mousePos, size_t index)
   disableInput();
 
   size_t pageNum = getPageFromMousePos(mousePos);
-  //QPointF pagePos = getPagePosFromMousePos(firstMousePos, pageNum) - QPointF(0.0, textEdit->font().pointSizeF() / 2.0 / m_zoom);
   auto text = dynamic_cast<MrDoc::Text*>(currentDocument.pages.at(pageNum).elements().at(index).get());
   /* todo check if text == nullptr which it shouldn't */
   currentText.m_font = text->m_font;
