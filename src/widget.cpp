@@ -1296,13 +1296,12 @@ void Widget::startTexting(QPointF mousePos)
   myTrans = myTrans.translate(pagePos.x(), pagePos.y());
   currentText.m_color = currentColor;
   currentText.m_transform = myTrans;
-  currentText.m_font = textEdit->font();
-  currentText.m_font.setPointSizeF(13.0);
 
-  textEdit->setGeometry(static_cast<int>(mousePos.x()), static_cast<int>(mousePos.y() - 13.0 / 2.0 * m_zoom), 100, 100);
-  QFont font;
-  font.setHintingPreference(QFont::PreferNoHinting);
-  font.setPointSizeF(13.0 * m_zoom);
+  currentText.m_font = m_currentFont;
+
+  QFont font = m_currentFont;
+  font.setPointSizeF(font.pointSizeF() * m_zoom);
+  textEdit->setGeometry(static_cast<int>(mousePos.x()), static_cast<int>(mousePos.y() - font.pointSizeF() / 2.0), 100, 100);
   qDebug() << "Word spacing:   " << font.wordSpacing();
   qDebug() << "Letter spacing: " << font.letterSpacing();
   textEdit->setFont(font);
@@ -1364,8 +1363,8 @@ void Widget::startEditingText(QPointF mousePos, size_t index)
   mousePos = getMousePosFromPagePos(QPointF(currentText.m_transform.m31(), currentText.m_transform.m32()), pageNum);
 
   textEdit->setGeometry(static_cast<int>(mousePos.x()), static_cast<int>(mousePos.y()), 100, 100);
-  QFont font;
-  font.setPointSizeF(13.0 * m_zoom);
+  QFont font = currentText.m_font;
+  font.setPointSizeF(font.pointSizeF() * m_zoom);
   //textEdit->document()->setDefaultFont(font);
   textEdit->setFont(font);
   textEdit->setPlainText(currentText.m_text);

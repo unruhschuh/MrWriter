@@ -69,6 +69,7 @@ private slots:
   void circle();
   void rect();
   void text();
+  void font();
   void eraser();
   void strokeEraser();
   void select();
@@ -182,6 +183,7 @@ private:
   QAction *circleAct;
   QAction *rectAct;
   QAction *textAct;
+  QAction *fontAct;
   QAction *eraserAct;
   QAction *strokeEraserAct;
   QAction *selectAct;

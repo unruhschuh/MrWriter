@@ -153,6 +153,8 @@ public:
 
   qreal m_currentAngle;
 
+  QFont m_currentFont;
+
   void setCurrentPattern(QVector<qreal> newPattern);
   QVector<qreal> getCurrentPattern();
 

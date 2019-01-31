@@ -13,6 +13,7 @@
 #include <QPageSize>
 #include <QSettings>
 #include <QDateTime>
+#include <QFontDialog>
 //#include <QWebEngineView>
 #include <QDesktopServices>
 #include <QBoxLayout>
@@ -354,6 +355,12 @@ void MainWindow::createActions()
   textAct->setChecked(false);
   connect(textAct, SIGNAL(triggered()), this, SLOT(text()));
 
+  fontAct = new QAction(tr("Select Font"), this);
+  fontAct->setStatusTip(tr("Select Font"));
+  fontAct->setCheckable(true);
+  fontAct->setChecked(false);
+  connect(fontAct, SIGNAL(triggered()), this, SLOT(font()));
+
   eraserAct = new QAction(QIcon(":/images/eraserIcon.png"), tr("Eraser"), this);
   eraserAct->setStatusTip(tr("Eraser Tool"));
   eraserAct->setShortcut(QKeySequence(Qt::Key_5));
@@ -656,6 +663,8 @@ void MainWindow::createMenus()
   penIconMenu = toolsMenu->addMenu(tr("Pen Cursor"));
   penIconMenu->addAction(pencilIconAct);
   penIconMenu->addAction(dotIconAct);
+
+  toolsMenu->addAction(fontAct);
 
   viewMenu = menuBar()->addMenu(tr("&View"));
   viewMenu->addAction(zoomInAct);
@@ -1104,6 +1113,16 @@ void MainWindow::rect()
 void MainWindow::text()
 {
   mainWidget->setCurrentTool(Widget::tool::TEXT);
+  updateGUI();
+}
+
+void MainWindow::font()
+{
+  bool ok;
+  QFont font = QFontDialog::getFont(&ok, mainWidget->m_currentFont, this);
+  if (ok) {
+    mainWidget->m_currentFont = font;
+  }
   updateGUI();
 }
 
