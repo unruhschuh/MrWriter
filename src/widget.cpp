@@ -3,6 +3,7 @@
 #include "tools.h"
 #include "image.h"
 #include "text.h"
+#include "keypresseater.h"
 
 #include <QClipboard>
 #include <QMouseEvent>
@@ -20,6 +21,7 @@
 #include <QImage>
 #include <QImageReader>
 #include <QFontMetrics>
+#include <QLayout>
 #include <qmath.h>
 
 #include <memory>
@@ -68,6 +70,7 @@ Widget::Widget(QWidget *parent) : QWidget(parent)
   textEdit->setWordWrapMode(QTextOption::NoWrap);
   textEdit->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   textEdit->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  textEdit->setStyleSheet("QPlainTextEdit { border: 0px; border-radius: 10px; min-width: 20px; padding: 0px; background-color: #EEEEEE; }");
   connect(textEdit, &QPlainTextEdit::textChanged, [=](){
     QFontMetrics fm(textEdit->font());
     QRectF textRect = fm.boundingRect(QRect(), Qt::AlignLeft, textEdit->toPlainText());
@@ -1279,9 +1282,12 @@ void Widget::startTexting(QPointF mousePos)
 {
   disableInput();
 
-  firstMousePos = mousePos;
+  //textEdit->installEventFilter(new KeyPressEater);
+  //qApp->installEventFilter(new KeyPressEater);
 
   setCurrentState(state::TEXTING);
+
+  firstMousePos = mousePos;
 
   size_t pageNum = getPageFromMousePos(mousePos);
   QPointF pagePos = getPagePosFromMousePos(firstMousePos, pageNum) - QPointF(0.0, textEdit->font().pointSizeF() / 2.0 / m_zoom);
@@ -1295,7 +1301,10 @@ void Widget::startTexting(QPointF mousePos)
 
   textEdit->setGeometry(static_cast<int>(mousePos.x()), static_cast<int>(mousePos.y() - 13.0 / 2.0 * m_zoom), 100, 100);
   QFont font;
+  font.setHintingPreference(QFont::PreferNoHinting);
   font.setPointSizeF(13.0 * m_zoom);
+  qDebug() << "Word spacing:   " << font.wordSpacing();
+  qDebug() << "Letter spacing: " << font.letterSpacing();
   textEdit->setFont(font);
   textEdit->setPlainText((""));
   textEdit->setFocus();
@@ -1305,6 +1314,7 @@ void Widget::startTexting(QPointF mousePos)
 
 void Widget::stopTexting(QPointF mousePos)
 {
+  qDebug() << Q_FUNC_INFO;
   size_t pageNum = getPageFromMousePos(mousePos);
   QPointF pagePos = getPagePosFromMousePos(firstMousePos, pageNum) - QPointF(0.0, textEdit->font().pointSizeF() / 2.0 / m_zoom);
 
@@ -1332,9 +1342,15 @@ void Widget::startEditingText(QPointF mousePos, size_t index)
 {
   disableInput();
 
+  setCurrentState(state::TEXTING);
+
   size_t pageNum = getPageFromMousePos(mousePos);
   auto text = dynamic_cast<MrDoc::Text*>(currentDocument.pages.at(pageNum).elements().at(index).get());
-  /* todo check if text == nullptr which it shouldn't */
+  if (!text)
+  {
+    qDebug() << "nullptr " << Q_FUNC_INFO;
+    return;
+  }
   currentText.m_font = text->m_font;
   currentText.m_text = text->m_text;
   currentText.m_color = text->m_color;
@@ -1344,8 +1360,6 @@ void Widget::startEditingText(QPointF mousePos, size_t index)
   undoStack.beginMacro("Edit text");
   auto remElem = new RemoveElementCommand(this, pageNum, index);
   undoStack.push(remElem);
-
-  setCurrentState(state::TEXTING);
 
   mousePos = getMousePosFromPagePos(QPointF(currentText.m_transform.m31(), currentText.m_transform.m32()), pageNum);
 
@@ -2149,6 +2163,10 @@ void Widget::setDocument(const MrDoc::Document &newDocument)
 
 void Widget::selectAll()
 {
+  if (currentState == state::TEXTING)
+  {
+    return;
+  }
 
   if (currentState == state::SELECTED)
   {
@@ -2322,6 +2340,7 @@ void Widget::redo()
 
 void Widget::setCurrentState(state newState)
 {
+  qDebug() << Q_FUNC_INFO << " newState: " << (int)newState;
   currentState = newState;
   if (currentState == state::IDLE || currentState == state::SELECTED)
   {

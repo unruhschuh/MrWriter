@@ -348,7 +348,7 @@ void MainWindow::createActions()
   connect(rectAct, SIGNAL(triggered()), this, SLOT(rect()));
   this->addAction(rectAct); // add to make shortcut work if menubar is hidden
 
-  textAct = new QAction(tr("Text"), this);
+  textAct = new QAction(QIcon(":/images/textIcon_48.png"), tr("Text"), this);
   textAct->setStatusTip(tr("Text Tool"));
   textAct->setCheckable(true);
   textAct->setChecked(false);
