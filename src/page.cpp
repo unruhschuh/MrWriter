@@ -241,6 +241,11 @@ void Page::removeElementAt(size_t i)
   m_elements.erase(m_elements.begin() + static_cast<long>(i));
 }
 
+void Page::removeFirstElement()
+{
+  removeElementAt(0);
+}
+
 void Page::removeLastElement()
 {
   removeElementAt(m_elements.size() - 1);
@@ -277,7 +282,14 @@ void Page::appendElements(const std::vector<std::unique_ptr<Element>> & elements
   for (auto &element : elements)
   {
     appendElement(element->clone());
-    //appendElement(std::move(element));
+  }
+}
+
+void Page::prependElements(const std::vector<std::unique_ptr<Element>> & elements)
+{
+  for (auto &element : elements)
+  {
+    prependElement(element->clone());
   }
 }
 }

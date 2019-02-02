@@ -2314,6 +2314,16 @@ void Widget::deleteSlot()
   emit updateGUI();
 }
 
+void Widget::toTheBack()
+{
+  if (currentState == state::SELECTED)
+  {
+    auto toTheBackCommand = new ReleaseSelectionCommand(this, currentSelection.pageNum(), true);
+    undoStack.push(toTheBackCommand);
+    emit updateGUI();
+  }
+}
+
 void Widget::undo()
 {
   if (undoStack.canUndo() && (currentState == state::IDLE || currentState == state::SELECTED))

@@ -225,9 +225,13 @@ void MainWindow::createActions()
 
   deleteAct = new QAction(QIcon(":/images/deleteIcon_48.png"), tr("Delete"), this);
   deleteAct->setShortcut(QKeySequence::Delete);
-  deleteAct->setStatusTip(tr("Cut"));
+  deleteAct->setStatusTip(tr("Delete"));
   connect(deleteAct, SIGNAL(triggered()), mainWidget, SLOT(deleteSlot()));
   this->addAction(deleteAct); // add to make shortdelete work if menubar is hidden
+
+  toTheBackAct = new QAction(tr("To the back"), this);
+  toTheBackAct->setStatusTip(tr("To the back"));
+  connect(toTheBackAct, SIGNAL(triggered()), mainWidget, SLOT(toTheBack()));
 
   zoomInAct = new QAction(QIcon(":/images/zoomInIcon.png"), tr("Zoom &In"), this);
   zoomInAct->setShortcut(QKeySequence::ZoomIn);
@@ -608,6 +612,7 @@ void MainWindow::createMenus()
   editMenu->addAction(pasteTextAct);
   editMenu->addSeparator();
   editMenu->addAction(selectAllAct);
+  editMenu->addAction(toTheBackAct);
   editMenu->addSeparator();
   editMenu->addAction(rotateAct);
   editMenu->addSeparator();
@@ -1072,6 +1077,12 @@ void MainWindow::deleteSlot()
   updateGUI();
 }
 
+void MainWindow::toTheBack()
+{
+  mainWidget->toTheBack();
+  updateGUI();
+}
+
 void MainWindow::letGoSelection()
 {
   mainWidget->letGoSelection();
@@ -1505,12 +1516,14 @@ void MainWindow::updateGUI()
     cutAct->setEnabled(true);
     copyAct->setEnabled(true);
     deleteAct->setEnabled(true);
+    toTheBackAct->setEnabled(true);
   }
   else
   {
     cutAct->setDisabled(true);
     copyAct->setDisabled(true);
     deleteAct->setDisabled(true);
+    toTheBackAct->setDisabled(true);
   }
   if (!mainWidget->clipboard.empty())
   {

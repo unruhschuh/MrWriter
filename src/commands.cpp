@@ -157,13 +157,14 @@ void CreateSelectionCommand::redo()
 ** ReleaseSelectionCommand
 */
 
-ReleaseSelectionCommand::ReleaseSelectionCommand(Widget *newWidget, size_t newPageNum, QUndoCommand *parent) : QUndoCommand(parent)
+ReleaseSelectionCommand::ReleaseSelectionCommand(Widget *newWidget, size_t newPageNum, bool toTheBack, QUndoCommand *parent) : QUndoCommand(parent)
 {
   setText(MainWindow::tr("Release Selection"));
 
   widget = newWidget;
   selection = widget->currentSelection;
   pageNum = newPageNum;
+  m_toTheBack = toTheBack;
 }
 
 void ReleaseSelectionCommand::undo()
@@ -171,7 +172,14 @@ void ReleaseSelectionCommand::undo()
   widget->currentSelection = selection;
   for (size_t i = 0; i < widget->currentSelection.elements().size(); ++i)
   {
-    widget->currentDocument.pages[pageNum].removeLastElement();
+    if (m_toTheBack)
+    {
+      widget->currentDocument.pages[pageNum].removeFirstElement();
+    }
+    else
+    {
+      widget->currentDocument.pages[pageNum].removeLastElement();
+    }
   }
   widget->setCurrentState(Widget::state::SELECTED);
 }
@@ -179,7 +187,14 @@ void ReleaseSelectionCommand::undo()
 void ReleaseSelectionCommand::redo()
 {
   size_t pageNum = widget->currentSelection.pageNum();
-  widget->currentDocument.pages[pageNum].appendElements(widget->currentSelection.elements());
+  if (m_toTheBack)
+  {
+    widget->currentDocument.pages[pageNum].prependElements(widget->currentSelection.elements());
+  }
+  else
+  {
+    widget->currentDocument.pages[pageNum].appendElements(widget->currentSelection.elements());
+  }
   widget->setCurrentState(Widget::state::IDLE);
 }
 

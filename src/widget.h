@@ -276,6 +276,7 @@ public slots:
   void pasteText();
   void cut();
   void deleteSlot();
+  void toTheBack();
 
 private slots:
   void updateAllDirtyBuffers();

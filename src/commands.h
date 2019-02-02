@@ -57,7 +57,7 @@ private:
 class ReleaseSelectionCommand : public QUndoCommand
 {
 public:
-  ReleaseSelectionCommand(Widget *newWidget, size_t newPageNum, QUndoCommand *parent = nullptr);
+  ReleaseSelectionCommand(Widget *newWidget, size_t newPageNum, bool toTheBack = false, QUndoCommand *parent = nullptr);
   void undo() Q_DECL_OVERRIDE;
   void redo() Q_DECL_OVERRIDE;
 
@@ -65,6 +65,7 @@ private:
   Widget *widget;
   MrDoc::Selection selection;
   size_t pageNum;
+  bool m_toTheBack;
 };
 
 class TransformSelectionCommand : public QUndoCommand

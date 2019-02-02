@@ -61,6 +61,7 @@ private slots:
   void cut();
   void paste();
   void deleteSlot();
+  void toTheBack();
 
   void letGoSelection();
 
@@ -157,6 +158,7 @@ private:
   QAction *pasteTextAct;
   QAction *cutAct;
   QAction *deleteAct;
+  QAction *toTheBackAct;
 
   QAction *zoomInAct;
   QAction *zoomOutAct;
