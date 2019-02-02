@@ -21,6 +21,8 @@ Older versions and the source code can be downloaded [here](https://github.com/u
 
 ![Images and Text](images/MrWriterImagesText.png)
 
+![Images and Text](images/TheLick.png)
+
 #### Linux
 ![Linux](images/MrWriterLin.png)
 
