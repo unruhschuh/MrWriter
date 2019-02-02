@@ -4,8 +4,6 @@
 #define MIN_ZOOM 0.1
 #define MAX_ZOOM 10.0
 
-// #define INVISIBLE_BUFFER_FACTOR 10.0
-
 #include <QWidget>
 #include <QOpenGLWidget>
 #include <QVector>
@@ -68,12 +66,6 @@ public:
     DOT
   };
 
-  static constexpr qreal veryFinePenWidth = 0.42;
-  static constexpr qreal finePenWidth = 0.85;
-  static constexpr qreal mediumPenWidth = 1.41;
-  static constexpr qreal thickPenWidth = 2.26;
-  static constexpr qreal veryThickPenWidth = 5.67;
-
 /*##############################################################################
 # PUBLIC FUNCTIONS
 ##############################################################################*/
@@ -86,7 +78,7 @@ public:
   void setCurrentTool(tool toolID);
   void setPenCursor(const QString &resourceName);
 
-  inline tool getCurrentTool()
+  inline tool currentTool()
   {
     return m_currentTool;
   }
@@ -161,6 +153,12 @@ public:
 ##############################################################################*/
 public:
 
+  static constexpr qreal m_veryFinePenWidth = 0.42;
+  static constexpr qreal m_finePenWidth = 0.85;
+  static constexpr qreal m_mediumPenWidth = 1.41;
+  static constexpr qreal m_thickPenWidth = 2.26;
+  static constexpr qreal m_veryThickPenWidth = 5.67;
+
   MrDoc::Document m_currentDocument;
   std::vector<QPixmap> m_pageBuffer;
   std::vector<QImage> m_pageImageBuffer;
@@ -176,7 +174,7 @@ public:
   QFont m_currentFont;
 
   MrDoc::Selection m_currentSelection;
-  MrDoc::Selection &clipboard = static_cast<TabletApplication *>(qApp)->clipboard;
+  MrDoc::Selection &m_clipboard = static_cast<TabletApplication *>(qApp)->clipboard;
 
   size_t m_selectingOnPage;
 
@@ -193,10 +191,10 @@ public:
 *******************************************************************************/
 protected:
 
-  void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
-  void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-  void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-  void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+  virtual void paintEvent(QPaintEvent *event) override;
+  virtual void mousePressEvent(QMouseEvent *event) override;
+  virtual void mouseMoveEvent(QMouseEvent *event) override;
+  virtual void mouseReleaseEvent(QMouseEvent *event) override;
   virtual void mouseDoubleClickEvent(QMouseEvent *event) override;
 
   virtual void dragEnterEvent(QDragEnterEvent* event) override;
@@ -204,15 +202,14 @@ protected:
   virtual void dragLeaveEvent(QDragLeaveEvent* event) override;
   virtual void dropEvent(QDropEvent* event) override;
 
-  void tabletEvent(QTabletEvent *event) Q_DECL_OVERRIDE;
+  virtual void showEvent(QShowEvent* event) override;
 
+  void tabletEvent(QTabletEvent *event) override;
 
 /*------------------------------------------------------------------------------
 | PRIVATE FUNCTIONS
 ------------------------------------------------------------------------------*/
 private:
-
-  void showEvent(QShowEvent* event) override;
 
   void scrollDocumentToPageNum(size_t pageNum);
 
@@ -262,7 +259,6 @@ private:
 ------------------------------------------------------------------------------*/
 private slots:
   void updateAllDirtyBuffers();
-
 
   void pageFirst();
   void pageLast();
@@ -342,7 +338,6 @@ private:
 
   QPlainTextEdit * m_textEdit;
 
-
 /*------------------------------------------------------------------------------
 | SINGALS
 ------------------------------------------------------------------------------*/
@@ -384,8 +379,6 @@ public slots:
   void cut();
   void deleteSlot();
   void toTheBack();
-
-
 
 };
 

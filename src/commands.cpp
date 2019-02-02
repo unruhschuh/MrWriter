@@ -448,7 +448,7 @@ void CutCommand::undo()
 
 void CutCommand::redo()
 {
-  widget->clipboard = previousSelection;
+  widget->m_clipboard = previousSelection;
   widget->m_currentSelection = MrDoc::Selection();
   widget->setCurrentState(Widget::state::IDLE);
 }

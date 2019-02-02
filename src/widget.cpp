@@ -2183,7 +2183,7 @@ void Widget::copy()
 {
   if (m_currentState == state::SELECTED )
   {
-    clipboard = m_currentSelection;
+    m_clipboard = m_currentSelection;
 
     QImage selectionBuffer = m_currentSelection.buffer();
     QImage clipboardImage = selectionBuffer;
@@ -2200,9 +2200,9 @@ void Widget::copy()
 
 void Widget::paste()
 {
-  if (! clipboard.empty() && m_currentState != state::TEXTING)
+  if (! m_clipboard.empty() && m_currentState != state::TEXTING)
   {
-    MrDoc::Selection tmpSelection = clipboard;
+    MrDoc::Selection tmpSelection = m_clipboard;
     tmpSelection.setPageNum(getCurrentPage());
 
     QPoint globalMousePos = parentWidget()->mapToGlobal(QPoint(0, 0)) + QPoint(parentWidget()->size().width() / 2, parentWidget()->size().height() / 2);
@@ -2255,10 +2255,10 @@ void Widget::pasteImage()
     MrDoc::Selection selection;
     selection.appendElement(image.clone());
     selection.finalize();
-    MrDoc::Selection prevClipboard = this->clipboard;
-    this->clipboard = selection;
+    MrDoc::Selection prevClipboard = this->m_clipboard;
+    this->m_clipboard = selection;
     paste();
-    this->clipboard = prevClipboard;
+    this->m_clipboard = prevClipboard;
   }
 }
 
@@ -2276,10 +2276,10 @@ void Widget::pasteText()
     MrDoc::Selection selection;
     selection.appendElement(text.clone());
     selection.finalize();
-    MrDoc::Selection prevClipboard = this->clipboard;
-    this->clipboard = selection;
+    MrDoc::Selection prevClipboard = this->m_clipboard;
+    this->m_clipboard = selection;
     paste();
-    this->clipboard = prevClipboard;
+    this->m_clipboard = prevClipboard;
   }
 }
 
@@ -2379,31 +2379,31 @@ QColor Widget::getCurrentColor()
 
 void Widget::veryFine()
 {
-  setCurrentPenWidth(veryFinePenWidth);
+  setCurrentPenWidth(m_veryFinePenWidth);
   emit updateGUI();
 }
 
 void Widget::fine()
 {
-  setCurrentPenWidth(finePenWidth);
+  setCurrentPenWidth(m_finePenWidth);
   emit updateGUI();
 }
 
 void Widget::medium()
 {
-  setCurrentPenWidth(mediumPenWidth);
+  setCurrentPenWidth(m_mediumPenWidth);
   emit updateGUI();
 }
 
 void Widget::thick()
 {
-  setCurrentPenWidth(thickPenWidth);
+  setCurrentPenWidth(m_thickPenWidth);
   emit updateGUI();
 }
 
 void Widget::veryThick()
 {
-  setCurrentPenWidth(veryThickPenWidth);
+  setCurrentPenWidth(m_veryThickPenWidth);
   emit updateGUI();
 }
 

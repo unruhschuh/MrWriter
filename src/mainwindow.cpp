@@ -1464,7 +1464,7 @@ void MainWindow::updateGUI()
   yellowAct->setChecked(currentColor == MrDoc::yellow);
   whiteAct->setChecked(currentColor == MrDoc::white);
 
-  Widget::tool currentTool = mainWidget->getCurrentTool();
+  Widget::tool currentTool = mainWidget->currentTool();
 
   penAct->setChecked(currentTool == Widget::tool::PEN);
   rulerAct->setChecked(currentTool == Widget::tool::RULER);
@@ -1479,11 +1479,11 @@ void MainWindow::updateGUI()
 
   qreal currentPenWidth = mainWidget->getCurrentPenWidth();
 
-  veryFinePenWidthAct->setChecked(currentPenWidth == Widget::veryFinePenWidth);
-  finePenWidthAct->setChecked(currentPenWidth == Widget::finePenWidth);
-  mediumPenWidthAct->setChecked(currentPenWidth == Widget::mediumPenWidth);
-  thickPenWidthAct->setChecked(currentPenWidth == Widget::thickPenWidth);
-  veryThickPenWidthAct->setChecked(currentPenWidth == Widget::veryThickPenWidth);
+  veryFinePenWidthAct->setChecked(currentPenWidth == Widget::m_veryFinePenWidth);
+  finePenWidthAct->setChecked(currentPenWidth == Widget::m_finePenWidth);
+  mediumPenWidthAct->setChecked(currentPenWidth == Widget::m_mediumPenWidth);
+  thickPenWidthAct->setChecked(currentPenWidth == Widget::m_thickPenWidth);
+  veryThickPenWidthAct->setChecked(currentPenWidth == Widget::m_veryThickPenWidth);
 
   Widget::cursor currentCursorIcon = mainWidget->getCurrentPenCursor();
   pencilIconAct->setChecked(currentCursorIcon == Widget::cursor::PENCIL);
@@ -1525,7 +1525,7 @@ void MainWindow::updateGUI()
     deleteAct->setDisabled(true);
     toTheBackAct->setDisabled(true);
   }
-  if (!mainWidget->clipboard.empty())
+  if (!mainWidget->m_clipboard.empty())
   {
     pasteAct->setEnabled(true);
   }
@@ -1602,7 +1602,7 @@ bool MainWindow::loadMOJ(QString fileName)
 
 Widget::tool MainWindow::currentTool()
 {
-  return mainWidget->getCurrentTool();
+  return mainWidget->currentTool();
 }
 
 QColor MainWindow::currentColor()
