@@ -132,6 +132,25 @@ bool Page::changePenWidth(size_t elementNum, qreal penWidth)
   return false;
 }
 
+bool Page::changeFont(size_t elementNum, QFont font)
+{
+  if (elementNum >= m_elements.size() || m_elements.empty())
+  {
+    return false;
+  }
+  else
+  {
+    auto text = dynamic_cast<Text*>(m_elements[elementNum].get());
+    if (nullptr != text)
+    {
+      text->m_font = font;
+      m_dirtyRect = m_dirtyRect.united(text->boundingRect());
+      return true;
+    }
+  }
+  return false;
+}
+
 bool Page::changeStrokeColor(size_t elementNum, QColor color)
 {
   if (elementNum >= m_elements.size() || m_elements.empty())

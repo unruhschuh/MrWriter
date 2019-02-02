@@ -2354,12 +2354,25 @@ Widget::state Widget::getCurrentState()
   return currentState;
 }
 
+void Widget::setCurrentFont(QFont font)
+{
+  m_currentFont = font;
+  if (currentState == state::SELECTED)
+  {
+    auto changeFontCommand = new ChangeFontOfSelectionCommand(this, font);
+    undoStack.push(changeFontCommand);
+    currentSelection.finalize();
+    currentSelection.updateBuffer(m_zoom);
+    update();
+  }
+}
+
 void Widget::setCurrentColor(QColor newColor)
 {
   currentColor = newColor;
   if (currentState == state::SELECTED)
   {
-    ChangeColorOfSelectionCommand *changeColorCommand = new ChangeColorOfSelectionCommand(this, newColor);
+    auto changeColorCommand = new ChangeColorOfSelectionCommand(this, newColor);
     undoStack.push(changeColorCommand);
     currentSelection.updateBuffer(m_zoom);
     update();

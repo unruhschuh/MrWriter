@@ -86,6 +86,19 @@ private:
   size_t pageNum;
 };
 
+class ChangeFontOfSelectionCommand : public QUndoCommand
+{
+public:
+  ChangeFontOfSelectionCommand(Widget *widget, QFont font, QUndoCommand *parent = nullptr);
+  void undo() Q_DECL_OVERRIDE;
+  void redo() Q_DECL_OVERRIDE;
+
+private:
+  Widget *m_widget;
+  MrDoc::Selection m_selection;
+  QFont m_font;
+};
+
 class ChangeColorOfSelectionCommand : public QUndoCommand
 {
 public:

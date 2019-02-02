@@ -31,6 +31,8 @@ public:
   const QRectF &dirtyRect() const;
   void clearDirtyRect();
 
+  bool changeFont(size_t elementNum, QFont font);
+
   bool changePenWidth(size_t strokeNum, qreal penWidth);
   bool changeStrokeColor(size_t strokeNum, QColor color);
   bool changeStrokePattern(size_t strokeNum, QVector<qreal> pattern);

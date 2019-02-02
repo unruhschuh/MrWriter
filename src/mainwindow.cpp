@@ -351,8 +351,6 @@ void MainWindow::createActions()
 
   fontAct = new QAction(tr("Select Font"), this);
   fontAct->setStatusTip(tr("Select Font"));
-  fontAct->setCheckable(true);
-  fontAct->setChecked(false);
   connect(fontAct, SIGNAL(triggered()), this, SLOT(font()));
 
   eraserAct = new QAction(QIcon(":/images/eraserIcon.png"), tr("Eraser"), this);
@@ -1115,7 +1113,7 @@ void MainWindow::font()
   bool ok;
   QFont font = QFontDialog::getFont(&ok, mainWidget->m_currentFont, this);
   if (ok) {
-    mainWidget->m_currentFont = font;
+    mainWidget->setCurrentFont(font);
   }
   updateGUI();
 }

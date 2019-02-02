@@ -218,6 +218,32 @@ bool TransformSelectionCommand::mergeWith(const QUndoCommand *other)
 }
 
 /******************************************************************************
+** ChangeFontOfSelectionCommand
+*/
+
+ChangeFontOfSelectionCommand::ChangeFontOfSelectionCommand(Widget *widget, QFont font, QUndoCommand *parent) : QUndoCommand(parent)
+{
+  setText(MainWindow::tr("Change Font"));
+
+  m_widget = widget;
+  m_selection = m_widget->currentSelection;
+  m_font = font;
+}
+
+void ChangeFontOfSelectionCommand::undo()
+{
+  m_widget->currentSelection = m_selection;
+}
+
+void ChangeFontOfSelectionCommand::redo()
+{
+  for (size_t i = 0; i < m_widget->currentSelection.elements().size(); ++i)
+  {
+    m_widget->currentSelection.changeFont(i, m_font);
+  }
+}
+
+/******************************************************************************
 ** ChangeColorOfSelectionCommand
 */
 

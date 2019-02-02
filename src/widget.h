@@ -119,6 +119,7 @@ public:
   void setCurrentState(state newState);
   state getCurrentState();
 
+  void setCurrentFont(QFont font);
   void setCurrentColor(QColor newColor);
   QColor getCurrentColor();
 
