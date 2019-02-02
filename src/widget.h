@@ -28,8 +28,11 @@
 class Widget : public QWidget
 {
   Q_OBJECT
+
+/*##############################################################################
+# PUBLIC TYPES
+##############################################################################*/
 public:
-  explicit Widget(QWidget *parent = nullptr);
 
   enum class tool
   {
@@ -71,12 +74,21 @@ public:
   static constexpr qreal thickPenWidth = 2.26;
   static constexpr qreal veryThickPenWidth = 5.67;
 
+/*##############################################################################
+# PUBLIC FUNCTIONS
+##############################################################################*/
+public:
+
+  explicit Widget(QWidget *parent = nullptr);
+
+  bool inputEnabled();
+
   void setCurrentTool(tool toolID);
   void setPenCursor(const QString &resourceName);
 
   inline tool getCurrentTool()
   {
-    return currentTool;
+    return m_currentTool;
   }
 
   void setCurrentPenWidth(qreal penWidth);
@@ -126,7 +138,6 @@ public:
   void setDocument(const MrDoc::Document &newDocument);
 
   void newFile();
-  //    void openFile();
 
   void zoomIn();
   void zoomOut();
@@ -145,9 +156,10 @@ public:
   void setCurrentPattern(QVector<qreal> newPattern);
   QVector<qreal> getCurrentPattern();
 
-/*******************************************************************************
-* public member variables
-*******************************************************************************/
+/*##############################################################################
+# PUBLIC MEMBERS
+##############################################################################*/
+public:
 
   MrDoc::Document m_currentDocument;
   std::vector<QPixmap> m_pageBuffer;
@@ -166,67 +178,43 @@ public:
   MrDoc::Selection m_currentSelection;
   MrDoc::Selection &clipboard = static_cast<TabletApplication *>(qApp)->clipboard;
 
-  size_t selectingOnPage;
+  size_t m_selectingOnPage;
 
-  QScrollArea *scrollArea;
+  QScrollArea *m_scrollArea;
 
-  QUndoStack undoStack;
+  QUndoStack m_undoStack;
 
   qreal m_zoom;
 
   QString m_statusText;
 
+/*******************************************************************************
+* PROTECTED FUNCTIONS
+*******************************************************************************/
+protected:
+
+  void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
+  void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+  void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+  void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
+  virtual void mouseDoubleClickEvent(QMouseEvent *event) override;
+
+  virtual void dragEnterEvent(QDragEnterEvent* event) override;
+  virtual void dragMoveEvent(QDragMoveEvent* event) override;
+  virtual void dragLeaveEvent(QDragLeaveEvent* event) override;
+  virtual void dropEvent(QDropEvent* event) override;
+
+  void tabletEvent(QTabletEvent *event) Q_DECL_OVERRIDE;
+
+
+/*------------------------------------------------------------------------------
+| PRIVATE FUNCTIONS
+------------------------------------------------------------------------------*/
 private:
+
   void showEvent(QShowEvent* event) override;
 
-  QTime timer;
-
-  QTimer *updateTimer;
-  QTimer *updateDirtyTimer;
-
-  qreal count;
-
-  bool m_inputEnabled = true;
-
   void scrollDocumentToPageNum(size_t pageNum);
-
-  QVector<qreal> currentPattern = MrDoc::solidLinePattern;
-
-  QCursor penCursor;
-  QCursor circleCursor;
-  QCursor rulerCursor;
-  QCursor eraserCursor;
-  QCursor strokeEraserCursor;
-
-  MrDoc::Stroke currentStroke;
-  QRect currentUpdateRect;
-
-  MrDoc::Text currentText;
-
-  state currentState;
-
-  bool penDown = false;
-  size_t drawingOnPage;
-
-  tool currentTool;
-  tool previousTool;
-
-  bool showGrid;
-  bool snapToGrid;
-  qreal gridWidth;
-
-  qreal currentDashOffset;
-
-  qreal minWidthMultiplier = 0.0;
-  qreal maxWidthMultiplier = 1.25;
-
-  QPointF currentCOSPos;
-  QPointF firstMousePos;
-  QPointF previousMousePos;
-  QPointF previousPagePos;
-  MrDoc::Selection::GrabZone m_grabZone = MrDoc::Selection::GrabZone::None;
-
-  QPlainTextEdit * textEdit;
 
   QPointF pagePosToGrid(QPointF pagePos);
 
@@ -269,19 +257,9 @@ private:
 
   void erase(QPointF mousePos, bool invertEraser = false);
 
-public slots:
-  void undo();
-  void redo();
-
-  void selectAll();
-  void copy();
-  void paste();
-  void pasteImage();
-  void pasteText();
-  void cut();
-  void deleteSlot();
-  void toTheBack();
-
+/*------------------------------------------------------------------------------
+| PRIVATE SLOTS
+------------------------------------------------------------------------------*/
 private slots:
   void updateAllDirtyBuffers();
 
@@ -314,7 +292,62 @@ private slots:
 
   void updateWhileDrawing();
 
+/*------------------------------------------------------------------------------
+| PRIVATE MEMBERS
+------------------------------------------------------------------------------*/
+private:
+
+  QTime m_timer;
+
+  QTimer *m_updateTimer;
+  QTimer *m_updateDirtyTimer;
+
+  bool m_inputEnabled = true;
+
+  QVector<qreal> m_currentPattern = MrDoc::solidLinePattern;
+
+  QCursor m_penCursor;
+  QCursor m_circleCursor;
+  QCursor m_rulerCursor;
+  QCursor m_eraserCursor;
+  QCursor m_strokeEraserCursor;
+
+  MrDoc::Stroke m_currentStroke;
+  QRect m_currentUpdateRect;
+
+  MrDoc::Text m_currentText;
+
+  state m_currentState;
+
+  bool m_penDown = false;
+  size_t m_drawingOnPage;
+
+  tool m_currentTool;
+  tool m_previousTool;
+
+  bool m_showGrid;
+  bool m_snapToGrid;
+  qreal m_gridWidth;
+
+  qreal m_currentDashOffset;
+
+  qreal m_minWidthMultiplier = 0.0;
+  qreal m_maxWidthMultiplier = 1.25;
+
+  QPointF m_currentCOSPos;
+  QPointF m_firstMousePos;
+  QPointF m_previousMousePos;
+  QPointF m_previousPagePos;
+  MrDoc::Selection::GrabZone m_grabZone = MrDoc::Selection::GrabZone::None;
+
+  QPlainTextEdit * m_textEdit;
+
+
+/*------------------------------------------------------------------------------
+| SINGALS
+------------------------------------------------------------------------------*/
 signals:
+
   void pen();
   void ruler();
   void circle();
@@ -331,29 +364,29 @@ signals:
 
   void quickmenu();
 
-protected:
-  void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
-  void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-  void mouseMoveEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-  void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
-  virtual void mouseDoubleClickEvent(QMouseEvent *event) override;
-
-  virtual void dragEnterEvent(QDragEnterEvent* event) override;
-  virtual void dragMoveEvent(QDragMoveEvent* event) override;
-  virtual void dragLeaveEvent(QDragLeaveEvent* event) override;
-  virtual void dropEvent(QDropEvent* event) override;
-
-  void tabletEvent(QTabletEvent *event) Q_DECL_OVERRIDE;
-
-signals:
-
+/*##############################################################################
+# PUBLIC SLOTS
+##############################################################################*/
 public slots:
+
   void letGoSelection();
   void enableInput();
   void disableInput();
 
-public:
-  bool inputEnabled();
+  void undo();
+  void redo();
+
+  void selectAll();
+  void copy();
+  void paste();
+  void pasteImage();
+  void pasteText();
+  void cut();
+  void deleteSlot();
+  void toTheBack();
+
+
+
 };
 
 #endif // WIDGET_H

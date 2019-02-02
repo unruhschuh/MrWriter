@@ -63,7 +63,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
   loadMyGeometry();
   setCentralWidget(scrollArea);
 
-  mainWidget->scrollArea = scrollArea;
+  mainWidget->m_scrollArea = scrollArea;
 
   QWidget *sep1 = new QWidget();
   sep1->setFixedWidth(10);
@@ -173,7 +173,7 @@ void MainWindow::createActions()
   connect(exitAct, SIGNAL(triggered()), this, SLOT(exit()));
   this->addAction(exitAct); // add to make shortcut work if menubar is hidden
 
-  undoAct = mainWidget->undoStack.createUndoAction(this);
+  undoAct = mainWidget->m_undoStack.createUndoAction(this);
   undoAct->setIcon(QIcon(":/images/undoIcon.png"));
   undoAct->setShortcut(QKeySequence::Undo);
   undoAct->setStatusTip(tr("Undo"));
@@ -182,7 +182,7 @@ void MainWindow::createActions()
   //    disconnect(undoAct, SIGNAL(triggered()), mainWidget->undoStack, SLOT(undo()));
   this->addAction(undoAct); // add to make shortcut work if menubar is hidden
 
-  redoAct = mainWidget->undoStack.createRedoAction(this);
+  redoAct = mainWidget->m_undoStack.createRedoAction(this);
   redoAct->setIcon(QIcon(":/images/redoIcon.png"));
   redoAct->setShortcut(QKeySequence::Redo);
   redoAct->setStatusTip(tr("Redo"));
@@ -1638,7 +1638,7 @@ void MainWindow::pageSettings()
     {
       qDebug() << "valid";
       ChangePageSettingsCommand *cpsCommand = new ChangePageSettingsCommand(mainWidget, pageNum, pageDialog->currentPageSize, pageDialog->backgroundColor);
-      mainWidget->undoStack.push(cpsCommand);
+      mainWidget->m_undoStack.push(cpsCommand);
     }
   }
   delete pageDialog;
