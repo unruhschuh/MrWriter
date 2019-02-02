@@ -83,14 +83,14 @@ public:
 
   qreal getCurrentPenWidth()
   {
-    return currentPenWidth;
+    return m_currentPenWidth;
   }
 
   void setCurrentPenCursor(Widget::cursor cursorType);
 
   Widget::cursor getCurrentPenCursor()
   {
-    return currentPenCursor;
+    return m_currentPenCursor;
   }
 
   void mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::MouseButtons buttons, Qt::KeyboardModifiers keyboardModifiers,
@@ -142,24 +142,28 @@ public:
 
   void rotateSelection(qreal angle);
 
-  MrDoc::Document currentDocument;
-  std::vector<QPixmap> pageBuffer;
-  std::vector<QImage> pageImageBuffer;
-  QMutex pageImageBufferMutex;
+  void setCurrentPattern(QVector<qreal> newPattern);
+  QVector<qreal> getCurrentPattern();
 
-  QColor currentColor;
-  qreal currentPenWidth;
+/*******************************************************************************
+* public member variables
+*******************************************************************************/
 
-  Widget::cursor currentPenCursor;
+  MrDoc::Document m_currentDocument;
+  std::vector<QPixmap> m_pageBuffer;
+  std::vector<QImage> m_pageImageBuffer;
+  QMutex m_pageImageBufferMutex;
+
+  QColor m_currentColor;
+  qreal m_currentPenWidth;
+
+  Widget::cursor m_currentPenCursor;
 
   qreal m_currentAngle;
 
   QFont m_currentFont;
 
-  void setCurrentPattern(QVector<qreal> newPattern);
-  QVector<qreal> getCurrentPattern();
-
-  MrDoc::Selection currentSelection;
+  MrDoc::Selection m_currentSelection;
   MrDoc::Selection &clipboard = static_cast<TabletApplication *>(qApp)->clipboard;
 
   size_t selectingOnPage;

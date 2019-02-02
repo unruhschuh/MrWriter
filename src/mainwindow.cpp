@@ -95,13 +95,13 @@ MainWindow::~MainWindow()
 void MainWindow::setTitle()
 {
   QString docName;
-  if (mainWidget->currentDocument.docName().isEmpty())
+  if (mainWidget->m_currentDocument.docName().isEmpty())
   {
     docName = tr("untitled");
   }
   else
   {
-    docName = mainWidget->currentDocument.docName();
+    docName = mainWidget->m_currentDocument.docName();
   }
   QString title = PRODUCT_NAME;
   title.append(" - ");
@@ -828,13 +828,13 @@ void MainWindow::openFile()
 
   QString dir;
 
-  if (mainWidget->currentDocument.path().isEmpty())
+  if (mainWidget->m_currentDocument.path().isEmpty())
   {
     dir = QDir::homePath();
   }
   else
   {
-    dir = mainWidget->currentDocument.path();
+    dir = mainWidget->m_currentDocument.path();
   }
 
   QString fileName = QFileDialog::getOpenFileName(this, tr("Open MOJ"), dir, tr("MrWriter Files (*.moj)"));
@@ -886,7 +886,7 @@ bool MainWindow::saveFileAs()
 
   mainWidget->letGoSelection();
 
-  if (mainWidget->currentDocument.saveMOJ(fileName))
+  if (mainWidget->m_currentDocument.saveMOJ(fileName))
   {
     modified();
     setTitle();
@@ -902,15 +902,15 @@ bool MainWindow::saveFile()
 {
   QString dir;
   QString fileName;
-  if (mainWidget->currentDocument.docName().isEmpty())
+  if (mainWidget->m_currentDocument.docName().isEmpty())
   {
     fileName = askForFileName();
   }
   else
   {
-    dir = mainWidget->currentDocument.path();
+    dir = mainWidget->m_currentDocument.path();
     dir.append('/');
-    dir.append(mainWidget->currentDocument.docName());
+    dir.append(mainWidget->m_currentDocument.docName());
     dir.append(".moj");
     fileName = dir;
   }
@@ -922,7 +922,7 @@ bool MainWindow::saveFile()
 
   mainWidget->letGoSelection();
 
-  if (mainWidget->currentDocument.saveMOJ(fileName))
+  if (mainWidget->m_currentDocument.saveMOJ(fileName))
   {
     modified();
     setTitle();
@@ -937,15 +937,15 @@ bool MainWindow::saveFile()
 void MainWindow::exportPDF()
 {
   QString fileName;
-  if (mainWidget->currentDocument.docName().isEmpty())
+  if (mainWidget->m_currentDocument.docName().isEmpty())
   {
     fileName = QDir::homePath();
   }
   else
   {
-    fileName = mainWidget->currentDocument.path();
+    fileName = mainWidget->m_currentDocument.path();
     fileName.append('/');
-    fileName.append(mainWidget->currentDocument.docName());
+    fileName.append(mainWidget->m_currentDocument.docName());
     fileName.append(".pdf");
   }
   fileName = QFileDialog::getSaveFileName(this, tr("Export PDF"), fileName, tr("Adobe PDF files (*.pdf)"));
@@ -955,7 +955,7 @@ void MainWindow::exportPDF()
     return;
   }
 
-  mainWidget->currentDocument.exportPDF(fileName);
+  mainWidget->m_currentDocument.exportPDF(fileName);
 }
 
 void MainWindow::importXOJ()
@@ -967,13 +967,13 @@ void MainWindow::importXOJ()
 
   QString dir;
 
-  if (mainWidget->currentDocument.path().isEmpty())
+  if (mainWidget->m_currentDocument.path().isEmpty())
   {
     dir = QDir::homePath();
   }
   else
   {
-    dir = mainWidget->currentDocument.path();
+    dir = mainWidget->m_currentDocument.path();
   }
 
   QString fileName = QFileDialog::getOpenFileName(this, tr("Import XOJ"), dir, tr("Xournal Files (*.xoj)"));
@@ -1013,7 +1013,7 @@ bool MainWindow::exportXOJ()
     return false;
   }
 
-  if (mainWidget->currentDocument.saveXOJ(fileName))
+  if (mainWidget->m_currentDocument.saveXOJ(fileName))
   {
     modified();
     setTitle();
@@ -1165,7 +1165,7 @@ void MainWindow::hand()
 
 void MainWindow::modified()
 {
-  setWindowModified(mainWidget->currentDocument.documentChanged());
+  setWindowModified(mainWidget->m_currentDocument.documentChanged());
 }
 
 void MainWindow::quickmenu()
@@ -1373,7 +1373,7 @@ void MainWindow::verticalScrolling()
 {
   size_t pageNum = mainWidget->getCurrentPage();
 
-  if (pageNum == mainWidget->currentDocument.pages.size() - 1)
+  if (pageNum == mainWidget->m_currentDocument.pages.size() - 1)
   {
     pageDownAct->setIcon(QIcon(":/images/pageDownPlusIcon.png"));
     pageDownAct->setText(tr("Page Down (add Page)"));
@@ -1386,7 +1386,7 @@ void MainWindow::verticalScrolling()
     pageDownAct->setStatusTip(tr("Page Down"));
   }
 
-  size_t Npages = mainWidget->currentDocument.pages.size();
+  size_t Npages = mainWidget->m_currentDocument.pages.size();
 
   QString statusMsg = QString("%1 / %2").arg(QString::number(pageNum + 1), QString::number(Npages));
 
@@ -1434,7 +1434,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 bool MainWindow::maybeSave()
 {
-  if (mainWidget->currentDocument.documentChanged())
+  if (mainWidget->m_currentDocument.documentChanged())
   {
     QMessageBox::StandardButton ret;
     ret = QMessageBox::warning(this, tr("Application"), tr("The document has been modified.\n"
@@ -1536,10 +1536,10 @@ void MainWindow::updateGUI()
   //    toolbarAct->setChecked()
 
   QPixmap pixmap(16, 16);
-  pixmap.fill(mainWidget->currentColor);
+  pixmap.fill(mainWidget->m_currentColor);
   colorStatus.setPixmap(pixmap);
 
-  penWidthStatus.setText(QString::number(mainWidget->currentPenWidth));
+  penWidthStatus.setText(QString::number(mainWidget->m_currentPenWidth));
 
   statusStatus.setText(mainWidget->m_statusText);
 
@@ -1564,10 +1564,10 @@ void MainWindow::newWindow()
 void MainWindow::cloneWindow()
 {
   MainWindow *window = new MainWindow();
-  window->mainWidget->currentDocument = mainWidget->currentDocument;
-  window->mainWidget->currentDocument.setDocName("");
-  window->mainWidget->pageBuffer = mainWidget->pageBuffer;
-  window->mainWidget->currentSelection = mainWidget->currentSelection;
+  window->mainWidget->m_currentDocument = mainWidget->m_currentDocument;
+  window->mainWidget->m_currentDocument.setDocName("");
+  window->mainWidget->m_pageBuffer = mainWidget->m_pageBuffer;
+  window->mainWidget->m_currentSelection = mainWidget->m_currentSelection;
   window->mainWidget->setCurrentState(mainWidget->getCurrentState());
   //  window->mainWidget->zoomTo(mainWidget->zoom);
   window->mainWidget->m_zoom = mainWidget->m_zoom;
@@ -1592,12 +1592,12 @@ void MainWindow::maximize()
 
 bool MainWindow::loadXOJ(QString fileName)
 {
-  return mainWidget->currentDocument.loadXOJ(fileName);
+  return mainWidget->m_currentDocument.loadXOJ(fileName);
 }
 
 bool MainWindow::loadMOJ(QString fileName)
 {
-  return mainWidget->currentDocument.loadMOJ(fileName);
+  return mainWidget->m_currentDocument.loadMOJ(fileName);
 }
 
 Widget::tool MainWindow::currentTool()
@@ -1628,9 +1628,9 @@ bool MainWindow::snappingToGrid()
 void MainWindow::pageSettings()
 {
   size_t pageNum = mainWidget->getCurrentPage();
-  qreal width = mainWidget->currentDocument.pages[pageNum].width();
-  qreal height = mainWidget->currentDocument.pages[pageNum].height();
-  PageSettingsDialog *pageDialog = new PageSettingsDialog(QSizeF(width, height), mainWidget->currentDocument.pages[pageNum].backgroundColor(), this);
+  qreal width = mainWidget->m_currentDocument.pages[pageNum].width();
+  qreal height = mainWidget->m_currentDocument.pages[pageNum].height();
+  PageSettingsDialog *pageDialog = new PageSettingsDialog(QSizeF(width, height), mainWidget->m_currentDocument.pages[pageNum].backgroundColor(), this);
   pageDialog->setWindowModality(Qt::WindowModal);
   if (pageDialog->exec() == QDialog::Accepted)
   {
