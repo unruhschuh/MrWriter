@@ -18,6 +18,8 @@ QTransform reallyScaleTransform(QTransform transform, qreal factor);
 QString transformToString(const QTransform & transform);
 QTransform stringToTransform(const QString & string);
 
+bool hasTransparancy(const QImage & image);
+
 }
 
 #endif // TOOLS_H

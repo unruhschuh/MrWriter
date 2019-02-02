@@ -475,7 +475,7 @@ bool Document::saveMOJ(QString fileName)
   writer.writeAttribute(QXmlStreamAttribute("docversion", docVersion));
 
   writer.writeStartElement("title");
-  writer.writeCharacters("MrWriter document - see http://unruhschuh.com/mrwriter/");
+  writer.writeCharacters("MrWriter document - see http://unruhschuh.github.io/MrWriter/");
   writer.writeEndElement();
 
   for (size_t i = 0; i < pages.size(); ++i)

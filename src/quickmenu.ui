@@ -215,13 +215,13 @@
       </widget>
      </item>
      <item row="2" column="9">
-      <widget class="QToolButton" name="lightgreenButton">
+      <widget class="QToolButton" name="textButton">
        <property name="text">
         <string>...</string>
        </property>
        <property name="icon">
         <iconset resource="../myresource.qrc">
-         <normaloff>:/images/lightgreenIcon.png</normaloff>:/images/lightgreenIcon.png</iconset>
+         <normaloff>:/images/textIcon_48.png</normaloff>:/images/textIcon_48.png</iconset>
        </property>
        <property name="iconSize">
         <size>

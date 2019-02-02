@@ -59,15 +59,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
   scrollArea = new QScrollArea(this);
   scrollArea->setWidget(mainWidget);
   scrollArea->setAlignment(Qt::AlignHCenter);
-  //    scrollArea->setPalette(QPalette(QColor(130,255,130)));
-
-  //    mainWidget->setGeometry(0,0,100,100);
-  //    scrollArea->setWidgetResizable(true);
 
   loadMyGeometry();
   setCentralWidget(scrollArea);
-
-  //    setCentralWidget(mainWidget);
 
   mainWidget->scrollArea = scrollArea;
 

@@ -1282,9 +1282,6 @@ void Widget::startTexting(QPointF mousePos)
 {
   disableInput();
 
-  //textEdit->installEventFilter(new KeyPressEater);
-  //qApp->installEventFilter(new KeyPressEater);
-
   setCurrentState(state::TEXTING);
 
   firstMousePos = mousePos;
@@ -2220,7 +2217,7 @@ void Widget::copy()
 
 void Widget::paste()
 {
-  if (! clipboard.empty())
+  if (! clipboard.empty() && currentState != state::TEXTING)
   {
     MrDoc::Selection tmpSelection = clipboard;
     tmpSelection.setPageNum(getCurrentPage());

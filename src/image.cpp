@@ -24,15 +24,6 @@ void Image::paint(QPainter& painter, qreal zoom, bool last)
 
   painter.drawImage(m_image.rect(), m_image, m_image.rect());
   painter.setTransform(oldTransform);
-
-  /*
-  QPolygonF poly = boundingPolygon();
-  for (auto &point : poly)
-  {
-    point *= zoom;
-  }
-  painter.drawPolygon(poly);
-  */
 }
 
 void Image::toXml(QXmlStreamWriter& writer)
@@ -40,13 +31,19 @@ void Image::toXml(QXmlStreamWriter& writer)
   QByteArray ba;
   QBuffer buffer(&ba);
   buffer.open(QIODevice::WriteOnly);
-  m_image.save(&buffer, "PNG");
+  if (MrWriter::hasTransparancy(m_image))
+  {
+    m_image.save(&buffer, "PNG");
+  }
+  else
+  {
+    m_image.save(&buffer, "JPG");
+  }
 
   writer.writeStartElement("image");
   writer.writeAttribute(QXmlStreamAttribute("matrix", MrWriter::transformToString(m_transform)));
   writer.writeCDATA(ba.toBase64());
   writer.writeEndElement();
-  qDebug() << ba;
 }
 
 void Image::fromXml(QXmlStreamReader& reader)

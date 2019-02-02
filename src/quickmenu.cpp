@@ -57,6 +57,10 @@ void QuickMenu::setupSignalsAndSlots(MainWindow* mainWindow)
     connect(ui->handButton, SIGNAL(clicked()), mainWindow, SLOT(letGoSelection()));
     connect(ui->handButton, SIGNAL(clicked()), this, SLOT(close()));
 
+    connect(ui->textButton, SIGNAL(clicked()), mainWindow, SLOT(text()));
+    connect(ui->textButton, SIGNAL(clicked()), mainWindow, SLOT(letGoSelection()));
+    connect(ui->textButton, SIGNAL(clicked()), this, SLOT(close()));
+
     // color buttons
     connect(ui->blackButton, SIGNAL(clicked()), mainWindow, SLOT(black()));
     connect(ui->blackButton, SIGNAL(clicked()), this, SLOT(close()));
@@ -75,9 +79,6 @@ void QuickMenu::setupSignalsAndSlots(MainWindow* mainWindow)
 
     connect(ui->lightblueButton, SIGNAL(clicked()), mainWindow, SLOT(lightblue()));
     connect(ui->lightblueButton, SIGNAL(clicked()), this, SLOT(close()));
-
-    connect(ui->lightgreenButton, SIGNAL(clicked()), mainWindow, SLOT(lightgreen()));
-    connect(ui->lightgreenButton, SIGNAL(clicked()), this, SLOT(close()));
 
     // copy paste cut buttons
     connect(ui->copyButton, SIGNAL(clicked()), mainWindow, SLOT(copy()));
@@ -115,7 +116,6 @@ void QuickMenu::setupSignalsAndSlots(MainWindow* mainWindow)
     ui->greenButton->setChecked(currentColor == MrDoc::green);
     ui->grayButton->setChecked(currentColor == MrDoc::gray);
     ui->lightblueButton->setChecked(currentColor == MrDoc::lightblue);
-    ui->lightgreenButton->setChecked(currentColor == MrDoc::lightgreen);
 
     Widget::tool currentTool = mainWindow->currentTool();
 

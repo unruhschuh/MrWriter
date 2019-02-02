@@ -2,6 +2,8 @@
 #include "tools.h"
 #include <QDebug>
 #include <QLineF>
+#include <QRgb>
+#include <QImage>
 
 /*
  * The coordinate systeom:
@@ -134,4 +136,19 @@ QTransform MrWriter::stringToTransform(const QString & string)
   qreal m32 = list.at(7).toDouble();
   qreal m33 = list.at(8).toDouble();
   transform.setMatrix(m11, m12, m13, m21, m22, m23, m31, m32, m33);
+}
+
+bool MrWriter::hasTransparancy(const QImage& image)
+{
+  bool useAlpha = false;
+  const uchar* pixelData = image.bits();
+  int bytes = image.byteCount();
+
+  for (const QRgb* pixel = reinterpret_cast<const QRgb*>(pixelData); bytes > 0; pixel++, bytes -= sizeof(QRgb)) {
+    if (qAlpha(*pixel) != UCHAR_MAX) {
+      useAlpha = true;
+        break;
+    }
+  }
+  return useAlpha;
 }

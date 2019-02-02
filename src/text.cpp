@@ -33,6 +33,7 @@ void Text::toXml(QXmlStreamWriter& writer)
   writer.writeStartElement("text");
   writer.writeAttribute(QXmlStreamAttribute("matrix", MrWriter::transformToString(m_transform)));
   writer.writeAttribute(QXmlStreamAttribute("color", MrDoc::toRGBA(m_color.name(QColor::HexArgb))));
+  writer.writeAttribute(QXmlStreamAttribute("font", m_font.toString()));
   writer.writeCharacters(m_text);
   writer.writeEndElement();
 
@@ -48,6 +49,9 @@ void Text::fromXml(QXmlStreamReader& reader)
 
   QStringRef color = attributes.value("", "color");
   m_color = stringToColor(color.toString());
+
+  QStringRef font = attributes.value("", "font");
+  m_font.fromString(font.toString());
 }
 
 std::unique_ptr<Element> Text::clone() const
