@@ -16,6 +16,11 @@ MrWriter is an application aiming to replace both pen and paper for handwritten 
 Older versions and the source code can be downloaded [here](https://github.com/unruhschuh/MrWriter/releases).
 
 ### Screenshots
+
+#### Random screenshots
+
+![Images and Text](images/MrWriterImagesText.png)
+
 #### Linux
 ![Linux](images/MrWriterLin.png)
 
