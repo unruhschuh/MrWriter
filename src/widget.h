@@ -4,23 +4,22 @@
 #define MIN_ZOOM 0.1
 #define MAX_ZOOM 10.0
 
-#include <QWidget>
-#include <QOpenGLWidget>
-#include <QVector>
-#include <QPainter>
-#include <QTabletEvent>
-#include <QUndoStack>
-#include <QScrollArea>
 #include <QMutex>
+#include <QOpenGLWidget>
+#include <QPainter>
 #include <QPlainTextEdit>
-
+#include <QScrollArea>
+#include <QTabletEvent>
 #include <QTime>
 #include <QTimer>
+#include <QUndoStack>
+#include <QVector>
+#include <QWidget>
 
-#include "tabletapplication.h"
-#include "mrdoc.h"
 #include "document.h"
+#include "mrdoc.h"
 #include "stroke.h"
+#include "tabletapplication.h"
 #include "text.h"
 
 class Widget : public QWidget
@@ -32,7 +31,7 @@ class Widget : public QWidget
 ##############################################################################*/
 public:
 
-  enum class tool
+  enum class Tool
   {
     NONE,
     PEN,
@@ -46,7 +45,7 @@ public:
     RECT_SELECT,
     HAND
   };
-  enum class state
+  enum class State
   {
     IDLE,
     DRAWING,
@@ -60,7 +59,7 @@ public:
     RESIZING_SELECTION,
     ROTATING_SELECTION
   };
-  enum class cursor
+  enum class Cursor
   {
     PENCIL,
     DOT
@@ -75,24 +74,24 @@ public:
 
   bool inputEnabled();
 
-  void setCurrentTool(tool toolID);
-  void setPenCursor(const QString &resourceName);
+  void setCurrentTool(Tool p_tool);
+  void setPenCursor(const QString &p_resourceName);
 
-  inline tool currentTool()
+  inline Tool currentTool()
   {
     return m_currentTool;
   }
 
-  void setCurrentPenWidth(qreal penWidth);
+  void setCurrentPenWidth(qreal p_penWidth);
 
-  qreal getCurrentPenWidth()
+  qreal currentPenWidth()
   {
     return m_currentPenWidth;
   }
 
-  void setCurrentPenCursor(Widget::cursor cursorType);
+  void setCurrentPenCursor(Widget::Cursor p_cursor);
 
-  Widget::cursor getCurrentPenCursor()
+  Widget::Cursor currentPenCursor()
   {
     return m_currentPenCursor;
   }
@@ -103,10 +102,7 @@ public:
   bool pageVisible(size_t buffNum) const;
   size_t firstVisiblePage() const;
   size_t lastVisiblePage() const;
-  /**
-   * @brief updateAllPageBuffers
-   * @todo use std::unique_lock
-   */
+
   void updateAllPageBuffers(bool force = false);
   void updateImageBuffer(size_t buffNum);
   void updateBuffer(size_t i);
@@ -118,14 +114,14 @@ public:
   QPointF getAbsolutePagePosFromMousePos(QPointF mousePos) const;
   QPointF getMousePosFromPagePos(QPointF pagePos, size_t pageNum) const;
   QRect getWidgetGeometry() const;
-  size_t getCurrentPage() const;
+  size_t currentPage() const;
 
-  void setCurrentState(state newState);
-  state getCurrentState();
+  void setCurrentState(State newState);
+  State currentState();
 
   void setCurrentFont(QFont font);
   void setCurrentColor(QColor newColor);
-  QColor getCurrentColor();
+  QColor currentColor();
 
   void setDocument(const MrDoc::Document &newDocument);
 
@@ -146,7 +142,49 @@ public:
   void rotateSelection(qreal angle);
 
   void setCurrentPattern(QVector<qreal> newPattern);
-  QVector<qreal> getCurrentPattern();
+  QVector<qreal> currentPattern();
+
+/*##############################################################################
+# PUBLIC SLOTS
+##############################################################################*/
+public slots:
+
+  void letGoSelection();
+  void enableInput();
+  void disableInput();
+
+  void undo();
+  void redo();
+
+  void selectAll();
+  void copy();
+  void paste();
+  void pasteImage();
+  void pasteText();
+  void cut();
+  void deleteSlot();
+  void toTheBack();
+
+/*##############################################################################
+# SINGALS
+##############################################################################*/
+signals:
+
+  void pen();
+  void ruler();
+  void circle();
+  void rect();
+  void eraser();
+  void strokeEraser();
+  void select();
+  void rectSelect();
+  void hand();
+
+  void updateGUI();
+
+  void modified();
+
+  void quickmenu();
 
 /*##############################################################################
 # PUBLIC MEMBERS
@@ -167,7 +205,7 @@ public:
   QColor m_currentColor;
   qreal m_currentPenWidth;
 
-  Widget::cursor m_currentPenCursor;
+  Widget::Cursor m_currentPenCursor;
 
   qreal m_currentAngle;
 
@@ -196,6 +234,8 @@ protected:
   virtual void mouseMoveEvent(QMouseEvent *event) override;
   virtual void mouseReleaseEvent(QMouseEvent *event) override;
   virtual void mouseDoubleClickEvent(QMouseEvent *event) override;
+
+  virtual bool event(QEvent *event) override;
 
   virtual void dragEnterEvent(QDragEnterEvent* event) override;
   virtual void dragMoveEvent(QDragMoveEvent* event) override;
@@ -313,13 +353,13 @@ private:
 
   MrDoc::Text m_currentText;
 
-  state m_currentState;
+  State m_currentState;
 
   bool m_penDown = false;
   size_t m_drawingOnPage;
 
-  tool m_currentTool;
-  tool m_previousTool;
+  Tool m_currentTool;
+  Tool m_previousTool;
 
   bool m_showGrid;
   bool m_snapToGrid;
@@ -338,47 +378,6 @@ private:
 
   QPlainTextEdit * m_textEdit;
 
-/*------------------------------------------------------------------------------
-| SINGALS
-------------------------------------------------------------------------------*/
-signals:
-
-  void pen();
-  void ruler();
-  void circle();
-  void rect();
-  void eraser();
-  void strokeEraser();
-  void select();
-  void rectSelect();
-  void hand();
-
-  void updateGUI();
-
-  void modified();
-
-  void quickmenu();
-
-/*##############################################################################
-# PUBLIC SLOTS
-##############################################################################*/
-public slots:
-
-  void letGoSelection();
-  void enableInput();
-  void disableInput();
-
-  void undo();
-  void redo();
-
-  void selectAll();
-  void copy();
-  void paste();
-  void pasteImage();
-  void pasteText();
-  void cut();
-  void deleteSlot();
-  void toTheBack();
 
 };
 

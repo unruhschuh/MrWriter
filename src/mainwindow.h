@@ -21,9 +21,9 @@ public:
   bool loadXOJ(QString fileName);
   bool loadMOJ(QString fileName);
 
-  Widget::tool currentTool();
+  Widget::Tool currentTool();
   QColor currentColor();
-  Widget::state currentState();
+  Widget::State currentState();
 
   bool showingGrid();
   bool snappingToGrid();
@@ -36,6 +36,8 @@ public slots:
   void updateGUI();
 
 private slots:
+  void simulateTouchEvents();
+
   void newWindow();
   void cloneWindow();
   void newFile();

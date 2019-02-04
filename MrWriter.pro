@@ -11,6 +11,7 @@ QT       += core
 QT       += xml
 QT       += printsupport
 QT       += concurrent
+QT       += testlib
 #QT       += svg
 #QT       += webenginewidgets
 

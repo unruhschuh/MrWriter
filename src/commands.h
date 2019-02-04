@@ -176,7 +176,7 @@ private:
   Widget *widget;
   MrDoc::Selection pasteSelection;
   MrDoc::Selection previousSelection;
-  Widget::state previousState;
+  Widget::State previousState;
 };
 
 class CutCommand : public QUndoCommand
@@ -189,7 +189,7 @@ public:
 private:
   Widget *widget;
   MrDoc::Selection previousSelection;
-  Widget::state previousState;
+  Widget::State previousState;
 };
 
 class DeleteCommand : public QUndoCommand
@@ -202,7 +202,7 @@ public:
 private:
   Widget *widget;
   MrDoc::Selection previousSelection;
-  Widget::state previousState;
+  Widget::State previousState;
 };
 
 class ChangePageSettingsCommand : public QUndoCommand

@@ -140,7 +140,7 @@ void CreateSelectionCommand::undo()
 {
   m_widget->m_currentDocument.pages[m_pageNum].insertElements(m_elementsAndPositions);
 
-  m_widget->setCurrentState(Widget::state::IDLE);
+  m_widget->setCurrentState(Widget::State::IDLE);
 }
 
 void CreateSelectionCommand::redo()
@@ -150,7 +150,7 @@ void CreateSelectionCommand::redo()
     m_widget->m_currentDocument.pages[m_pageNum].removeElementAt(sAndP.second);
   }
   m_widget->m_currentSelection = m_selection;
-  m_widget->setCurrentState(Widget::state::SELECTED);
+  m_widget->setCurrentState(Widget::State::SELECTED);
 }
 
 /******************************************************************************
@@ -181,7 +181,7 @@ void ReleaseSelectionCommand::undo()
       widget->m_currentDocument.pages[pageNum].removeLastElement();
     }
   }
-  widget->setCurrentState(Widget::state::SELECTED);
+  widget->setCurrentState(Widget::State::SELECTED);
 }
 
 void ReleaseSelectionCommand::redo()
@@ -195,7 +195,7 @@ void ReleaseSelectionCommand::redo()
   {
     widget->m_currentDocument.pages[pageNum].appendElements(widget->m_currentSelection.elements());
   }
-  widget->setCurrentState(Widget::state::IDLE);
+  widget->setCurrentState(Widget::State::IDLE);
 }
 
 /******************************************************************************
@@ -411,7 +411,7 @@ PasteCommand::PasteCommand(Widget *newWidget, const MrDoc::Selection & newSelect
   widget = newWidget;
   pasteSelection = newSelection;
   previousSelection = widget->m_currentSelection;
-  previousState = widget->getCurrentState();
+  previousState = widget->currentState();
 }
 
 void PasteCommand::undo()
@@ -424,7 +424,7 @@ void PasteCommand::undo()
 void PasteCommand::redo()
 {
   widget->m_currentSelection = pasteSelection;
-  widget->setCurrentState(Widget::state::SELECTED);
+  widget->setCurrentState(Widget::State::SELECTED);
   widget->update();
 }
 
@@ -437,7 +437,7 @@ CutCommand::CutCommand(Widget *newWidget, QUndoCommand *parent) : QUndoCommand(p
   setText(MainWindow::tr("Cut"));
   widget = newWidget;
   previousSelection = widget->m_currentSelection;
-  previousState = widget->getCurrentState();
+  previousState = widget->currentState();
 }
 
 void CutCommand::undo()
@@ -450,7 +450,7 @@ void CutCommand::redo()
 {
   widget->m_clipboard = previousSelection;
   widget->m_currentSelection = MrDoc::Selection();
-  widget->setCurrentState(Widget::state::IDLE);
+  widget->setCurrentState(Widget::State::IDLE);
 }
 
 /******************************************************************************
@@ -462,7 +462,7 @@ DeleteCommand::DeleteCommand(Widget *newWidget, QUndoCommand *parent) : QUndoCom
   setText(MainWindow::tr("Delete"));
   widget = newWidget;
   previousSelection = widget->m_currentSelection;
-  previousState = widget->getCurrentState();
+  previousState = widget->currentState();
 }
 
 void DeleteCommand::undo()
@@ -474,7 +474,7 @@ void DeleteCommand::undo()
 void DeleteCommand::redo()
 {
   widget->m_currentSelection = MrDoc::Selection();
-  widget->setCurrentState(Widget::state::IDLE);
+  widget->setCurrentState(Widget::State::IDLE);
 }
 
 /******************************************************************************

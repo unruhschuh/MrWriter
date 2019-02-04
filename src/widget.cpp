@@ -36,7 +36,7 @@ Widget::Widget(QWidget *parent) : QWidget(parent)
 {
   QSettings settings;
 
-  m_currentState = state::IDLE;
+  m_currentState = State::IDLE;
 
   setAcceptDrops(true);
 
@@ -82,8 +82,8 @@ Widget::Widget(QWidget *parent) : QWidget(parent)
   });
   m_textEdit->hide();
 
-  m_currentTool = tool::PEN;
-  m_previousTool = tool::NONE;
+  m_currentTool = Tool::PEN;
+  m_previousTool = Tool::NONE;
   setCursor(penCursorBitmap);
 
   m_currentDocument = MrDoc::Document();
@@ -336,7 +336,7 @@ void Widget::paintEvent(QPaintEvent *event)
 
   QPainter painter(this);
 
-  if (m_currentState == state::DRAWING)
+  if (m_currentState == State::DRAWING)
   {
     QRectF rectSource;
     QTransform trans;
@@ -366,8 +366,8 @@ void Widget::paintEvent(QPaintEvent *event)
 
     painter.drawPixmap(rectTarget, m_pageBuffer.at(i), rectSource);
 
-    if ((m_currentState == state::SELECTING || m_currentState == state::SELECTED || m_currentState == state::MOVING_SELECTION ||
-         m_currentState == state::RESIZING_SELECTION || m_currentState == state::ROTATING_SELECTION) &&
+    if ((m_currentState == State::SELECTING || m_currentState == State::SELECTED || m_currentState == State::MOVING_SELECTION ||
+         m_currentState == State::RESIZING_SELECTION || m_currentState == State::ROTATING_SELECTION) &&
         i == m_currentSelection.pageNum())
     {
       m_currentSelection.paint(painter, m_zoom);
@@ -395,7 +395,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
 
   if (!inputEnabled())
   {
-    if (m_currentState == state::TEXTING && eventType == QEvent::MouseButtonRelease)
+    if (m_currentState == State::TEXTING && eventType == QEvent::MouseButtonRelease)
     {
       stopTexting(mousePos);
     }
@@ -405,7 +405,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
   size_t pageNum = getPageFromMousePos(mousePos);
   QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
 
-  if ((m_currentState == state::IDLE || m_currentState == state::SELECTED) && button & Qt::LeftButton && eventType == QEvent::MouseButtonRelease && pointerType == QTabletEvent::Pen && m_currentTool == tool::TEXT)
+  if ((m_currentState == State::IDLE || m_currentState == State::SELECTED) && button & Qt::LeftButton && eventType == QEvent::MouseButtonRelease && pointerType == QTabletEvent::Pen && m_currentTool == Tool::TEXT)
   {
     size_t index = 0;
     for (auto & element : m_currentDocument.pages.at(pageNum).elements())
@@ -447,11 +447,11 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
     emit quickmenu();
     return;
   }
-  if ((m_currentState == state::IDLE || m_currentState == state::SELECTED) && buttons & Qt::MiddleButton && pointerType == QTabletEvent::Pen)
+  if ((m_currentState == State::IDLE || m_currentState == State::SELECTED) && buttons & Qt::MiddleButton && pointerType == QTabletEvent::Pen)
   {
     if (eventType == QEvent::MouseButtonPress && button == Qt::MiddleButton)
     {
-      if (m_currentTool != tool::HAND)
+      if (m_currentTool != Tool::HAND)
       {
         m_previousTool = m_currentTool;
       }
@@ -477,7 +477,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
     return;
   }
 
-  if (m_currentState == state::SELECTED)
+  if (m_currentState == State::SELECTED)
   {
     if (eventType == QEvent::MouseButtonPress)
     {
@@ -533,7 +533,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
   }
   */
 
-  if (m_currentState == state::MOVING_SELECTION)
+  if (m_currentState == State::MOVING_SELECTION)
   {
     if (eventType == QEvent::MouseMove)
     {
@@ -542,12 +542,12 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
     }
     if (eventType == QEvent::MouseButtonRelease)
     {
-      setCurrentState(state::SELECTED);
+      setCurrentState(State::SELECTED);
       setPreviousTool();
     }
   }
 
-  if (m_currentState == state::ROTATING_SELECTION)
+  if (m_currentState == State::ROTATING_SELECTION)
   {
     if (eventType == QEvent::MouseMove)
     {
@@ -561,7 +561,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
     }
   }
 
-  if (m_currentState == state::RESIZING_SELECTION)
+  if (m_currentState == State::RESIZING_SELECTION)
   {
     if (eventType == QEvent::MouseMove)
     {
@@ -575,7 +575,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
     }
   }
 
-  if (m_currentState == state::SELECTING)
+  if (m_currentState == State::SELECTING)
   {
     if (eventType == QEvent::MouseButtonPress)
     {
@@ -594,7 +594,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
     }
   }
 
-  if (m_currentState == state::DRAWING)
+  if (m_currentState == State::DRAWING)
   {
     if (eventType == QEvent::MouseButtonPress)
     {
@@ -612,7 +612,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
     }
   }
 
-  if (m_currentState == state::RULING)
+  if (m_currentState == State::RULING)
   {
     if (eventType == QEvent::MouseMove)
     {
@@ -627,7 +627,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
     }
   }
 
-  if (m_currentState == state::CIRCLING)
+  if (m_currentState == State::CIRCLING)
   {
     if (eventType == QEvent::MouseMove)
     {
@@ -642,7 +642,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
     }
   }
 
-  if (m_currentState == state::RECTING)
+  if (m_currentState == State::RECTING)
   {
     if (eventType == QEvent::MouseMove)
     {
@@ -657,50 +657,50 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
     }
   }
 
-  if (m_currentState == state::IDLE)
+  if (m_currentState == State::IDLE)
   {
     if (eventType == QEvent::MouseButtonPress)
     {
       if (pointerType == QTabletEvent::Pen)
       {
-        if (m_currentTool == tool::PEN)
+        if (m_currentTool == Tool::PEN)
         {
           startDrawing(mousePos, pressure);
           return;
         }
-        if (m_currentTool == tool::RULER)
+        if (m_currentTool == Tool::RULER)
         {
           startRuling(mousePos);
           return;
         }
-        if (m_currentTool == tool::CIRCLE)
+        if (m_currentTool == Tool::CIRCLE)
         {
           startCircling(mousePos);
           return;
         }
-        if (m_currentTool == tool::RECT)
+        if (m_currentTool == Tool::RECT)
         {
           startRecting(mousePos);
           return;
         }
-        if (m_currentTool == tool::ERASER)
+        if (m_currentTool == Tool::ERASER)
         {
           m_undoStack.beginMacro("erase");
           erase(mousePos, invertEraser);
           return;
         }
-        if (m_currentTool == tool::STROKE_ERASER)
+        if (m_currentTool == Tool::STROKE_ERASER)
         {
           m_undoStack.beginMacro("erase");
           erase(mousePos, !invertEraser);
           return;
         }
-        if (m_currentTool == tool::SELECT || m_currentTool == tool::RECT_SELECT)
+        if (m_currentTool == Tool::SELECT || m_currentTool == Tool::RECT_SELECT)
         {
           startSelecting(mousePos);
           return;
         }
-        if (m_currentTool == tool::HAND)
+        if (m_currentTool == Tool::HAND)
         {
           m_previousMousePos = mousePos;
         }
@@ -715,15 +715,15 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
     }
     if (eventType == QEvent::MouseMove)
     {
-      if (pointerType == QTabletEvent::Eraser || m_currentTool == tool::ERASER)
+      if (pointerType == QTabletEvent::Eraser || m_currentTool == Tool::ERASER)
       {
         erase(mousePos, invertEraser);
       }
-      if (m_currentTool == tool::STROKE_ERASER)
+      if (m_currentTool == Tool::STROKE_ERASER)
       {
         erase(mousePos, !invertEraser);
       }
-      if (m_currentTool == tool::HAND)
+      if (m_currentTool == Tool::HAND)
       {
         int dx = 1 * static_cast<int>(mousePos.x() - m_previousMousePos.x());
         int dy = 1 * static_cast<int>(mousePos.y() - m_previousMousePos.y());
@@ -845,46 +845,84 @@ void Widget::mouseDoubleClickEvent(QMouseEvent* event)
   (void) event;
 }
 
+bool Widget::event(QEvent* p_event)
+{
+  if (p_event->type() == QEvent::TouchBegin)
+  {
+    qDebug() << "TouchBegin";
+    p_event->accept();
+    return true;
+  }
+  else if (p_event->type() == QEvent::TouchUpdate || p_event->type() == QEvent::TouchEnd)
+  {
+    qDebug() << "TouchUpdate / TouchEnd";
+    auto touchEvent = static_cast<QTouchEvent*>(p_event);
+    auto touchPoints =  touchEvent->touchPoints();
+    if (touchPoints.size() == 1)
+    {
+      auto pos = touchPoints.at(0).pos();
+      auto lastPos = touchPoints.at(0).lastPos();
+      auto dx = static_cast<int>(pos.x() - lastPos.x());
+      auto dy = static_cast<int>(pos.y() - lastPos.y());
+      m_scrollArea->horizontalScrollBar()->setValue(m_scrollArea->horizontalScrollBar()->value() - dx);
+      m_scrollArea->verticalScrollBar()->setValue(m_scrollArea->verticalScrollBar()->value() - dy);
+    }
+
+    p_event->accept();
+    return true;
+  }
+  //else if (p_event->type() == QEvent::TouchEnd)
+  //{
+  //  qDebug() << "TouchEnd";
+  //  p_event->accept();
+  //  return true;
+  //}
+  else
+  {
+    return QWidget::event(p_event);
+  }
+}
+
 void Widget::setPreviousTool()
 {
-  if (m_previousTool == tool::PEN)
+  if (m_previousTool == Tool::PEN)
   {
     emit pen();
   }
-  if (m_previousTool == tool::RULER)
+  if (m_previousTool == Tool::RULER)
   {
     emit ruler();
   }
-  if (m_previousTool == tool::CIRCLE)
+  if (m_previousTool == Tool::CIRCLE)
   {
     emit circle();
   }
-  if (m_previousTool == tool::RECT)
+  if (m_previousTool == Tool::RECT)
   {
     emit rect();
   }
-  if (m_previousTool == tool::ERASER)
+  if (m_previousTool == Tool::ERASER)
   {
     emit eraser();
   }
-  if (m_previousTool == tool::STROKE_ERASER)
+  if (m_previousTool == Tool::STROKE_ERASER)
   {
     emit strokeEraser();
   }
-  if (m_previousTool == tool::SELECT)
+  if (m_previousTool == Tool::SELECT)
   {
     emit select();
   }
-  if (m_previousTool == tool::RECT_SELECT)
+  if (m_previousTool == Tool::RECT_SELECT)
   {
     emit rectSelect();
   }
-  if (m_previousTool == tool::HAND)
+  if (m_previousTool == Tool::HAND)
   {
     emit hand();
   }
 
-  m_previousTool = tool::NONE;
+  m_previousTool = Tool::NONE;
 }
 
 void Widget::startSelecting(QPointF mousePos)
@@ -905,7 +943,7 @@ void Widget::startSelecting(QPointF mousePos)
   m_currentSelection = newSelection;
 
   //    selecting = true;
-  m_currentState = state::SELECTING;
+  m_currentState = State::SELECTING;
   m_selectingOnPage = pageNum;
 }
 
@@ -915,11 +953,11 @@ void Widget::continueSelecting(QPointF mousePos)
   QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
   QPointF firstPagePos = getPagePosFromMousePos(m_firstMousePos, pageNum);
 
-  if (m_currentTool == Widget::tool::SELECT)
+  if (m_currentTool == Widget::Tool::SELECT)
   {
     m_currentSelection.appendToSelectionPolygon(pagePos);
   }
-  else if (m_currentTool == Widget::tool::RECT_SELECT)
+  else if (m_currentTool == Widget::Tool::RECT_SELECT)
   {
     QPolygonF selectionPolygon;
     if ( ( pagePos.x() > firstPagePos.x() && pagePos.y() > firstPagePos.y() ) || ( pagePos.x() < firstPagePos.x() && pagePos.y() > firstPagePos.y() ) )
@@ -979,7 +1017,7 @@ void Widget::stopSelecting(QPointF mousePos)
   }
   else
   {
-    setCurrentState(state::IDLE);
+    setCurrentState(State::IDLE);
   }
   m_statusText.clear();
   updateGUI();
@@ -987,13 +1025,13 @@ void Widget::stopSelecting(QPointF mousePos)
 
 void Widget::letGoSelection()
 {
-  if (getCurrentState() == state::SELECTED)
+  if (currentState() == State::SELECTED)
   {
     size_t pageNum = m_currentSelection.pageNum();
     ReleaseSelectionCommand *releaseCommand = new ReleaseSelectionCommand(this, pageNum);
     m_undoStack.push(releaseCommand);
     updateAllDirtyBuffers();
-    setCurrentState(state::IDLE);
+    setCurrentState(State::IDLE);
   }
 }
 
@@ -1025,7 +1063,7 @@ void Widget::startRuling(QPointF mousePos)
   newStroke.penWidth = m_currentPenWidth;
   newStroke.color = m_currentColor;
   m_currentStroke = newStroke;
-  m_currentState = state::RULING;
+  m_currentState = State::RULING;
 
   m_previousMousePos = mousePos;
   m_firstMousePos = mousePos;
@@ -1093,7 +1131,7 @@ void Widget::stopRuling(QPointF mousePos)
   AddElementCommand *addCommand = new AddElementCommand(this, m_drawingOnPage, m_currentStroke.clone());
   m_undoStack.push(addCommand);
 
-  m_currentState = state::IDLE;
+  m_currentState = State::IDLE;
 
   QTransform scaleTrans;
   scaleTrans = scaleTrans.scale(m_zoom, m_zoom);
@@ -1117,7 +1155,7 @@ void Widget::startCircling(QPointF mousePos)
   newStroke.penWidth = m_currentPenWidth;
   newStroke.color = m_currentColor;
   m_currentStroke = newStroke;
-  m_currentState = state::CIRCLING;
+  m_currentState = State::CIRCLING;
 
   m_previousMousePos = mousePos;
   m_firstMousePos = mousePos;
@@ -1179,7 +1217,7 @@ void Widget::stopCircling(QPointF mousePos)
   AddElementCommand *addCommand = new AddElementCommand(this, m_drawingOnPage, m_currentStroke.clone());
   m_undoStack.push(addCommand);
 
-  m_currentState = state::IDLE;
+  m_currentState = State::IDLE;
 
   update();
 }
@@ -1196,7 +1234,7 @@ void Widget::startRecting(QPointF mousePos)
   newStroke.penWidth = m_currentPenWidth;
   newStroke.color = m_currentColor;
   m_currentStroke = newStroke;
-  m_currentState = state::RECTING;
+  m_currentState = State::RECTING;
 
   m_previousMousePos = mousePos;
   m_firstMousePos = mousePos;
@@ -1256,7 +1294,7 @@ void Widget::stopRecting(QPointF mousePos)
   AddElementCommand *addCommand = new AddElementCommand(this, m_drawingOnPage, m_currentStroke.clone());
   m_undoStack.push(addCommand);
 
-  m_currentState = state::IDLE;
+  m_currentState = State::IDLE;
 
   update();
 }
@@ -1265,7 +1303,7 @@ void Widget::startTexting(QPointF mousePos)
 {
   disableInput();
 
-  setCurrentState(state::TEXTING);
+  setCurrentState(State::TEXTING);
 
   m_firstMousePos = mousePos;
 
@@ -1313,7 +1351,7 @@ void Widget::stopTexting(QPointF mousePos)
   m_undoStack.endMacro();
 
   m_textEdit->hide();
-  setCurrentState(state::IDLE);
+  setCurrentState(State::IDLE);
   enableInput();
 }
 
@@ -1321,7 +1359,7 @@ void Widget::startEditingText(QPointF mousePos, size_t index)
 {
   disableInput();
 
-  setCurrentState(state::TEXTING);
+  setCurrentState(State::TEXTING);
 
   size_t pageNum = getPageFromMousePos(mousePos);
   auto text = dynamic_cast<MrDoc::Text*>(m_currentDocument.pages.at(pageNum).elements().at(index).get());
@@ -1374,7 +1412,7 @@ void Widget::startDrawing(QPointF mousePos, qreal pressure)
   newStroke.penWidth = m_currentPenWidth;
   newStroke.color = m_currentColor;
   m_currentStroke = newStroke;
-  m_currentState = state::DRAWING;
+  m_currentState = State::DRAWING;
 
   m_previousMousePos = mousePos;
   m_drawingOnPage = pageNum;
@@ -1413,7 +1451,7 @@ void Widget::stopDrawing(QPointF mousePos, qreal pressure)
   m_undoStack.push(addCommand);
 
   //  currentState = state::IDLE;
-  setCurrentState(state::IDLE);
+  setCurrentState(State::IDLE);
 
   update();
 }
@@ -1586,7 +1624,7 @@ void Widget::startMovingSelection(QPointF mousePos)
     m_previousPagePos = pagePosToGrid(m_previousPagePos);
   }
 
-  setCurrentState(state::MOVING_SELECTION);
+  setCurrentState(State::MOVING_SELECTION);
 }
 
 void Widget::continueMovingSelection(QPointF mousePos)
@@ -1619,7 +1657,7 @@ void Widget::startRotatingSelection(QPointF mousePos)
 
   size_t pageNum = m_currentSelection.pageNum();
   m_previousPagePos = getPagePosFromMousePos(mousePos, pageNum);
-  setCurrentState(state::ROTATING_SELECTION);
+  setCurrentState(State::ROTATING_SELECTION);
 }
 
 void Widget::continueRotatingSelection(QPointF mousePos)
@@ -1654,7 +1692,7 @@ void Widget::stopRotatingSelection(QPointF mousePos)
 
   m_currentSelection.finalize();
   m_currentSelection.updateBuffer(m_zoom);
-  setCurrentState(state::SELECTED);
+  setCurrentState(State::SELECTED);
   m_statusText = "";
   updateGUI();
 }
@@ -1668,7 +1706,7 @@ void Widget::startResizingSelection(QPointF mousePos, MrDoc::Selection::GrabZone
 
   size_t pageNum = m_currentSelection.pageNum();
   m_previousPagePos = getPagePosFromMousePos(mousePos, pageNum);
-  setCurrentState(state::RESIZING_SELECTION);
+  setCurrentState(State::RESIZING_SELECTION);
 }
 
 void Widget::continueResizingSelection(QPointF mousePos)
@@ -1778,7 +1816,7 @@ void Widget::stopResizingSelection(QPointF mousePos)
 
   m_currentSelection.finalize();
   m_currentSelection.updateBuffer(m_zoom);
-  setCurrentState(state::SELECTED);
+  setCurrentState(State::SELECTED);
 }
 
 size_t Widget::getPageFromMousePos(QPointF mousePos) const
@@ -1798,7 +1836,7 @@ size_t Widget::getPageFromMousePos(QPointF mousePos) const
   return pageNum;
 }
 
-size_t Widget::getCurrentPage() const
+size_t Widget::currentPage() const
 {
   QPoint globalMousePos = parentWidget()->mapToGlobal(QPoint(0, 0)) + QPoint(parentWidget()->size().width() / 2, parentWidget()->size().height() / 2);
   QPoint pos = this->mapFromGlobal(globalMousePos);
@@ -1943,7 +1981,7 @@ void Widget::zoomTo(qreal newZoom)
 
 void Widget::zoomFitWidth()
 {
-  size_t pageNum = getCurrentPage();
+  size_t pageNum = currentPage();
 
   QSize widgetSize = this->parentWidget()->size();
   qreal newZoom = widgetSize.width() / m_currentDocument.pages[pageNum].width();
@@ -1953,7 +1991,7 @@ void Widget::zoomFitWidth()
 
 void Widget::zoomFitHeight()
 {
-  size_t pageNum = getCurrentPage();
+  size_t pageNum = currentPage();
 
   QSize widgetSize = this->parentWidget()->size();
   qreal newZoom = widgetSize.height() / m_currentDocument.pages[pageNum].height();
@@ -1996,14 +2034,14 @@ void Widget::pageLast()
 
 void Widget::pageUp()
 {
-  size_t pageNum = getCurrentPage();
+  size_t pageNum = currentPage();
   if (pageNum > 0) pageNum--;
   scrollDocumentToPageNum(pageNum);
 }
 
 void Widget::pageDown()
 {
-  size_t pageNum = getCurrentPage();
+  size_t pageNum = currentPage();
   pageNum++;
 
   if (pageNum >= m_currentDocument.pages.size())
@@ -2016,7 +2054,7 @@ void Widget::pageDown()
 
 void Widget::pageAddBefore()
 {
-  size_t pageNum = getCurrentPage();
+  size_t pageNum = currentPage();
   AddPageCommand *addPageCommand = new AddPageCommand(this, pageNum);
   m_undoStack.push(addPageCommand);
   setGeometry(getWidgetGeometry());
@@ -2027,7 +2065,7 @@ void Widget::pageAddBefore()
 
 void Widget::pageAddAfter()
 {
-  size_t pageNum = getCurrentPage() + 1;
+  size_t pageNum = currentPage() + 1;
   AddPageCommand *addPageCommand = new AddPageCommand(this, pageNum);
   m_undoStack.push(addPageCommand);
   setGeometry(getWidgetGeometry());
@@ -2063,7 +2101,7 @@ void Widget::pageRemove()
 {
   if (m_currentDocument.pages.size() > 1)
   {
-    size_t pageNum = getCurrentPage();
+    size_t pageNum = currentPage();
     RemovePageCommand *removePageCommand = new RemovePageCommand(this, pageNum);
     m_undoStack.push(removePageCommand);
     setGeometry(getWidgetGeometry());
@@ -2088,42 +2126,42 @@ void Widget::scrollDocumentToPageNum(size_t pageNum)
   m_scrollArea->verticalScrollBar()->setValue(static_cast<int>(y));
 }
 
-void Widget::setCurrentTool(tool toolID)
+void Widget::setCurrentTool(Tool p_tool)
 {
-  if (m_currentState == state::IDLE || m_currentState == state::SELECTED || m_currentState == state::SELECTING)
+  if (m_currentState == State::IDLE || m_currentState == State::SELECTED || m_currentState == State::SELECTING)
   {
-    if (toolID == tool::SELECT && m_currentState == state::SELECTED)
+    if (p_tool == Tool::SELECT && m_currentState == State::SELECTED)
     {
       letGoSelection();
     }
-    m_currentTool = toolID;
-    if (toolID == tool::PEN)
+    m_currentTool = p_tool;
+    if (p_tool == Tool::PEN)
       setCursor(m_penCursor);
-    if (toolID == tool::RULER)
+    if (p_tool == Tool::RULER)
       setCursor(m_rulerCursor);
-    if (toolID == tool::CIRCLE)
+    if (p_tool == Tool::CIRCLE)
       setCursor(m_circleCursor);
-    if (toolID == tool::RECT)
+    if (p_tool == Tool::RECT)
       setCursor(m_penCursor); // todo rect cursor
-    if (toolID == tool::TEXT)
+    if (p_tool == Tool::TEXT)
       setCursor(Qt::CursorShape::IBeamCursor); // todo rect cursor
-    if (toolID == tool::ERASER)
+    if (p_tool == Tool::ERASER)
       setCursor(m_eraserCursor);
-    if (toolID == tool::STROKE_ERASER)
+    if (p_tool == Tool::STROKE_ERASER)
       setCursor(m_strokeEraserCursor);
-    if (toolID == tool::SELECT)
+    if (p_tool == Tool::SELECT)
       setCursor(Qt::CrossCursor);
-    if (toolID == tool::HAND)
+    if (p_tool == Tool::HAND)
       setCursor(Qt::OpenHandCursor);
   }
 }
 
-void Widget::setPenCursor(const QString& resourceName)
+void Widget::setPenCursor(const QString& p_resourceName)
 {
-  if (m_currentState == state::IDLE || m_currentState == state::SELECTED)
+  if (m_currentState == State::IDLE || m_currentState == State::SELECTED)
   {
     // setup cursor
-    QPixmap penCursorBitmap = QPixmap(resourceName);
+    QPixmap penCursorBitmap = QPixmap(p_resourceName);
     penCursorBitmap.setMask(penCursorBitmap.mask());
     m_penCursor = QCursor(penCursorBitmap, -1, -1);
     setCursor(m_penCursor);
@@ -2142,17 +2180,17 @@ void Widget::setDocument(const MrDoc::Document &newDocument)
 
 void Widget::selectAll()
 {
-  if (m_currentState == state::TEXTING)
+  if (m_currentState == State::TEXTING)
   {
     return;
   }
 
-  if (m_currentState == state::SELECTED)
+  if (m_currentState == State::SELECTED)
   {
     letGoSelection();
   }
 
-  size_t pageNum = getCurrentPage();
+  size_t pageNum = currentPage();
   QRectF selectRect;
   for (auto &element : m_currentDocument.pages[pageNum].elements())
   {
@@ -2175,13 +2213,13 @@ void Widget::selectAll()
   }
   else
   {
-    setCurrentState(state::IDLE);
+    setCurrentState(State::IDLE);
   }
 }
 
 void Widget::copy()
 {
-  if (m_currentState == state::SELECTED )
+  if (m_currentState == State::SELECTED )
   {
     m_clipboard = m_currentSelection;
 
@@ -2200,14 +2238,14 @@ void Widget::copy()
 
 void Widget::paste()
 {
-  if (! m_clipboard.empty() && m_currentState != state::TEXTING)
+  if (! m_clipboard.empty() && m_currentState != State::TEXTING)
   {
     MrDoc::Selection tmpSelection = m_clipboard;
-    tmpSelection.setPageNum(getCurrentPage());
+    tmpSelection.setPageNum(currentPage());
 
     QPoint globalMousePos = parentWidget()->mapToGlobal(QPoint(0, 0)) + QPoint(parentWidget()->size().width() / 2, parentWidget()->size().height() / 2);
     QPoint mousePos = this->mapFromGlobal(globalMousePos);
-    QPointF selectionPos = getPagePosFromMousePos(mousePos, getCurrentPage()) - tmpSelection.boundingRect().center();
+    QPointF selectionPos = getPagePosFromMousePos(mousePos, currentPage()) - tmpSelection.boundingRect().center();
 
     if (m_snapToGrid)
     {
@@ -2223,7 +2261,7 @@ void Widget::paste()
     tmpSelection.updateBuffer(m_zoom);
 
     m_undoStack.beginMacro("Paste");
-    if (m_currentState == state::SELECTED)
+    if (m_currentState == State::SELECTED)
     {
       letGoSelection();
     }
@@ -2299,7 +2337,7 @@ void Widget::deleteSlot()
 
 void Widget::toTheBack()
 {
-  if (m_currentState == state::SELECTED)
+  if (m_currentState == State::SELECTED)
   {
     auto toTheBackCommand = new ReleaseSelectionCommand(this, m_currentSelection.pageNum(), true);
     m_undoStack.push(toTheBackCommand);
@@ -2309,7 +2347,7 @@ void Widget::toTheBack()
 
 void Widget::undo()
 {
-  if (m_undoStack.canUndo() && (m_currentState == state::IDLE || m_currentState == state::SELECTED))
+  if (m_undoStack.canUndo() && (m_currentState == State::IDLE || m_currentState == State::SELECTED))
   {
     m_undoStack.undo();
     m_currentSelection.updateBuffer(m_zoom);
@@ -2319,7 +2357,7 @@ void Widget::undo()
 
 void Widget::redo()
 {
-  if (m_undoStack.canRedo() && (m_currentState == state::IDLE || m_currentState == state::SELECTED))
+  if (m_undoStack.canRedo() && (m_currentState == State::IDLE || m_currentState == State::SELECTED))
   {
     m_undoStack.redo();
     m_currentSelection.updateBuffer(m_zoom);
@@ -2327,11 +2365,11 @@ void Widget::redo()
   }
 }
 
-void Widget::setCurrentState(state newState)
+void Widget::setCurrentState(State newState)
 {
   qDebug() << Q_FUNC_INFO << " newState: " << (int)newState;
   m_currentState = newState;
-  if (m_currentState == state::IDLE || m_currentState == state::SELECTED)
+  if (m_currentState == State::IDLE || m_currentState == State::SELECTED)
   {
     updateAllDirtyBuffers();
     m_updateDirtyTimer->stop();
@@ -2342,7 +2380,7 @@ void Widget::setCurrentState(state newState)
   }
 }
 
-Widget::state Widget::getCurrentState()
+Widget::State Widget::currentState()
 {
   return m_currentState;
 }
@@ -2350,7 +2388,7 @@ Widget::state Widget::getCurrentState()
 void Widget::setCurrentFont(QFont font)
 {
   m_currentFont = font;
-  if (m_currentState == state::SELECTED)
+  if (m_currentState == State::SELECTED)
   {
     auto changeFontCommand = new ChangeFontOfSelectionCommand(this, font);
     m_undoStack.push(changeFontCommand);
@@ -2363,7 +2401,7 @@ void Widget::setCurrentFont(QFont font)
 void Widget::setCurrentColor(QColor newColor)
 {
   m_currentColor = newColor;
-  if (m_currentState == state::SELECTED)
+  if (m_currentState == State::SELECTED)
   {
     auto changeColorCommand = new ChangeColorOfSelectionCommand(this, newColor);
     m_undoStack.push(changeColorCommand);
@@ -2372,7 +2410,7 @@ void Widget::setCurrentColor(QColor newColor)
   }
 }
 
-QColor Widget::getCurrentColor()
+QColor Widget::currentColor()
 {
   return m_currentColor;
 }
@@ -2409,14 +2447,14 @@ void Widget::veryThick()
 
 void Widget::setPencilCursorIcon()
 {
-  m_currentPenCursor = Widget::cursor::PENCIL;
+  m_currentPenCursor = Widget::Cursor::PENCIL;
   setPenCursor(":/images/penCursor3.png");
   emit updateGUI();
 }
 
 void Widget::setDotCursorIcon()
 {
-  m_currentPenCursor = Widget::cursor::DOT;
+  m_currentPenCursor = Widget::Cursor::DOT;
   setPenCursor(":/images/dotCursor.png");
   emit updateGUI();
 }
@@ -2440,7 +2478,7 @@ void Widget::setCurrentPattern(QVector<qreal> newPattern)
 {
   m_currentPattern = newPattern;
   emit updateGUI();
-  if (m_currentState == state::SELECTED)
+  if (m_currentState == State::SELECTED)
   {
     ChangePatternOfSelectionCommand *changePatternCommand = new ChangePatternOfSelectionCommand(this, newPattern);
     m_undoStack.push(changePatternCommand);
@@ -2449,7 +2487,7 @@ void Widget::setCurrentPattern(QVector<qreal> newPattern)
   }
 }
 
-QVector<qreal> Widget::getCurrentPattern()
+QVector<qreal> Widget::currentPattern()
 {
   return m_currentPattern;
 }
@@ -2474,25 +2512,25 @@ void Widget::dotPattern()
   setCurrentPattern(MrDoc::dotLinePattern);
 }
 
-void Widget::setCurrentPenWidth(qreal penWidth)
+void Widget::setCurrentPenWidth(qreal p_penWidth)
 {
-  m_currentPenWidth = penWidth;
-  if (m_currentState == state::SELECTED)
+  m_currentPenWidth = p_penWidth;
+  if (m_currentState == State::SELECTED)
   {
-    ChangePenWidthOfSelectionCommand *changePenWidthCommand = new ChangePenWidthOfSelectionCommand(this, penWidth);
+    ChangePenWidthOfSelectionCommand *changePenWidthCommand = new ChangePenWidthOfSelectionCommand(this, p_penWidth);
     m_undoStack.push(changePenWidthCommand);
     m_currentSelection.updateBuffer(m_zoom);
     update();
   }
 }
 
-void Widget::setCurrentPenCursor(Widget::cursor cursorType)
+void Widget::setCurrentPenCursor(Widget::Cursor p_cursor)
 {
-    switch (cursorType) {
-    case Widget::cursor::PENCIL:
+    switch (p_cursor) {
+    case Widget::Cursor::PENCIL:
         setPencilCursorIcon();
         break;
-    case Widget::cursor::DOT:
+    case Widget::Cursor::DOT:
         setDotCursorIcon();
         break;
     }
@@ -2586,7 +2624,7 @@ void Widget::dropEvent(QDropEvent* event)
     tmpSelection.updateBuffer(m_zoom);
 
     m_undoStack.beginMacro("Drop image");
-    if (m_currentState == state::SELECTED)
+    if (m_currentState == State::SELECTED)
     {
       letGoSelection();
     }

@@ -12,6 +12,7 @@
 #include <qdebug.h>
 #include <QPageSize>
 #include <QSettings>
+#include <QTest>
 #include <QDateTime>
 #include <QFontDialog>
 //#include <QWebEngineView>
@@ -56,8 +57,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
   connect(mainWidget, SIGNAL(quickmenu()), this, SLOT(quickmenu()));
 
+  mainWidget->setAttribute(Qt::WA_AcceptTouchEvents);
+
   scrollArea = new QScrollArea(this);
   scrollArea->setWidget(mainWidget);
+  scrollArea->viewport()->setAttribute(Qt::WA_AcceptTouchEvents);
   scrollArea->setAlignment(Qt::AlignHCenter);
 
   loadMyGeometry();
@@ -85,11 +89,32 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
   createToolBars();
 
   updateGUI();
+
+  if (0)
+  {
+    auto touchSimulationTimer = new QTimer(this);
+    touchSimulationTimer->setSingleShot(true);
+    touchSimulationTimer->setInterval(1000);
+    connect(touchSimulationTimer, SIGNAL(timeout()), this, SLOT(simulateTouchEvents()));
+    touchSimulationTimer->start();
+  }
 }
 
 MainWindow::~MainWindow()
 {
   // delete ui;
+}
+
+void MainWindow::simulateTouchEvents()
+{
+  qDebug() << Q_FUNC_INFO;
+
+  QTouchDevice *touchDevice = QTest::createTouchDevice();
+
+  QTest::touchEvent(scrollArea, touchDevice).press(0, QPoint(10,300), this);
+  QTest::touchEvent(scrollArea, touchDevice).move(0, QPoint(100,500), this);
+  QTest::touchEvent(scrollArea, touchDevice).move(0, QPoint(150,600), this);
+  QTest::touchEvent(scrollArea, touchDevice).release(0, QPoint(150,600), this);
 }
 
 void MainWindow::setTitle()
@@ -1091,31 +1116,31 @@ void MainWindow::letGoSelection()
 
 void MainWindow::pen()
 {
-  mainWidget->setCurrentTool(Widget::tool::PEN);
+  mainWidget->setCurrentTool(Widget::Tool::PEN);
   updateGUI();
 }
 
 void MainWindow::ruler()
 {
-  mainWidget->setCurrentTool(Widget::tool::RULER);
+  mainWidget->setCurrentTool(Widget::Tool::RULER);
   updateGUI();
 }
 
 void MainWindow::circle()
 {
-  mainWidget->setCurrentTool(Widget::tool::CIRCLE);
+  mainWidget->setCurrentTool(Widget::Tool::CIRCLE);
   updateGUI();
 }
 
 void MainWindow::rect()
 {
-  mainWidget->setCurrentTool(Widget::tool::RECT);
+  mainWidget->setCurrentTool(Widget::Tool::RECT);
   updateGUI();
 }
 
 void MainWindow::text()
 {
-  mainWidget->setCurrentTool(Widget::tool::TEXT);
+  mainWidget->setCurrentTool(Widget::Tool::TEXT);
   updateGUI();
 }
 
@@ -1131,35 +1156,35 @@ void MainWindow::font()
 
 void MainWindow::eraser()
 {
-  mainWidget->setCurrentTool(Widget::tool::ERASER);
+  mainWidget->setCurrentTool(Widget::Tool::ERASER);
   eraserToolButton->setDefaultAction(eraserAct);
   updateGUI();
 }
 
 void MainWindow::strokeEraser()
 {
-  mainWidget->setCurrentTool(Widget::tool::STROKE_ERASER);
+  mainWidget->setCurrentTool(Widget::Tool::STROKE_ERASER);
   eraserToolButton->setDefaultAction(strokeEraserAct);
   updateGUI();
 }
 
 void MainWindow::select()
 {
-  mainWidget->setCurrentTool(Widget::tool::SELECT);
+  mainWidget->setCurrentTool(Widget::Tool::SELECT);
   selectToolButton->setDefaultAction(selectAct);
   updateGUI();
 }
 
 void MainWindow::rectSelect()
 {
-  mainWidget->setCurrentTool(Widget::tool::RECT_SELECT);
+  mainWidget->setCurrentTool(Widget::Tool::RECT_SELECT);
   selectToolButton->setDefaultAction(rectSelectAct);
   updateGUI();
 }
 
 void MainWindow::hand()
 {
-  mainWidget->setCurrentTool(Widget::tool::HAND);
+  mainWidget->setCurrentTool(Widget::Tool::HAND);
   updateGUI();
 }
 
@@ -1371,7 +1396,7 @@ void MainWindow::snapToGrid()
 
 void MainWindow::verticalScrolling()
 {
-  size_t pageNum = mainWidget->getCurrentPage();
+  size_t pageNum = mainWidget->currentPage();
 
   if (pageNum == mainWidget->m_currentDocument.pages.size() - 1)
   {
@@ -1404,7 +1429,7 @@ void MainWindow::showEvent(QShowEvent *event)
   mainWidget->zoomFitWidth();
 
   QSettings settings;
-  Widget::cursor storedValue = static_cast<Widget::cursor>(
+  Widget::Cursor storedValue = static_cast<Widget::Cursor>(
               settings.value("cursorIcon").toInt());
   mainWidget->setCurrentPenCursor(storedValue);
 
@@ -1414,7 +1439,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 {
   QSettings settings;
   settings.setValue("cursorIcon",
-                    static_cast<int>(mainWidget->getCurrentPenCursor()));
+                    static_cast<int>(mainWidget->currentPenCursor()));
   if (maybeSave())
   {
     event->accept();
@@ -1450,7 +1475,7 @@ bool MainWindow::maybeSave()
 
 void MainWindow::updateGUI()
 {
-  QColor currentColor = mainWidget->getCurrentColor();
+  QColor currentColor = mainWidget->currentColor();
 
   blackAct->setChecked(currentColor == MrDoc::black);
   blueAct->setChecked(currentColor == MrDoc::blue);
@@ -1464,20 +1489,20 @@ void MainWindow::updateGUI()
   yellowAct->setChecked(currentColor == MrDoc::yellow);
   whiteAct->setChecked(currentColor == MrDoc::white);
 
-  Widget::tool currentTool = mainWidget->currentTool();
+  Widget::Tool currentTool = mainWidget->currentTool();
 
-  penAct->setChecked(currentTool == Widget::tool::PEN);
-  rulerAct->setChecked(currentTool == Widget::tool::RULER);
-  circleAct->setChecked(currentTool == Widget::tool::CIRCLE);
-  rectAct->setChecked(currentTool == Widget::tool::RECT);
-  textAct->setChecked(currentTool == Widget::tool::TEXT);
-  eraserAct->setChecked(currentTool == Widget::tool::ERASER);
-  strokeEraserAct->setChecked(currentTool == Widget::tool::STROKE_ERASER);
-  selectAct->setChecked(currentTool == Widget::tool::SELECT);
-  rectSelectAct->setChecked(currentTool == Widget::tool::RECT_SELECT);
-  handAct->setChecked(currentTool == Widget::tool::HAND);
+  penAct->setChecked(currentTool == Widget::Tool::PEN);
+  rulerAct->setChecked(currentTool == Widget::Tool::RULER);
+  circleAct->setChecked(currentTool == Widget::Tool::CIRCLE);
+  rectAct->setChecked(currentTool == Widget::Tool::RECT);
+  textAct->setChecked(currentTool == Widget::Tool::TEXT);
+  eraserAct->setChecked(currentTool == Widget::Tool::ERASER);
+  strokeEraserAct->setChecked(currentTool == Widget::Tool::STROKE_ERASER);
+  selectAct->setChecked(currentTool == Widget::Tool::SELECT);
+  rectSelectAct->setChecked(currentTool == Widget::Tool::RECT_SELECT);
+  handAct->setChecked(currentTool == Widget::Tool::HAND);
 
-  qreal currentPenWidth = mainWidget->getCurrentPenWidth();
+  qreal currentPenWidth = mainWidget->currentPenWidth();
 
   veryFinePenWidthAct->setChecked(currentPenWidth == Widget::m_veryFinePenWidth);
   finePenWidthAct->setChecked(currentPenWidth == Widget::m_finePenWidth);
@@ -1485,11 +1510,11 @@ void MainWindow::updateGUI()
   thickPenWidthAct->setChecked(currentPenWidth == Widget::m_thickPenWidth);
   veryThickPenWidthAct->setChecked(currentPenWidth == Widget::m_veryThickPenWidth);
 
-  Widget::cursor currentCursorIcon = mainWidget->getCurrentPenCursor();
-  pencilIconAct->setChecked(currentCursorIcon == Widget::cursor::PENCIL);
-  dotIconAct->setChecked(currentCursorIcon == Widget::cursor::DOT);
+  Widget::Cursor currentCursorIcon = mainWidget->currentPenCursor();
+  pencilIconAct->setChecked(currentCursorIcon == Widget::Cursor::PENCIL);
+  dotIconAct->setChecked(currentCursorIcon == Widget::Cursor::DOT);
 
-  QVector<qreal> currentPattern = mainWidget->getCurrentPattern();
+  QVector<qreal> currentPattern = mainWidget->currentPattern();
 
   solidPatternAct->setChecked(currentPattern == MrDoc::solidLinePattern);
   dashPatternAct->setChecked(currentPattern == MrDoc::dashLinePattern);
@@ -1511,7 +1536,7 @@ void MainWindow::updateGUI()
   showGridAct->setChecked(mainWidget->showingGrid());
   snapToGridAct->setChecked(mainWidget->snappingToGrid());
 
-  if (mainWidget->getCurrentState() == Widget::state::SELECTED)
+  if (mainWidget->currentState() == Widget::State::SELECTED)
   {
     cutAct->setEnabled(true);
     copyAct->setEnabled(true);
@@ -1568,7 +1593,7 @@ void MainWindow::cloneWindow()
   window->mainWidget->m_currentDocument.setDocName("");
   window->mainWidget->m_pageBuffer = mainWidget->m_pageBuffer;
   window->mainWidget->m_currentSelection = mainWidget->m_currentSelection;
-  window->mainWidget->setCurrentState(mainWidget->getCurrentState());
+  window->mainWidget->setCurrentState(mainWidget->currentState());
   //  window->mainWidget->zoomTo(mainWidget->zoom);
   window->mainWidget->m_zoom = mainWidget->m_zoom;
 
@@ -1600,19 +1625,19 @@ bool MainWindow::loadMOJ(QString fileName)
   return mainWidget->m_currentDocument.loadMOJ(fileName);
 }
 
-Widget::tool MainWindow::currentTool()
+Widget::Tool MainWindow::currentTool()
 {
   return mainWidget->currentTool();
 }
 
 QColor MainWindow::currentColor()
 {
-  return mainWidget->getCurrentColor();
+  return mainWidget->currentColor();
 }
 
-Widget::state MainWindow::currentState()
+Widget::State MainWindow::currentState()
 {
-  return mainWidget->getCurrentState();
+  return mainWidget->currentState();
 }
 
 bool MainWindow::showingGrid()
@@ -1627,7 +1652,7 @@ bool MainWindow::snappingToGrid()
 
 void MainWindow::pageSettings()
 {
-  size_t pageNum = mainWidget->getCurrentPage();
+  size_t pageNum = mainWidget->currentPage();
   qreal width = mainWidget->m_currentDocument.pages[pageNum].width();
   qreal height = mainWidget->m_currentDocument.pages[pageNum].height();
   PageSettingsDialog *pageDialog = new PageSettingsDialog(QSizeF(width, height), mainWidget->m_currentDocument.pages[pageNum].backgroundColor(), this);

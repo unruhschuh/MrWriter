@@ -117,17 +117,17 @@ void QuickMenu::setupSignalsAndSlots(MainWindow* mainWindow)
     ui->grayButton->setChecked(currentColor == MrDoc::gray);
     ui->lightblueButton->setChecked(currentColor == MrDoc::lightblue);
 
-    Widget::tool currentTool = mainWindow->currentTool();
+    Widget::Tool currentTool = mainWindow->currentTool();
 
-    ui->penButton->setChecked(currentTool == Widget::tool::PEN);
-    ui->rulerButton->setChecked(currentTool == Widget::tool::RULER);
-    ui->circleButton->setChecked(currentTool == Widget::tool::CIRCLE);
-    ui->rectButton->setChecked(currentTool == Widget::tool::RECT);
-    ui->eraserButton->setChecked(currentTool == Widget::tool::ERASER);
-    ui->strokeEraserButton->setChecked(currentTool == Widget::tool::STROKE_ERASER);
-    ui->selectButton->setChecked(currentTool == Widget::tool::SELECT);
-    ui->rectSelectButton->setChecked(currentTool == Widget::tool::RECT_SELECT);
-    ui->handButton->setChecked(currentTool == Widget::tool::HAND);
+    ui->penButton->setChecked(currentTool == Widget::Tool::PEN);
+    ui->rulerButton->setChecked(currentTool == Widget::Tool::RULER);
+    ui->circleButton->setChecked(currentTool == Widget::Tool::CIRCLE);
+    ui->rectButton->setChecked(currentTool == Widget::Tool::RECT);
+    ui->eraserButton->setChecked(currentTool == Widget::Tool::ERASER);
+    ui->strokeEraserButton->setChecked(currentTool == Widget::Tool::STROKE_ERASER);
+    ui->selectButton->setChecked(currentTool == Widget::Tool::SELECT);
+    ui->rectSelectButton->setChecked(currentTool == Widget::Tool::RECT_SELECT);
+    ui->handButton->setChecked(currentTool == Widget::Tool::HAND);
 
     ui->showGridButton->setChecked(mainWindow->showingGrid());
     ui->snapToGridButton->setChecked(mainWindow->snappingToGrid());
