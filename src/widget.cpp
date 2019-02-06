@@ -115,11 +115,13 @@ Widget::Widget(QWidget *parent) : QWidget(parent)
 
 void Widget::enableInput()
 {
+  qDebug() << Q_FUNC_INFO;
   m_inputEnabled = true;
 }
 
 void Widget::disableInput()
 {
+  qDebug() << Q_FUNC_INFO;
   m_inputEnabled = false;
 }
 
@@ -391,6 +393,9 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
 {
   // Under Linux the keyboard modifiers are not reported to tabletevent. this should work
   // everywhere.
+
+  qDebug() << Q_FUNC_INFO;
+
   keyboardModifiers = qApp->queryKeyboardModifiers();
 
   if (!inputEnabled())
