@@ -7,7 +7,6 @@
 
 TabletApplication::TabletApplication(int &argc, char **argv) : QApplication(argc, argv)
 {
-  QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
   QCoreApplication::setOrganizationName("unruhschuh");
   QCoreApplication::setOrganizationDomain("unruhschuh.com");
   QCoreApplication::setApplicationName("MrWriter");
