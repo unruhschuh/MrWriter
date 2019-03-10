@@ -7,6 +7,8 @@
 
 int main(int argc, char *argv[])
 {
+  QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+
   TabletApplication a(argc, argv);
 
   a.setWindowIcon(QIcon(":/MrWriter.png"));
