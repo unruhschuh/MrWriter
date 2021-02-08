@@ -46,6 +46,10 @@ message(",                .;oOXWMMMMMMMMMMMMMMWXOo;.                ,")
 message(",                      .';:cllllc:;'.                      ,")
 message("o,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,o")
 
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
 project(MrWriter VERSION ${MR_WRITER_VERSION})
 
 set(CMAKE_AUTOMOC ON)
@@ -114,4 +118,10 @@ find_package(Qt5Concurrent REQUIRED)
 find_package(ZLIB REQUIRED)
 
 target_link_libraries(MrWriter Qt5::Widgets Qt5::Test Qt5::Concurrent Qt5::PrintSupport z)
+
+add_custom_command(
+ TARGET MrWriter
+ POST_BUILD
+ COMMAND ${CMAKE_COMMAND} -DTARGET=${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/MrWriter -P ${CMAKE_CURRENT_SOURCE_DIR}/bundle.cmake
+ )
 
