@@ -1,0 +1,10 @@
+[requires]
+qt/5.15.2
+zlib/1.2.11
+
+[generators]
+cmake
+qt
+
+[options]
+*:shared=True

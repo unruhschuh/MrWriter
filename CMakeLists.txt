@@ -1,5 +1,14 @@
 cmake_minimum_required(VERSION 3.3.0)
 
+project(MrWriter VERSION ${MR_WRITER_VERSION})
+
+set (CMAKE_CXX_STANDARD 14)
+
+include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+conan_basic_setup(KEEP_RPATHS)
+
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
 file(READ src/version.h ver)
 
 string(REGEX MATCH "MAJOR_VERSION ([0-9]*)" _ ${ver})
@@ -50,8 +59,6 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-project(MrWriter VERSION ${MR_WRITER_VERSION})
-
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
@@ -71,8 +78,10 @@ set(SOURCES
     src/pagesettingsdialog.cpp
     src/qcompressor.cpp
     src/quickmenu.cpp
+    src/quickmenu.ui
     src/selection.cpp
     src/settingsdialog.cpp
+    src/settingsdialog.ui
     src/stroke.cpp
     src/tabletapplication.cpp
     src/text.cpp
@@ -105,8 +114,10 @@ set(HEADERS
     )
 
 add_executable(MrWriter ${SOURCES} ${HEADERS})
-set (CMAKE_CXX_STANDARD 14)
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+#set_property(TARGET MrWriter PROPERTY POSITION_INDEPENDENT_CODE ON)
+target_compile_options(MrWriter PRIVATE -fPIC)
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Core REQUIRED)
 find_package(Qt5Gui REQUIRED)
@@ -114,10 +125,15 @@ find_package(Qt5Xml REQUIRED)
 find_package(Qt5Test REQUIRED)
 find_package(Qt5PrintSupport REQUIRED)
 find_package(Qt5Concurrent REQUIRED)
+find_package(Qt5Test REQUIRED)
 
 find_package(ZLIB REQUIRED)
 
-target_link_libraries(MrWriter Qt5::Widgets Qt5::Test Qt5::Concurrent Qt5::PrintSupport z)
+#target_link_libraries(MrWriter Qt5::Widgets Qt5::Test Qt5::Concurrent Qt5::PrintSupport z)
+
+#find_package(Qt5 COMPONENTS Widgets)
+#find_package(Qt5Core CONFIG REQUIRED)
+target_link_libraries(MrWriter ${CONAN_LIBS})
 
 add_custom_command(
  TARGET MrWriter

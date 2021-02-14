@@ -107,6 +107,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::simulateTouchEvents()
 {
+#if 0
   qDebug() << Q_FUNC_INFO;
 
   QTouchDevice *touchDevice = QTest::createTouchDevice();
@@ -115,6 +116,7 @@ void MainWindow::simulateTouchEvents()
   QTest::touchEvent(scrollArea, touchDevice).move(0, QPoint(100,500), this);
   QTest::touchEvent(scrollArea, touchDevice).move(0, QPoint(150,600), this);
   QTest::touchEvent(scrollArea, touchDevice).release(0, QPoint(150,600), this);
+#endif
 }
 
 void MainWindow::setTitle()
