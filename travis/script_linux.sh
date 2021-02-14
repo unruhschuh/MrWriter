@@ -2,10 +2,6 @@
 
 set -x
 
-export CC=gcc-7
-export CXX=g++-7
-
-sudo unlink /usr/bin/g++ && sudo ln -s /usr/bin/g++-7 /usr/bin/g++
 g++ --version
 
 #source /opt/qt*/bin/qt*-env.sh
