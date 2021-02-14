@@ -4,7 +4,6 @@
 #  - polymorph
 
 language: cpp
-python: "3.7"
 
 matrix:
   include:
