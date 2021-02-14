@@ -11,8 +11,8 @@ matrix:
       dist: xenial
       compiler: g++
       sudo: required
-    - os: osx
-    - os: windows
+      #- os: osx
+      #- os: windows
 
 before_install:
     - eval "${MATRIX_EVAL}"
