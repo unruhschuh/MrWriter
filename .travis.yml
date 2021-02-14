@@ -1,36 +1,20 @@
-#branches:
-#  only:
-#  - master
-#  - polymorph
-
-language: cpp
+linux: &linux
+   os: linux
+   dist: xenial
+   language: python
+   python: "3.7"
+   services:
+     - docker
 
 matrix:
-  include:
-    - os: linux
-      dist: xenial
-      compiler: g++
-      sudo: required
-      #- os: osx
-      #- os: windows
-
-before_install:
-    - eval "${MATRIX_EVAL}"
-    - g++ --version
+   include:
+      - <<: *linux
+        env: CONAN_GCC_VERSIONS=8 CONAN_DOCKER_IMAGE=conanio/gcc8
 
 install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then travis/install_osx.sh ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then travis/install_linux.sh ; fi
-    #  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update ; fi
-    #  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt ; fi
-    #  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew link --force qt ; fi
-    #  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get -y install qt5-default ; fi
+  - chmod +x .travis/install.sh
+  - ./.travis/install.sh
 
 script:
-    #  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then travis/script_osx.sh ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then travis/script_linux.sh ; fi
-    #  - if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then travis/script_windows.sh ; fi
-    #  - qmake
-    #  - make
-    #  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then macdeployqt MrWriter.app -dmg ; fi
-    #  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then curl --upload-file MrWriter.dmg https://transfer.sh/MrWriter.dmg ; fi
+  - chmod +x .travis/run.sh
+  - ./.travis/run.sh#
