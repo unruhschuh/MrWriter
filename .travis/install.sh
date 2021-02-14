@@ -19,6 +19,8 @@ if [[ "$(uname -s)" == 'Darwin' ]]; then
     pyenv activate conan
 fi
 
+sudo apt-get install libgl1-mesa-dev -y
+
 pip install conan --upgrade
 pip install conan_package_tools
 
