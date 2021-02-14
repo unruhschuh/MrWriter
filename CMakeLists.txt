@@ -141,4 +141,3 @@ add_custom_command(
  COMMAND ${CMAKE_COMMAND} -DTARGET=${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/MrWriter -P ${CMAKE_CURRENT_SOURCE_DIR}/bundle.cmake
  )
 
-install(TARGETS MrWriter)
