@@ -9,6 +9,6 @@ set -x
 
 #sudo apt-get -y install qt5-default
 
-sudo pip install --upgrade pip
-pip install --user conan
+sudo apt-get install python3-pip
+sudo pip3 install conan
 conan user
