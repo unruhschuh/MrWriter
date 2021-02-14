@@ -9,5 +9,7 @@ set -x
 
 #sudo apt-get -y install qt5-default
 
+sudo apt-get install python3-pip
+
 pip3 install conan
 conan user
