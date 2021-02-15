@@ -12,9 +12,11 @@ matrix:
         env: CONAN_GCC_VERSIONS=8 CONAN_DOCKER_IMAGE=conanio/gcc8
 
 install:
-  - chmod +x .travis/install.sh
-  - ./.travis/install.sh
+  #- chmod +x .travis/install.sh
+  #- ./.travis/install.sh
 
 script:
-  - chmod +x .travis/run.sh
-  - ./.travis/run.sh
+  #  - chmod +x .travis/run.sh
+  #  - ./.travis/run.sh
+  - chmod +x travis/build_on_xenial_docker.sh
+  - ./travis/build_on_xenial_docker.sh
