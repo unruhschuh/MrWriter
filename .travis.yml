@@ -18,5 +18,4 @@ install:
 script:
   #  - chmod +x .travis/run.sh
   #  - ./.travis/run.sh
-  - chmod +x travis/build_on_xenial_docker.sh
-  - ./travis/build_on_xenial_docker.sh
+  - docker run -i ubuntu:xenial bash < travis/build_on_xenial_docker.sh
