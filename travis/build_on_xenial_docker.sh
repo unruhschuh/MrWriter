@@ -37,5 +37,5 @@ export VERSION=$(git rev-parse --short HEAD) # linuxdeployqt uses this for namin
 ./linuxdeployqt-continuous-x86_64.AppImage --appimage-extract
 PATH=$PATH:./bin ./squashfs-root/AppRun appdir/usr/share/applications/MrWriter.desktop -appimage
 APPIMAGE=`ls MrWriter*.AppImage`
-curl --upload-file "./${APPIMAGE}" http://transfer.sh/${APPIMAGE}
+curl --upload-file "./${APPIMAGE}" -s -w "\n" http://transfer.sh/${APPIMAGE}
 
