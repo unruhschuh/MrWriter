@@ -116,7 +116,7 @@ set(HEADERS
 add_executable(MrWriter ${SOURCES} ${HEADERS})
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-#set_property(TARGET MrWriter PROPERTY POSITION_INDEPENDENT_CODE ON)
+set_property(TARGET MrWriter PROPERTY POSITION_INDEPENDENT_CODE ON)
 target_compile_options(MrWriter PRIVATE -fPIC)
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Core REQUIRED)
@@ -129,6 +129,10 @@ find_package(Qt5Test REQUIRED)
 
 find_package(ZLIB REQUIRED)
 
+if (WIN32)
+  set_target_properties(MrWriter PROPERTIES WIN32_EXECUTABLE true)
+endif()
+
 #target_link_libraries(MrWriter Qt5::Widgets Qt5::Test Qt5::Concurrent Qt5::PrintSupport z)
 
 #find_package(Qt5 COMPONENTS Widgets)
@@ -138,6 +142,7 @@ target_link_libraries(MrWriter ${CONAN_LIBS})
 add_custom_command(
  TARGET MrWriter
  POST_BUILD
- COMMAND ${CMAKE_COMMAND} -DTARGET=${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/MrWriter -P ${CMAKE_CURRENT_SOURCE_DIR}/bundle.cmake
+ COMMAND ${CMAKE_COMMAND} -DCONAN_QT_ROOT=${CONAN_QT_ROOT} -DRUNTIME_OUTPUT_DIRECTORY=${CMAKE_RUNTIME_OUTPUT_DIRECTORY} -DTARGET=${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/MrWriter${CMAKE_EXECUTABLE_SUFFIX} -P ${CMAKE_CURRENT_SOURCE_DIR}/bundle.cmake
  )
 
+message("CONAN_QT_ROOT ${CONAN_QT_ROOT}")

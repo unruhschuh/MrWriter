@@ -185,7 +185,7 @@ bool Selection::empty()
   }
 }
 
-void Selection::paint(QPainter &painter, qreal zoom, QRectF region __attribute__((unused)))
+void Selection::paint(QPainter &painter, qreal zoom, QRectF region)
 {
   QTransform scaleTrans;
   scaleTrans = scaleTrans.scale(zoom, zoom);
