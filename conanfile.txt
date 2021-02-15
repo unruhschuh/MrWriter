@@ -1,5 +1,5 @@
 [requires]
-qt/5.15.2
+qt/5.15.2@bincrafters/stable
 zlib/1.2.11
 
 [generators]
