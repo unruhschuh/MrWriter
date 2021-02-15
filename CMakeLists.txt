@@ -146,3 +146,5 @@ target_link_libraries(MrWriter ${CONAN_LIBS})
 # )
 
 message("CONAN_QT_ROOT ${CONAN_QT_ROOT}")
+
+install(TARGETS MrWriter DESTINATION ${CMAKE_BINARY_DIR}/appdir/usr)
