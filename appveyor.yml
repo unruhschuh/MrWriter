@@ -27,10 +27,8 @@ build_script:
   - conan install ..
   - cmake .. -DCMAKE_BUILD_TYPE=Release
   - cmake --build . --config Release
-    #- mingw32-make
   - md MrWriter
-  - copy bin\MrWriter.exe MrWriter\
-  - windeployqt -verbose=3 MrWriter
+  - copy bin\*.* MrWriter\
   - 7z a MrWriter.zip MrWriter
   - curl --silent --upload-file MrWriter.zip https://transfer.sh/MrWriter.zip
   - echo
