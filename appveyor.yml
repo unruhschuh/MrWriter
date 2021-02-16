@@ -5,7 +5,7 @@ image:
 
 environment:
   matrix:
-    - PYTHON: "C:\Python38-x64"
+    - PYTHON: "C:\\Python38-x64"
 
 platform:
   - x64
