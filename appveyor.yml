@@ -30,10 +30,10 @@ build_script:
   - md MrWriter
   - copy bin\MrWriter.exe MrWriter\
   - copy bin\*.dll MrWriter\
-  - xcopy bin\platforms MrWriter\
-  - xcopy bin\imageformats MrWriter\
-  - xcopy bin\printsupport MrWriter\
-  - xcopy bin\styles MrWriter\
+  - xcopy bin\platforms MrWriter\platforms\
+  - xcopy bin\imageformats MrWriter\imageformats\
+  - xcopy bin\printsupport MrWriter\printsupprot\
+  - xcopy bin\styles MrWriter\styles\
   - copy C:\Windows\System32\MSVCP140_1.dll MrWriter\
   - copy C:\Windows\System32\VCCORLIB140.DLL MrWriter\
   - copy C:\Windows\System32\VCRUNTIME140_1.dll MrWriter\
