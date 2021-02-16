@@ -1,7 +1,9 @@
 version: 1.0.{build}
 
-image:
-  - Visual Studio 2019
+environment:
+  matrix:
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+    - PYTHON: "C:/Python38-x64"
 
 platform:
   - x64
