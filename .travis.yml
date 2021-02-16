@@ -8,6 +8,7 @@ linux: &linux
 
 windows: &windows
    os: windows
+   language: c++
 
 matrix:
    include:
