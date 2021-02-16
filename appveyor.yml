@@ -1,23 +1,26 @@
 version: 1.0.{build}
-    platform:
-      - x64
-    install:
-      - cmd: echo "Downloading conan..."
-      - cmd: set PATH=%PATH%;%PYTHON%/Scripts/
-      - cmd: pip.exe install conan
-      - cmd: conan user # Create the conan data directory
-      - cmd: conan --version
-    build_script:
-      - mkdir build
-      - cd build
-      - conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
-      - conan install ..
-      - cmake .. -DCMAKE_BUILD_TYPE=Release
-      - cmake --build . --config Release
-        #- mingw32-make
-      - md MrWriter
-      - copy bin\MrWriter.exe MrWriter\
-      - windeployqt -verbose=3 MrWriter
-      - 7z a MrWriter.zip MrWriter
-      - curl --silent --upload-file MrWriter.zip https://transfer.sh/MrWriter.zip
-      - echo
+
+platform:
+  - x64
+
+install:
+  - cmd: echo "Downloading conan..."
+  - cmd: set PATH=%PATH%;%PYTHON%/Scripts/
+  - cmd: pip.exe install conan
+  - cmd: conan user # Create the conan data directory
+  - cmd: conan --version
+
+build_script:
+  - mkdir build
+  - cd build
+  - conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
+  - conan install ..
+  - cmake .. -DCMAKE_BUILD_TYPE=Release
+  - cmake --build . --config Release
+    #- mingw32-make
+  - md MrWriter
+  - copy bin\MrWriter.exe MrWriter\
+  - windeployqt -verbose=3 MrWriter
+  - 7z a MrWriter.zip MrWriter
+  - curl --silent --upload-file MrWriter.zip https://transfer.sh/MrWriter.zip
+  - echo
