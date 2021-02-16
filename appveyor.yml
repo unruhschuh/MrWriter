@@ -1,9 +1,7 @@
 version: 1.0.{build}
 
-environment:
-  matrix:
-    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-      PYTHON: "C:/Python38-x64"
+image:
+  - Visual Studio 2019
 
 platform:
   - x64
@@ -11,10 +9,10 @@ platform:
 install:
   - cmd: echo "Downloading conan..."
   - cmd: set PATH=%PATH%;%PYTHON%/Scripts/
-  - cmd: pip.exe install conan
+  - cmd: pip3.exe install conan
   - cmd: conan user # Create the conan data directory
   - cmd: conan --version
-  - cmd: pip.exe install configparser
+  - cmd: pip3.exe install configparser
 
 build_script:
   - mkdir build
