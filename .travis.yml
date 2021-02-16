@@ -21,7 +21,7 @@ install:
 
 script:
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then docker run -i ubuntu:xenial bash < travis/build_on_xenial_docker.sh ; fi
-  - if [ "$TRAVIS_OS_NAME" = "windows" ]; then mkdir build ; cd build ; conan install .. ; ls -la ; cmake .. ; ls -la ; cmake --build . --config Release ; fi
+  - if [ "$TRAVIS_OS_NAME" = "windows" ]; then mkdir build ; cd build ; cmd //c “RefreshEnv.cmd & conan install .." ; ls -la ; cmake .. ; ls -la ; cmake --build . --config Release ; fi
 
 
 
