@@ -29,6 +29,9 @@ build_script:
   - cmake --build . --config Release
   - md MrWriter
   - copy bin\*.* MrWriter\
+  - copy C:\Windows\System32\MSVCP140_1.dll MrWriter\
+  - copy C:\Windows\System32\VCCORLIB140.DLL MrWriter\
+  - copy C:\Windows\System32\VCRUNTIME140_1.dll MrWriter\
   - 7z a MrWriter.zip MrWriter
   - curl --silent --upload-file MrWriter.zip https://transfer.sh/MrWriter.zip
   - echo
