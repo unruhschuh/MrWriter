@@ -6,16 +6,20 @@ linux: &linux
    services:
      - docker
 
+windows: &windows
+   os: windows
+
 matrix:
    include:
       - <<: *linux
         env: CONAN_GCC_VERSIONS=8 CONAN_DOCKER_IMAGE=conanio/gcc8
+      - <<: *windows
 
 install:
-  #- chmod +x .travis/install.sh
-  #- ./.travis/install.sh
+  - if [ "$TRAVIS_OS_NAME" = "windows" ]; choco install conan --params="'/AddToPath:1'" ; fi
 
 script:
-  #  - chmod +x .travis/run.sh
-  #  - ./.travis/run.sh
-  - docker run -i ubuntu:xenial bash < travis/build_on_xenial_docker.sh
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; docker run -i ubuntu:xenial bash < travis/build_on_xenial_docker.sh ; fi
+  - if [ "$TRAVIS_OS_NAME" = "windows" ]; mkdir build; cd build; conan install ..; cmd //c "RefreshEnv.cmd & cmake .."; cmake --build . --config Release ; fi
+
+

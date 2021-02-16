@@ -1,14 +1,5 @@
 cmake_minimum_required(VERSION 3.3.0)
 
-project(MrWriter VERSION ${MR_WRITER_VERSION})
-
-set (CMAKE_CXX_STANDARD 14)
-
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup(KEEP_RPATHS)
-
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
 file(READ src/version.h ver)
 
 string(REGEX MATCH "MAJOR_VERSION ([0-9]*)" _ ${ver})
@@ -21,7 +12,15 @@ string(REGEX MATCH "PATCH_VERSION ([0-9]*)" _ ${ver})
 set(ver_patch ${CMAKE_MATCH_1})
 
 set(MR_WRITER_VERSION "${ver_major}.${ver_minor}.${ver_patch}")
-message("MrWriter Version: ${MR_WRITER_VERSION}")
+
+project(MrWriter VERSION ${MR_WRITER_VERSION})
+
+set (CMAKE_CXX_STANDARD 14)
+
+include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+conan_basic_setup(KEEP_RPATHS)
+
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("                     -= MrWriter ${MR_WRITER_VERSION} =-")
 message("0xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx0")
@@ -133,17 +132,7 @@ if (WIN32)
   set_target_properties(MrWriter PROPERTIES WIN32_EXECUTABLE true)
 endif()
 
-#target_link_libraries(MrWriter Qt5::Widgets Qt5::Test Qt5::Concurrent Qt5::PrintSupport z)
-
-#find_package(Qt5 COMPONENTS Widgets)
-#find_package(Qt5Core CONFIG REQUIRED)
 target_link_libraries(MrWriter ${CONAN_LIBS})
-
-#add_custom_command(
-# TARGET MrWriter
-# POST_BUILD
-# COMMAND ${CMAKE_COMMAND} -DCONAN_QT_ROOT=${CONAN_QT_ROOT} -DRUNTIME_OUTPUT_DIRECTORY=${CMAKE_RUNTIME_OUTPUT_DIRECTORY} -DTARGET=${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/MrWriter${CMAKE_EXECUTABLE_SUFFIX} -P ${CMAKE_CURRENT_SOURCE_DIR}/bundle.cmake
-# )
 
 message("CONAN_QT_ROOT ${CONAN_QT_ROOT}")
 
