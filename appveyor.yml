@@ -1,48 +1,23 @@
-#branches:
-#  only:
-#    - master
-
-#install:
-  #  - appveyor DownloadFile https://download.qt.io/online/qtsdkrepository/windows_x86/desktop/qt5_5120/qt.qt5.5120.win64_mingw73/5.12.0-0-201812040352qtbase-Windows-Windows_10-Mingw73-Windows-Windows_10-X86_64.7z
-  #  - appveyor DownloadFile https://download.qt.io/online/qtsdkrepository/windows_x86/desktop/qt5_5120/qt.qt5.5120.win64_mingw73/5.12.0-0-201812040352qttools-Windows-Windows_10-Mingw73-Windows-Windows_10-X86_64.7z
-  #  - 7z x 5.12.0-0-201812040352qtbase-Windows-Windows_10-Mingw73-Windows-Windows_10-X86_64.7z
-  #  - 7z x 5.12.0-0-201812040352qttools-Windows-Windows_10-Mingw73-Windows-Windows_10-X86_64.7z
-  #  - move 5.12.0 C:\Qt\
-  #  - copy qt.conf C:\Qt\5.12.0\mingw73_64\bin
-  #  - copy qconfig.pri C:\Qt\5.12.0\mingw73_64\mkspecs
-  #  - set QTDIR=C:\Qt\5.12.0\mingw73_64
-  ##  - set QTDIR=C:\Qt\5.11\mingw53_32
-  #  - set PATH=%QTDIR%\bin;C:\mingw-w64\x86_64-7.3.0-posix-seh-rt_v5-rev0\mingw64\bin;%PATH%
-  #  - dir C:\mingw-w64\x86_64-7.3.0-posix-seh-rt_v5-rev0\mingw64\bin
-#  - set PATH=%QTDIR%\bin;C:\Qt\Tools\mingw530_32\bin;%PATH%
-build_script:
-  - echo %PATH%
-    #- appveyor DownloadFile http://zlib.net/zlib-1.2.11.tar.gz -FileName zlib-1.2.11.tar.gz
-    #- 7z x zlib-1.2.11.tar.gz > NUL
-    #- 7z x zlib-1.2.11.tar > NUL
-    #- cd zlib-1.2.11
-    #- md build
-    #- cd build
-    #- cmake -G "MinGW Makefiles" .. -DCMAKE_SH="CMAKE_SH-NOTFOUND"
-    #- mingw32-make
-    #- mingw32-make install
-    #- cd ..
-    #- cd ..
-    #- dir C:\
-    #- where qmake
-    #- qmake -query "QT_INSTALL_PREFIX"
-    #- qmake "INCLUDEPATH+=\"C:/Program Files (x86)/zlib/include\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/bin\"" "LIBS+=-L\"C:/Program Files (x86)/zlib/lib\"" CONFIG+=release MrWriter.pro
-  - mkdir build
-  - cd build
-  - conan install ..
-  - cmake .. -DCMAKE_BUILD_TYPE=Release
-  - cmake --build . --config Release
-    #- mingw32-make
-  - md MrWriter
-  - copy bin\MrWriter.exe MrWriter\
-  - windeployqt -verbose=3 MrWriter
-#- copy "C:\Program Files (x86)\zlib\bin\libzlib.dll" MrWriter
-# - copy "%QTDIR%\bin\libwinpthread-1.dll" MrWriter # only needed for qt 5.11.x, not for 5.12.0
-  - 7z a MrWriter.zip MrWriter
-  - curl --silent --upload-file MrWriter.zip https://transfer.sh/MrWriter.zip
-  - echo
+version: 1.0.{build}
+    platform:
+      - x64
+    install:
+      - cmd: echo "Downloading conan..."
+      - cmd: set PATH=%PATH%;%PYTHON%/Scripts/
+      - cmd: pip.exe install conan
+      - cmd: conan user # Create the conan data directory
+      - cmd: conan --version
+    build_script:
+      - mkdir build
+      - cd build
+      - conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
+      - conan install ..
+      - cmake .. -DCMAKE_BUILD_TYPE=Release
+      - cmake --build . --config Release
+        #- mingw32-make
+      - md MrWriter
+      - copy bin\MrWriter.exe MrWriter\
+      - windeployqt -verbose=3 MrWriter
+      - 7z a MrWriter.zip MrWriter
+      - curl --silent --upload-file MrWriter.zip https://transfer.sh/MrWriter.zip
+      - echo
