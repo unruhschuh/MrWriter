@@ -9,10 +9,10 @@ platform:
 install:
   - cmd: echo "Downloading conan..."
   - cmd: set PATH=%PATH%;%PYTHON%/Scripts/
-  - cmd: pip3.exe install conan
+  - cmd: python3.exe -m pip install conan
   - cmd: conan user # Create the conan data directory
   - cmd: conan --version
-  - cmd: pip3.exe install configparser
+  - cmd: python3.exe -m pip install configparser
 
 build_script:
   - mkdir build
