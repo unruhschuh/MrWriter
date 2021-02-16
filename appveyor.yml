@@ -28,7 +28,12 @@ build_script:
   - cmake .. -DCMAKE_BUILD_TYPE=Release
   - cmake --build . --config Release
   - md MrWriter
-  - copy bin\*.* MrWriter\
+  - copy bin\MrWriter.exe MrWriter\
+  - copy bin\*.dll MrWriter\
+  - xcopy bin\platforms MrWriter\
+  - xcopy bin\imageformats MrWriter\
+  - xcopy bin\printsupport MrWriter\
+  - xcopy bin\styles MrWriter\
   - copy C:\Windows\System32\MSVCP140_1.dll MrWriter\
   - copy C:\Windows\System32\VCCORLIB140.DLL MrWriter\
   - copy C:\Windows\System32\VCRUNTIME140_1.dll MrWriter\

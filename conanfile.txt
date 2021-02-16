@@ -16,3 +16,6 @@ bin, * -> bin
 plugins, * -> bin
 lib, * -> ./lib
 plugins, * -> ./plugins
+#imageformats, * -> ./imageformats
+#styles, * -> ./styles
+#printsupport, * -> ./printsupport
