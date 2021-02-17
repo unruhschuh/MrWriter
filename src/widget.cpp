@@ -29,6 +29,9 @@
 #define PAGE_GAP 10.0
 #define ZOOM_STEP 1.2
 
+#define RENDER_HINTS (QPainter::Antialiasing | QPainter::SmoothPixmapTransform)
+//#define RENDER_HINTS (0)
+
 #include <QPainter>
 #include <QRectF>
 
@@ -200,7 +203,7 @@ void Widget::updateImageBuffer(size_t buffNum)
 
   QPainter painter;
   painter.begin(&image);
-  painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+  painter.setRenderHints(RENDER_HINTS);
 
   if (m_showGrid)
   {
@@ -228,7 +231,7 @@ void Widget::updateBuffer(size_t buffNum)
 
   QPainter painter;
   painter.begin(&pixmap);
-  painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+  painter.setRenderHints(RENDER_HINTS);
 
   if (m_showGrid)
   {
@@ -246,7 +249,7 @@ void Widget::updateBufferRegion(size_t buffNum, QRectF const &clipRect)
 {
   QPainter painter;
   painter.begin(&m_pageBuffer[buffNum]);
-  painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+  painter.setRenderHints(RENDER_HINTS);
   painter.setClipRect(clipRect);
   painter.setClipping(true);
 
@@ -309,7 +312,9 @@ void Widget::drawOnBuffer(bool last)
 {
   QPainter painter;
   painter.begin(&m_pageBuffer[m_drawingOnPage]);
-  painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+#if !(defined (_WIN32) || defined (_WIN64)) // turn off antialiasing on windows to speed up drawing
+  painter.setRenderHints(RENDER_HINTS);
+#endif
 
   m_currentStroke.paint(painter, m_zoom, last);
 }
