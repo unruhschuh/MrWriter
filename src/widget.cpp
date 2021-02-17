@@ -449,6 +449,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
 
   if ((eventType == QEvent::MouseButtonPress || eventType == QEvent::MouseButtonRelease) && button == Qt::RightButton)
   {
+    disableInput();
     emit quickmenu();
     return;
   }
@@ -472,7 +473,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
       m_scrollArea->horizontalScrollBar()->setValue(m_scrollArea->horizontalScrollBar()->value() - dx);
       m_scrollArea->verticalScrollBar()->setValue(m_scrollArea->verticalScrollBar()->value() - dy);
 
-      qInfo() << dy;
+      qDebug() << dy;
 
       mousePos -= QPointF(dx, dy);
 

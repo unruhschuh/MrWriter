@@ -3,6 +3,7 @@
 
 #include <QtWidgets/QWidget>
 #include <QMainWindow>
+#include <QElapsedTimer>
 #include "mainwindow.h"
 
 namespace Ui {
@@ -21,6 +22,7 @@ public:
 
 private:
   Ui::QuickMenu *ui;
+  QElapsedTimer elapsedTimer;
 
 protected:
   virtual void enterEvent(QEvent * event) override;

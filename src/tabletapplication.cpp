@@ -18,12 +18,12 @@ bool TabletApplication::event(QEvent *event)
   if (event->type() == QEvent::TabletEnterProximity)
   {
     usingTablet = true;
-    qInfo() << "Enter Proximity";
+    qDebug() << "Enter Proximity";
   }
   if (event->type() == QEvent::TabletLeaveProximity)
   {
     usingTablet = false;
-    qInfo() << "Leave Proximity";
+    qDebug() << "Leave Proximity";
   }
 
   if (event->type() == QEvent::FileOpen)
@@ -66,9 +66,9 @@ bool TabletApplication::isUsingTablet()
 
 void TabletApplication::exit()
 {
-  qInfo() << "Exit";
+  qDebug() << "Exit";
 
-  qInfo() << mainWindows.length();
+  qDebug() << mainWindows.length();
 
   while (mainWindows.length() > 0)
   {

@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.3.0)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 file(READ src/version.h ver)
 
 string(REGEX MATCH "MAJOR_VERSION ([0-9]*)" _ ${ver})
@@ -130,6 +132,12 @@ find_package(ZLIB REQUIRED)
 
 if (WIN32)
   set_target_properties(MrWriter PROPERTIES WIN32_EXECUTABLE true)
+endif()
+
+message(${CMAKE_BUILD_TYPE})
+if (CMAKE_BUILD_TYPE MATCHES Release)
+  message("Release build")
+  target_compile_definitions(MrWriter PRIVATE QT_NO_DEBUG_OUTPUT)
 endif()
 
 target_link_libraries(MrWriter ${CONAN_LIBS})

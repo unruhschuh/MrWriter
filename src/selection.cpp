@@ -136,8 +136,8 @@ Selection::GrabZone Selection::grabZone(QPointF pagePos, qreal zoom)
   {
     grabZone = GrabZone::Rotate;
   }
-  qInfo() << bRect;
-  qInfo() << rotateRect;
+  qDebug() << bRect;
+  qDebug() << rotateRect;
   return grabZone;
 }
 

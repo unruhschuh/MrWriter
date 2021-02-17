@@ -9,6 +9,7 @@ QuickMenu::QuickMenu(QWidget *parent) : QWidget(parent, Qt::FramelessWindowHint 
   qDebug() << "constr";
   ui->setupUi(this);
   setAttribute(Qt::WA_Hover);
+  elapsedTimer.start();
 }
 
 QuickMenu::~QuickMenu()
@@ -144,8 +145,14 @@ void QuickMenu::enterEvent(QEvent* event)
 
 void QuickMenu::leaveEvent(QEvent* event)
 {
+  qDebug() << Q_FUNC_INFO;
   (void)event;
-  close();
+  // On Linux, leaveEvent is triggered immediately when using a wacom pen.
+  // Waiting for 300 ms before reacting to leaveEvent seems to prevent this.
+  if (elapsedTimer.elapsed() > 300)
+  {
+    close();
+  }
 }
 
 void QuickMenu::changeEvent(QEvent* event)
