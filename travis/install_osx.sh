@@ -2,7 +2,7 @@
 
 set -x
 
-brew update
+#brew update
 brew install conan
 #brew install qt
 #brew link --force qt
