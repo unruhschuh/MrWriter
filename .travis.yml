@@ -6,14 +6,22 @@ linux: &linux
    services:
      - docker
 
+osx: &osx
+   os: osx
+   language: c++
+
 matrix:
    include:
       - <<: *linux
         env: CONAN_GCC_VERSIONS=8 CONAN_DOCKER_IMAGE=conanio/gcc8
-      - <<: *windows
+      - <<: *osx
+
+install:
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then ./travis/install_osx.sh ; fi
 
 script:
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then docker run -i ubuntu:xenial bash < travis/build_on_xenial_docker.sh ; fi
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then ./travis/script_osx.sh ; fi
 
 
 
