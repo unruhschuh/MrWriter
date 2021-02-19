@@ -4,6 +4,7 @@ set -x
 set -e
 
 #conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
+export PATH=/usr/local/opt/qt5/bin:$PATH
 mkdir build
 cd build
 #conan install .. -s compiler=gcc
