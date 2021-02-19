@@ -8,7 +8,7 @@ linux: &linux
 
 osx: &osx
    os: osx
-   language: python
+   language: c++
    osx_image: xcode11.3
 
 matrix:
