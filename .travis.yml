@@ -11,6 +11,11 @@ osx: &osx
    language: c++
    osx_image: xcode11.3
 
+addons:
+  homebrew:
+    packages:
+    - conan
+
 matrix:
    include:
       - <<: *linux
