@@ -124,7 +124,7 @@ if (APPLE)
   add_executable(MrWriter MACOSX_BUNDLE ${SOURCES} ${HEADERS})
   set_target_properties(MrWriter PROPERTIES
       BUNDLE True
-      MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/cmake/customtemplate.plist.in
+      MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/Info.plist
   )
 else()
   add_executable(MrWriter ${SOURCES} ${HEADERS})
