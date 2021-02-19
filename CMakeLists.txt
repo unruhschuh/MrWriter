@@ -120,7 +120,15 @@ set(HEADERS
     src/widget.h
     )
 
-add_executable(MrWriter ${SOURCES} ${HEADERS})
+if (APPLE)
+  add_executable(MrWriter MACOSX_BUNDLE ${SOURCES} ${HEADERS})
+  set_target_properties(MrWriter PROPERTIES
+      BUNDLE True
+      MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/cmake/customtemplate.plist.in
+  )
+else()
+  add_executable(MrWriter ${SOURCES} ${HEADERS})
+endif()
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set_property(TARGET MrWriter PROPERTY POSITION_INDEPENDENT_CODE ON)
