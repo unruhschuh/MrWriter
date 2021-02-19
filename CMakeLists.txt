@@ -19,8 +19,14 @@ project(MrWriter VERSION ${MR_WRITER_VERSION})
 
 set (CMAKE_CXX_STANDARD 14)
 
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup(KEEP_RPATHS)
+set(CONAN_BUILD_INFO_FILE ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+if (EXISTS ${CONAN_BUILD_INFO_FILE})
+  include(${CONAN_BUILD_INFO_FILE})
+  conan_basic_setup(KEEP_RPATHS)
+  set(USE_CONAN TRUE)
+else()
+  set(USE_CONAN FALSE)
+endif()
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -134,14 +140,19 @@ if (WIN32)
   set_target_properties(MrWriter PROPERTIES WIN32_EXECUTABLE true)
 endif()
 
-message(${CMAKE_BUILD_TYPE})
+message("build type: ${CMAKE_BUILD_TYPE}")
 if (CMAKE_BUILD_TYPE MATCHES Release)
   message("Release build")
   target_compile_definitions(MrWriter PRIVATE QT_NO_DEBUG_OUTPUT)
 endif()
 
-target_link_libraries(MrWriter ${CONAN_LIBS})
+if (${USE_CONAN})
+  set(LIBS ${CONAN_LIBS})
+else()
+  set(LIBS Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Xml Qt5::Test Qt5::PrintSupport Qt5::Concurrent Qt5::Test z)
+endif()
+message(${LIBS})
 
-message("CONAN_QT_ROOT ${CONAN_QT_ROOT}")
+target_link_libraries(MrWriter ${LIBS})
 
 install(TARGETS MrWriter DESTINATION ${CMAKE_BINARY_DIR}/appdir/usr/bin)
