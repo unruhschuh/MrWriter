@@ -5,7 +5,7 @@ set -x
 which pip
 which pip3
 pip --version
-pip install conan
+pip3 install conan
 
 
 #brew update
