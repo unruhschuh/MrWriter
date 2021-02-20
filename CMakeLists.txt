@@ -121,6 +121,7 @@ set(HEADERS
     )
 
 if (APPLE)
+  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.12" CACHE STRING "Minimum OS X deployment version")
   add_executable(MrWriter MACOSX_BUNDLE ${SOURCES} ${HEADERS})
   set_target_properties(MrWriter PROPERTIES
       BUNDLE True
