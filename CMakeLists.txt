@@ -122,7 +122,9 @@ set(HEADERS
     )
 
 if (APPLE)
-  add_executable(MrWriter MACOSX_BUNDLE ${SOURCES} ${HEADERS})
+  set(osx_icon "${CMAKE_SOURCE_DIR}/MrWriter.icns")
+  set_source_files_properties(${osx_icon} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+  add_executable(MrWriter MACOSX_BUNDLE ${osx_icon} ${SOURCES} ${HEADERS})
   set_target_properties(MrWriter PROPERTIES
       BUNDLE True
       MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/Info.plist
