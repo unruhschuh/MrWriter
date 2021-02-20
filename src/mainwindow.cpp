@@ -642,8 +642,8 @@ void MainWindow::createMenus()
   editMenu->addAction(toTheBackAct);
   editMenu->addSeparator();
   editMenu->addAction(rotateAct);
-  editMenu->addSeparator();
-  editMenu->addAction(settingsAct);
+  //editMenu->addSeparator();
+  //editMenu->addAction(settingsAct);
 
   pageMenu = menuBar()->addMenu(tr("&Page"));
   pageMenu->addAction(pageAddBeforeAct);
