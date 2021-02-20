@@ -4,11 +4,12 @@
 #include "mainwindow.h"
 #include "widget.h"
 
-QuickMenu::QuickMenu(QWidget *parent) : QWidget(parent, Qt::FramelessWindowHint | Qt::Window), ui(new Ui::QuickMenu)
+//QuickMenu::QuickMenu(QWidget *parent) : QWidget(parent, Qt::FramelessWindowHint | Qt::Window), ui(new Ui::QuickMenu)
+QuickMenu::QuickMenu(QWidget *parent) : QWidget(parent, Qt::Widget), ui(new Ui::QuickMenu)
 {
   qDebug() << "constr";
   ui->setupUi(this);
-  setAttribute(Qt::WA_Hover);
+  //setAttribute(Qt::WA_Hover);
   elapsedTimer.start();
 }
 
