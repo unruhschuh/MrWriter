@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.3.0)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Minimum OS X deployment version")
 
 file(READ src/version.h ver)
 
@@ -121,7 +122,6 @@ set(HEADERS
     )
 
 if (APPLE)
-  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.12" CACHE STRING "Minimum OS X deployment version")
   add_executable(MrWriter MACOSX_BUNDLE ${SOURCES} ${HEADERS})
   set_target_properties(MrWriter PROPERTIES
       BUNDLE True
