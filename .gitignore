@@ -2,6 +2,7 @@ MrWriter.pro.user*
 *nogit*
 /build*
 compile_commands.json
+CMakeLists.txt.user
 
 # Created by https://www.gitignore.io/api/vim,linux,macos,windows,qtcreator
 # Edit at https://www.gitignore.io/?templates=vim,linux,macos,windows,qtcreator
