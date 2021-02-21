@@ -2,6 +2,8 @@
 
 set -x
 
+source /opt/qt*/bin/qt*-env.sh
+
 mkdir build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
