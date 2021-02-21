@@ -3,6 +3,6 @@ Type=Application
 Name=MrWriter
 Comment=Note taking application
 Icon=MrWriter
-Exec=env FONTCONFIG_PATH=/etc/fonts MrWriter %F
+Exec=MrWriter %F
 Terminal=false
 Categories=Office;
