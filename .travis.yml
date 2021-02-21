@@ -19,10 +19,11 @@ matrix:
 
 install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then ./travis/install_osx.sh ; fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then ./travis/install_linux.sh ; fi
 
 script:
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then docker run -i ubuntu:xenial bash < travis/build_on_xenial_docker.sh ; fi
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then ./travis/script_osx.sh ; fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then ./travis/script_linux.sh ; fi
 
 
 
