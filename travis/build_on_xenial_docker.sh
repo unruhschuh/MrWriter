@@ -21,7 +21,6 @@ pip3 install conan
 conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
 git clone https://github.com/unruhschuh/MrWriter.git
 cd MrWriter
-git checkout cmake
 mkdir build
 cd build
 conan install ..
