@@ -107,6 +107,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::simulateTouchEvents()
 {
+#if 0
   qDebug() << Q_FUNC_INFO;
 
   QTouchDevice *touchDevice = QTest::createTouchDevice();
@@ -115,6 +116,7 @@ void MainWindow::simulateTouchEvents()
   QTest::touchEvent(scrollArea, touchDevice).move(0, QPoint(100,500), this);
   QTest::touchEvent(scrollArea, touchDevice).move(0, QPoint(150,600), this);
   QTest::touchEvent(scrollArea, touchDevice).release(0, QPoint(150,600), this);
+#endif
 }
 
 void MainWindow::setTitle()
@@ -640,8 +642,8 @@ void MainWindow::createMenus()
   editMenu->addAction(toTheBackAct);
   editMenu->addSeparator();
   editMenu->addAction(rotateAct);
-  editMenu->addSeparator();
-  editMenu->addAction(settingsAct);
+  //editMenu->addSeparator();
+  //editMenu->addAction(settingsAct);
 
   pageMenu = menuBar()->addMenu(tr("&Page"));
   pageMenu->addAction(pageAddBeforeAct);
@@ -1196,11 +1198,13 @@ void MainWindow::modified()
 void MainWindow::quickmenu()
 {
   mainWidget->disableInput();
-  auto quickMenu = new QuickMenu();
+  auto quickMenu = new QuickMenu(this);
   quickMenu->setupSignalsAndSlots(this);
-  quickMenu->move(QCursor::pos() - QPoint(quickMenu->width() / 2, quickMenu->height() / 2));
+  //quickMenu->move(QCursor::pos() - QPoint(quickMenu->width() / 2, quickMenu->height() / 2));
+  quickMenu->move(mapFromGlobal(QCursor::pos()) - QPoint(quickMenu->width() / 2, quickMenu->height() / 2));
 //  quickMenu->setWindowModality(Qt::WindowModal);
   quickMenu->setAttribute(Qt::WA_DeleteOnClose);
+  quickMenu->raise();
   quickMenu->show();
 }
 

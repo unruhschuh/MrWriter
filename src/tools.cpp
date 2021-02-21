@@ -136,6 +136,8 @@ QTransform MrWriter::stringToTransform(const QString & string)
   qreal m32 = list.at(7).toDouble();
   qreal m33 = list.at(8).toDouble();
   transform.setMatrix(m11, m12, m13, m21, m22, m23, m31, m32, m33);
+
+  return transform;
 }
 
 bool MrWriter::hasTransparancy(const QImage& image)

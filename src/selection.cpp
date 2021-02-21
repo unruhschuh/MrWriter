@@ -136,8 +136,8 @@ Selection::GrabZone Selection::grabZone(QPointF pagePos, qreal zoom)
   {
     grabZone = GrabZone::Rotate;
   }
-  qInfo() << bRect;
-  qInfo() << rotateRect;
+  qDebug() << bRect;
+  qDebug() << rotateRect;
   return grabZone;
 }
 
@@ -185,7 +185,7 @@ bool Selection::empty()
   }
 }
 
-void Selection::paint(QPainter &painter, qreal zoom, QRectF region __attribute__((unused)))
+void Selection::paint(QPainter &painter, qreal zoom, QRectF region)
 {
   QTransform scaleTrans;
   scaleTrans = scaleTrans.scale(zoom, zoom);

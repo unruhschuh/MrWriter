@@ -2,6 +2,14 @@
 
 set -x
 
-brew update
-brew install qt
+#which pip
+#which pip3
+#pip --version
+#pip3 install conan
+
+
+#brew update
+#brew install conan
+#brew install qt
+#brew upgrade qt
 brew link --force qt

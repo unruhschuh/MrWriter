@@ -1,0 +1,21 @@
+[requires]
+qt/5.15.2@bincrafters/stable
+zlib/1.2.11
+
+[generators]
+cmake
+qt
+
+[options]
+*:shared=True
+
+[imports]
+bin, *.dll -> ./bin # Copies all dll files from packages bin folder to my "bin" folder
+lib, *.dylib* -> ./bin # Copies all dylib files from packages lib folder to my "bin" folder
+bin, * -> bin
+plugins, * -> bin
+lib, * -> ./lib
+plugins, * -> ./plugins
+#imageformats, * -> ./imageformats
+#styles, * -> ./styles
+#printsupport, * -> ./printsupport

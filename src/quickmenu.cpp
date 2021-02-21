@@ -4,11 +4,13 @@
 #include "mainwindow.h"
 #include "widget.h"
 
-QuickMenu::QuickMenu(QWidget *parent) : QWidget(parent, Qt::FramelessWindowHint | Qt::Window), ui(new Ui::QuickMenu)
+//QuickMenu::QuickMenu(QWidget *parent) : QWidget(parent, Qt::FramelessWindowHint | Qt::Window), ui(new Ui::QuickMenu)
+QuickMenu::QuickMenu(QWidget *parent) : QWidget(parent, Qt::Widget), ui(new Ui::QuickMenu)
 {
   qDebug() << "constr";
   ui->setupUi(this);
-  setAttribute(Qt::WA_Hover);
+  //setAttribute(Qt::WA_Hover);
+  elapsedTimer.start();
 }
 
 QuickMenu::~QuickMenu()
@@ -144,8 +146,14 @@ void QuickMenu::enterEvent(QEvent* event)
 
 void QuickMenu::leaveEvent(QEvent* event)
 {
+  qDebug() << Q_FUNC_INFO;
   (void)event;
-  close();
+  // On Linux, leaveEvent is triggered immediately when using a wacom pen.
+  // Waiting for 300 ms before reacting to leaveEvent seems to prevent this.
+  if (elapsedTimer.elapsed() > 300)
+  {
+    close();
+  }
 }
 
 void QuickMenu::changeEvent(QEvent* event)

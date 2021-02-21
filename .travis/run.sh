@@ -1,12 +1,10 @@
 #!/bin/bash
 
 set -x
+set -e
 
 g++ --version
 
-#source /opt/qt*/bin/qt*-env.sh
-
-set -e
 mkdir build
 cd build
 #qmake CONFIG+=release ..
@@ -25,5 +23,6 @@ find appdir -executable -type f -exec ldd {} \; | grep " => /usr" | cut -d " " -
 echo `curl --upload-file MrWriter*.AppImage https://transfer.sh/MrWriter-git.$(git rev-parse --short HEAD)-x86_64.AppImage`
 # wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
 # bash upload.sh MrWriter*.AppImage*
+
 
 

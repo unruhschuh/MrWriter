@@ -1,7 +1,7 @@
 MrWriter.pro.user*
 *nogit*
-build
-
+/build*
+compile_commands.json
 
 # Created by https://www.gitignore.io/api/vim,linux,macos,windows,qtcreator
 # Edit at https://www.gitignore.io/?templates=vim,linux,macos,windows,qtcreator

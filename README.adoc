@@ -23,3 +23,7 @@ For testing purposes you may download the latests build by clicking on one of th
 There you'll find the build logs.
 At the bottom there is a url of the form `https://transfer.sh/342Xasf/XXX.Y` where `Y` is either zip/dmg/AppImage depending on the platforms Windows / Mac / Linux.
 Copy that and paste it into your browser's url field or use `wget` in the command line.
+
+== Known issues
+=== Fonts fail to load on Ubuntu with the AppImage
+This seems to be an issue with Qt in conan. As a workaround, run the AppImage using `FONTCONFIG_PATH=/etc/fonts ./MrWriter-b71ccd2-x86_64.AppImage`.
