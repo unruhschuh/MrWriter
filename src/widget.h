@@ -199,6 +199,7 @@ public:
 
   MrDoc::Document m_currentDocument;
   std::vector<QPixmap> m_pageBuffer;
+  QPixmap m_currentPageOverlay;
   std::vector<QImage> m_pageImageBuffer;
   QMutex m_pageImageBufferMutex;
 

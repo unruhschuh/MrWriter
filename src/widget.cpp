@@ -373,6 +373,11 @@ void Widget::paintEvent(QPaintEvent *event)
 
     painter.drawPixmap(rectTarget, m_pageBuffer.at(i), rectSource);
 
+    if ((m_currentState == State::CIRCLING || m_currentState == State::RECTING || m_currentState == State::RULING) && i == m_drawingOnPage)
+    {
+      painter.drawPixmap(rectTarget, m_currentPageOverlay, rectSource);
+    }
+
     if ((m_currentState == State::SELECTING || m_currentState == State::SELECTED || m_currentState == State::MOVING_SELECTION ||
          m_currentState == State::RESIZING_SELECTION || m_currentState == State::ROTATING_SELECTION) &&
         i == m_currentSelection.pageNum())
@@ -1079,6 +1084,9 @@ void Widget::startRuling(QPointF mousePos)
   m_previousMousePos = mousePos;
   m_firstMousePos = mousePos;
   m_drawingOnPage = pageNum;
+
+  m_currentPageOverlay = QPixmap(m_pageBuffer[m_drawingOnPage].size());
+  m_currentPageOverlay.fill(Qt::transparent);
 }
 
 void Widget::continueRuling(QPointF mousePos)
@@ -1108,13 +1116,14 @@ void Widget::continueRuling(QPointF mousePos)
   m_currentStroke.points.append(pagePos);
   m_currentStroke.pressures.append(1);
 
-  QRect clipRect(m_zoom * firstPagePos.toPoint(), m_zoom * pagePos.toPoint());
-  QRect oldClipRect(m_zoom * firstPagePos.toPoint(), m_zoom * previousPagePos.toPoint());
-  clipRect = clipRect.normalized().united(oldClipRect.normalized());
-  int clipRad = static_cast<int>(m_zoom * m_currentPenWidth / 2.0) + 2;
-  clipRect = clipRect.normalized().adjusted(-clipRad, -clipRad, clipRad, clipRad);
-  updateBufferRegion(m_drawingOnPage, clipRect);
-  drawOnBuffer();
+  QPainter painter;
+  painter.begin(&m_currentPageOverlay);
+#if !(defined (_WIN32) || defined (_WIN64)) // turn off antialiasing on windows to speed up drawing
+  painter.setRenderHints(RENDER_HINTS);
+#endif
+
+  m_currentPageOverlay.fill(Qt::transparent);
+  m_currentStroke.paint(painter, m_zoom);
 
   update();
 
@@ -1171,6 +1180,9 @@ void Widget::startCircling(QPointF mousePos)
   m_previousMousePos = mousePos;
   m_firstMousePos = mousePos;
   m_drawingOnPage = pageNum;
+
+  m_currentPageOverlay = QPixmap(m_pageBuffer[m_drawingOnPage].size());
+  m_currentPageOverlay.fill(Qt::transparent);
 }
 
 void Widget::continueCircling(QPointF mousePos)
@@ -1204,17 +1216,14 @@ void Widget::continueCircling(QPointF mousePos)
     m_currentStroke.pressures.append(1.0);
   }
 
-  QTransform scaleTrans;
-  scaleTrans = scaleTrans.scale(m_zoom, m_zoom);
+  QPainter painter;
+  painter.begin(&m_currentPageOverlay);
+#if !(defined (_WIN32) || defined (_WIN64)) // turn off antialiasing on windows to speed up drawing
+  painter.setRenderHints(RENDER_HINTS);
+#endif
 
-  QRect clipRect = scaleTrans.mapRect(m_currentStroke.points.boundingRect()).toRect();
-  QRect oldClipRect = scaleTrans.mapRect(oldStroke.points.boundingRect()).toRect();
-  clipRect = clipRect.normalized().united(oldClipRect.normalized());
-  int clipRad = static_cast<int>(m_zoom * m_currentPenWidth / 2) + 2;
-  clipRect = clipRect.normalized().adjusted(-clipRad, -clipRad, clipRad, clipRad);
-  updateBufferRegion(m_drawingOnPage, clipRect);
-
-  drawOnBuffer();
+  m_currentPageOverlay.fill(Qt::transparent);
+  m_currentStroke.paint(painter, m_zoom);
 
   update();
 
@@ -1227,6 +1236,8 @@ void Widget::stopCircling(QPointF mousePos)
 
   AddElementCommand *addCommand = new AddElementCommand(this, m_drawingOnPage, m_currentStroke.clone());
   m_undoStack.push(addCommand);
+
+  drawOnBuffer();
 
   m_currentState = State::IDLE;
 
@@ -1250,6 +1261,9 @@ void Widget::startRecting(QPointF mousePos)
   m_previousMousePos = mousePos;
   m_firstMousePos = mousePos;
   m_drawingOnPage = pageNum;
+
+  m_currentPageOverlay = QPixmap(m_pageBuffer[m_drawingOnPage].size());
+  m_currentPageOverlay.fill(Qt::transparent);
 }
 
 void Widget::continueRecting(QPointF mousePos)
@@ -1281,17 +1295,14 @@ void Widget::continueRecting(QPointF mousePos)
     m_currentStroke.pressures.append(1.0);
   }
 
-  QTransform scaleTrans;
-  scaleTrans = scaleTrans.scale(m_zoom, m_zoom);
+  QPainter painter;
+  painter.begin(&m_currentPageOverlay);
+#if !(defined (_WIN32) || defined (_WIN64)) // turn off antialiasing on windows to speed up drawing
+  painter.setRenderHints(RENDER_HINTS);
+#endif
 
-  QRect clipRect = scaleTrans.mapRect(m_currentStroke.points.boundingRect()).toRect();
-  QRect oldClipRect = scaleTrans.mapRect(oldStroke.points.boundingRect()).toRect();
-  clipRect = clipRect.normalized().united(oldClipRect.normalized());
-  int clipRad = static_cast<int>(m_zoom * m_currentPenWidth / 2) + 2;
-  clipRect = clipRect.normalized().adjusted(-clipRad, -clipRad, clipRad, clipRad);
-  updateBufferRegion(m_drawingOnPage, clipRect);
-
-  drawOnBuffer();
+  m_currentPageOverlay.fill(Qt::transparent);
+  m_currentStroke.paint(painter, m_zoom);
 
   update();
 
@@ -1304,6 +1315,8 @@ void Widget::stopRecting(QPointF mousePos)
 
   AddElementCommand *addCommand = new AddElementCommand(this, m_drawingOnPage, m_currentStroke.clone());
   m_undoStack.push(addCommand);
+
+  drawOnBuffer();
 
   m_currentState = State::IDLE;
 
