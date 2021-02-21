@@ -10,13 +10,26 @@ See the http://unruhschuh.github.io/MrWriter/[project homepage] for more informa
 https://tooomm.github.io/github-release-stats/?username=unruhschuh&repository=MrWriter[Release stats]
 
 == Build
+=== Without conan
 * Download and install http://www.qt.io/download/[Qt]
 * Run in the terminal
 ** `git clone https://github.com/unruhschuh/MrWriter.git`
 ** `cd MrWriter`
-** `qmake`
-** `make`
-* Alternatively: open `MrWriter.pro` in QtCreator, configure, build and run
+** `mkdir build`
+** `cd build`
+** `cmake ..`
+** `cmake --build .`
+
+=== With conan
+* Download and install http://www.conan.io[conan]
+* Run in the terminal
+** `git clone https://github.com/unruhschuh/MrWriter.git`
+** `cd MrWriter`
+** `mkdir build`
+** `cd build`
+** `conan install ..`
+** `cmake ..`
+** `cmake --build .`
 
 == The latest and greatest
 For testing purposes you may download the latests build by clicking on one of the "build passing" buttons.
