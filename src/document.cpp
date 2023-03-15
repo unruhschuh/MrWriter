@@ -85,8 +85,8 @@ void Document::exportPDF(QString fileName)
 
   pdfWriter.setPageSize(QPageSize(QSizeF(pages[0].width(), pages[0].height()), QPageSize::Point));
   pdfWriter.setPageMargins(QMarginsF(0, 0, 0, 0));
-  qreal zoomW = ((qreal)pdfWriter.pageRect().width()) / ((qreal)pdfWriter.paperRect().width());
-  qreal zoomH = ((qreal)pdfWriter.pageRect().height()) / ((qreal)pdfWriter.paperRect().height());
+  qreal zoomW = ((qreal)pdfWriter.pageRect(QPrinter::Point).width()) / ((qreal)pdfWriter.paperRect(QPrinter::Point).width());
+  qreal zoomH = ((qreal)pdfWriter.pageRect(QPrinter::Point).height()) / ((qreal)pdfWriter.paperRect(QPrinter::Point).height());
   qreal zoom = zoomW;
   if (zoomH < zoomW)
     zoom = zoomH;
@@ -161,11 +161,11 @@ bool Document::loadXOJ(QString fileName)
   while (!reader.atEnd())
   {
     reader.readNext();
-    if (reader.name() == "page" && reader.tokenType() == QXmlStreamReader::StartElement)
+    if (reader.name() == QString("page") && reader.tokenType() == QXmlStreamReader::StartElement)
     {
       QXmlStreamAttributes attributes = reader.attributes();
-      QStringRef width = attributes.value("", "width");
-      QStringRef height = attributes.value("", "height");
+      QStringView width = attributes.value("", "width");
+      QStringView height = attributes.value("", "height");
       Page newPage;
       newPage.setWidth(width.toDouble());
       newPage.setHeight(height.toDouble());
@@ -173,24 +173,24 @@ bool Document::loadXOJ(QString fileName)
       pages.push_back(std::move(newPage));
       // pages.push_back(std::make_unique<Page>(newPage));
     }
-    if (reader.name() == "background" && reader.tokenType() == QXmlStreamReader::StartElement)
+    if (reader.name() == QString("background") && reader.tokenType() == QXmlStreamReader::StartElement)
     {
       QXmlStreamAttributes attributes = reader.attributes();
-      QStringRef color = attributes.value("", "color");
+      QStringView color = attributes.value("", "color");
       QColor newColor = MrDoc::stringToColor(color.toString());
       pages.back().setBackgroundColor(newColor);
     }
-    if (reader.name() == "stroke" && reader.tokenType() == QXmlStreamReader::StartElement)
+    if (reader.name() == QString("stroke") && reader.tokenType() == QXmlStreamReader::StartElement)
     {
       QXmlStreamAttributes attributes = reader.attributes();
-      QStringRef tool = attributes.value("", "tool");
-      if (tool == "pen")
+      QStringView tool = attributes.value("", "tool");
+      if (tool == QString("pen"))
       {
         Stroke newStroke;
         newStroke.pattern = MrDoc::solidLinePattern;
-        QStringRef color = attributes.value("", "color");
+        QStringView color = attributes.value("", "color");
         newStroke.color = MrDoc::stringToColor(color.toString());
-        QStringRef strokeWidth = attributes.value("", "width");
+        QStringView strokeWidth = attributes.value("", "width");
         QStringList strokeWidthList = strokeWidth.toString().split(" ");
         newStroke.penWidth = strokeWidthList.at(0).toDouble();
         newStroke.pressures.append(newStroke.penWidth / strokeWidthList.at(0).toDouble());
@@ -372,38 +372,38 @@ bool Document::loadMOJ(QString fileName)
   while (!reader.atEnd())
   {
     reader.readNext();
-    if (reader.name() == "MrWriter" && reader.tokenType() == QXmlStreamReader::StartElement)
+    if (reader.name() == QString("MrWriter") && reader.tokenType() == QXmlStreamReader::StartElement)
     {
       QXmlStreamAttributes attributes = reader.attributes();
-      QStringRef docversion = attributes.value("document-version");
+      QStringView docversion = attributes.value("document-version");
       if (docversion.toInt() > DOC_VERSION)
       {
         // TODO warn about newer document version
       }
     }
-    if (reader.name() == "page" && reader.tokenType() == QXmlStreamReader::StartElement)
+    if (reader.name() == QString("page") && reader.tokenType() == QXmlStreamReader::StartElement)
     {
       QXmlStreamAttributes attributes = reader.attributes();
-      QStringRef width = attributes.value("", "width");
-      QStringRef height = attributes.value("", "height");
+      QStringView width = attributes.value("", "width");
+      QStringView height = attributes.value("", "height");
       Page newPage;
       newPage.setWidth(width.toDouble());
       newPage.setHeight(height.toDouble());
 
       pages.push_back(std::move(newPage));
     }
-    if (reader.name() == "background" && reader.tokenType() == QXmlStreamReader::StartElement)
+    if (reader.name() == QString("background") && reader.tokenType() == QXmlStreamReader::StartElement)
     {
       QXmlStreamAttributes attributes = reader.attributes();
-      QStringRef color = attributes.value("", "color");
+      QStringView color = attributes.value("", "color");
       QColor newColor = MrDoc::stringToColor(color.toString());
       pages.back().setBackgroundColor(newColor);
     }
-    if (reader.name() == "stroke" && reader.tokenType() == QXmlStreamReader::StartElement)
+    if (reader.name() == QString("stroke") && reader.tokenType() == QXmlStreamReader::StartElement)
     {
       QXmlStreamAttributes attributes = reader.attributes();
-      QStringRef tool = attributes.value("", "tool");
-      if (tool == "pen")
+      QStringView tool = attributes.value("", "tool");
+      if (tool == QString("pen"))
       {
         Stroke newStroke;
         newStroke.fromXml(reader);
@@ -416,13 +416,13 @@ bool Document::loadMOJ(QString fileName)
         qDebug() << strokeCount;
       }
     }
-    if (reader.name() == "image" && reader.tokenType() == QXmlStreamReader::StartElement)
+    if (reader.name() == QString("image") && reader.tokenType() == QXmlStreamReader::StartElement)
     {
       Image newImage(QPointF(0,0));
       newImage.fromXml(reader);
       pages.back().appendElement(newImage.clone());
     }
-    if (reader.name() == "text" && reader.tokenType() == QXmlStreamReader::StartElement)
+    if (reader.name() == QString("text") && reader.tokenType() == QXmlStreamReader::StartElement)
     {
       Text newText;
       newText.fromXml(reader);

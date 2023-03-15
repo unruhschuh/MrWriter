@@ -111,9 +111,9 @@ void Stroke::fromXml(QXmlStreamReader& reader)
   this->pressures.clear();
 
   QXmlStreamAttributes attributes = reader.attributes();
-  QStringRef color = attributes.value("", "color");
+  QStringView color = attributes.value("", "color");
   this->color = stringToColor(color.toString());
-  QStringRef style = attributes.value("", "style");
+  QStringView style = attributes.value("", "style");
   if (style.toString().compare("solid") == 0)
   {
     this->pattern = MrDoc::solidLinePattern;
@@ -134,7 +134,7 @@ void Stroke::fromXml(QXmlStreamReader& reader)
   {
     this->pattern = MrDoc::solidLinePattern;
   }
-  QStringRef strokeWidth = attributes.value("", "width");
+  QStringView strokeWidth = attributes.value("", "width");
   this->penWidth = strokeWidth.toDouble();
   QString elementText = reader.readElementText();
   QStringList elementTextList = elementText.trimmed().split(" ");
@@ -142,7 +142,7 @@ void Stroke::fromXml(QXmlStreamReader& reader)
   {
     this->points.append(QPointF(elementTextList.at(i).toDouble(), elementTextList.at(i + 1).toDouble()));
   }
-  QStringRef pressures = attributes.value("pressures");
+  QStringView pressures = attributes.value("pressures");
   QStringList pressuresList = pressures.toString().trimmed().split(" ");
   for (int i = 0; i < pressuresList.length(); ++i)
   {

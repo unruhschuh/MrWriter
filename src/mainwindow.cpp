@@ -140,13 +140,13 @@ void MainWindow::setTitle()
 void MainWindow::createActions()
 {
   newWindowAct = new QAction(tr("New &Window"), this);
-  newWindowAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Modifier::SHIFT + Qt::Key_N));
+  newWindowAct->setShortcut(QKeySequence(Qt::Modifier::CTRL | Qt::Modifier::SHIFT | Qt::Key_N));
   newWindowAct->setStatusTip(tr("New Window"));
   connect(newWindowAct, SIGNAL(triggered()), this, SLOT(newWindow()));
   this->addAction(newWindowAct);
 
   cloneWindowAct = new QAction(tr("Clone Window"), this);
-  cloneWindowAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Modifier::SHIFT + Qt::Key_C));
+  cloneWindowAct->setShortcut(QKeySequence(Qt::Modifier::CTRL | Qt::Modifier::SHIFT | Qt::Key_C));
   cloneWindowAct->setStatusTip(tr("Clone Window"));
   connect(cloneWindowAct, SIGNAL(triggered()), this, SLOT(cloneWindow()));
   this->addAction(cloneWindowAct);
@@ -182,7 +182,7 @@ void MainWindow::createActions()
   this->addAction(saveFileAsAct);
 
   exportPDFAct = new QAction(QIcon(":/images/savePDFIcon.png"), tr("Export PDF"), this);
-  exportPDFAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_E));
+  exportPDFAct->setShortcut(QKeySequence(Qt::Modifier::CTRL | Qt::Key_E));
   exportPDFAct->setStatusTip(tr("Export PDF"));
   connect(exportPDFAct, SIGNAL(triggered()), this, SLOT(exportPDF()));
 
@@ -219,7 +219,7 @@ void MainWindow::createActions()
   this->addAction(redoAct); // add to make shortcut work if menubar is hidden
 
   selectAllAct = new QAction(tr("Select &All"), this);
-  selectAllAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_A));
+  selectAllAct->setShortcut(QKeySequence(Qt::Modifier::CTRL | Qt::Key_A));
   selectAllAct->setToolTip(tr("Select All"));
   connect(selectAllAct, SIGNAL(triggered()), mainWidget, SLOT(selectAll()));
   this->addAction(selectAllAct);
@@ -393,7 +393,7 @@ void MainWindow::createActions()
 
   strokeEraserAct = new QAction(QIcon(":/images/strokeEraserIcon.png"), tr("Stroke Eraser"), this);
   strokeEraserAct->setStatusTip(tr("Stroke Eraser Tool"));
-  strokeEraserAct->setShortcut(QKeySequence(Qt::Modifier::SHIFT + Qt::Key_5));
+  strokeEraserAct->setShortcut(QKeySequence(Qt::Modifier::SHIFT | Qt::Key_5));
   strokeEraserAct->setCheckable(true);
   connect(strokeEraserAct, SIGNAL(triggered()), this, SLOT(strokeEraser()));
 
@@ -406,7 +406,7 @@ void MainWindow::createActions()
 
   rectSelectAct = new QAction(QIcon(":/images/rectSelectIcon_48.png"), tr("Rectangular Select"), this);
   rectSelectAct->setStatusTip(tr("Rectangular Select Tool"));
-  rectSelectAct->setShortcut(QKeySequence(Qt::Modifier::SHIFT + Qt::Key_6));
+  rectSelectAct->setShortcut(QKeySequence(Qt::Modifier::SHIFT | Qt::Key_6));
   rectSelectAct->setCheckable(true);
   connect(rectSelectAct, SIGNAL(triggered()), this, SLOT(rectSelect()));
   this->addAction(rectSelectAct); // add to make shortcut work if menubar is hidden
@@ -440,35 +440,35 @@ void MainWindow::createActions()
 
   veryFinePenWidthAct = new QAction(QIcon(":/images/veryFinePenWidthIcon.png"), tr("Very Fine"), this);
   veryFinePenWidthAct->setStatusTip(tr("Very Fine Pen Width"));
-  veryFinePenWidthAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_1));
+  veryFinePenWidthAct->setShortcut(QKeySequence(Qt::Modifier::CTRL | Qt::Key_1));
   veryFinePenWidthAct->setCheckable(true);
   veryFinePenWidthAct->setChecked(false);
   connect(veryFinePenWidthAct, SIGNAL(triggered()), mainWidget, SLOT(veryFine()));
 
   finePenWidthAct = new QAction(QIcon(":/images/finePenWidthIcon.png"), tr("Fine"), this);
   finePenWidthAct->setStatusTip(tr("Fine Pen Width"));
-  finePenWidthAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_2));
+  finePenWidthAct->setShortcut(QKeySequence(Qt::Modifier::CTRL | Qt::Key_2));
   finePenWidthAct->setCheckable(true);
   finePenWidthAct->setChecked(false);
   connect(finePenWidthAct, SIGNAL(triggered()), mainWidget, SLOT(fine()));
 
   mediumPenWidthAct = new QAction(QIcon(":/images/mediumPenWidthIcon.png"), tr("Medium"), this);
   mediumPenWidthAct->setStatusTip(tr("Medium Pen Width"));
-  mediumPenWidthAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_3));
+  mediumPenWidthAct->setShortcut(QKeySequence(Qt::Modifier::CTRL | Qt::Key_3));
   mediumPenWidthAct->setCheckable(true);
   mediumPenWidthAct->setChecked(false);
   connect(mediumPenWidthAct, SIGNAL(triggered()), mainWidget, SLOT(medium()));
 
   thickPenWidthAct = new QAction(QIcon(":/images/thickPenWidthIcon.png"), tr("Thick"), this);
   thickPenWidthAct->setStatusTip(tr("Thick Pen Width"));
-  thickPenWidthAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_4));
+  thickPenWidthAct->setShortcut(QKeySequence(Qt::Modifier::CTRL | Qt::Key_4));
   thickPenWidthAct->setCheckable(true);
   thickPenWidthAct->setChecked(false);
   connect(thickPenWidthAct, SIGNAL(triggered()), mainWidget, SLOT(thick()));
 
   veryThickPenWidthAct = new QAction(QIcon(":/images/veryThickPenWidthIcon.png"), tr("Very Thick"), this);
   veryThickPenWidthAct->setStatusTip(tr("Very Thick Pen Width"));
-  veryThickPenWidthAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_5));
+  veryThickPenWidthAct->setShortcut(QKeySequence(Qt::Modifier::CTRL | Qt::Key_5));
   veryThickPenWidthAct->setCheckable(true);
   veryThickPenWidthAct->setChecked(false);
   connect(veryThickPenWidthAct, SIGNAL(triggered()), mainWidget, SLOT(veryThick()));
@@ -520,7 +520,7 @@ void MainWindow::createActions()
   this->addAction(showGridAct); // add to make shortcut work if menubar is hidden
 
   snapToGridAct = new QAction(QIcon(":/images/snapToGridIcon_48.png"), tr("snap to grid"), this);
-  snapToGridAct->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_G));
+  snapToGridAct->setShortcut(QKeySequence(Qt::SHIFT | Qt::Key_G));
   snapToGridAct->setCheckable(true);
   snapToGridAct->setChecked(false);
   connect(snapToGridAct, SIGNAL(triggered()), this, SLOT(snapToGrid()));
@@ -593,7 +593,7 @@ void MainWindow::createActions()
 
   rotateAct = new QAction(tr("Rotate"), this);
   rotateAct->setStatusTip("Rotate Selection");
-  rotateAct->setShortcut(QKeySequence(Qt::Modifier::CTRL + Qt::Key_R));
+  rotateAct->setShortcut(QKeySequence(Qt::Modifier::CTRL | Qt::Key_R));
   connect(rotateAct, SIGNAL(triggered()), this, SLOT(rotate()));
   this->addAction(rotateAct); // add to make shortcut work if menubar is hidden
 

@@ -5,7 +5,6 @@
 #define MAX_ZOOM 10.0
 
 #include <QMutex>
-#include <QOpenGLWidget>
 #include <QPainter>
 #include <QPlainTextEdit>
 #include <QScrollArea>
@@ -97,7 +96,7 @@ public:
   }
 
   void mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::MouseButtons buttons, Qt::KeyboardModifiers keyboardModifiers,
-                           QTabletEvent::PointerType pointerType, QEvent::Type eventType, qreal pressure, bool tabletEvent);
+                           QPointingDevice::PointerType pointerType, QEvent::Type eventType, qreal pressure, bool tabletEvent);
 
   bool pageVisible(size_t buffNum) const;
   size_t firstVisiblePage() const;

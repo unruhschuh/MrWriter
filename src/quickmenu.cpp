@@ -139,7 +139,7 @@ void QuickMenu::setupSignalsAndSlots(MainWindow* mainWindow)
 }
 
 
-void QuickMenu::enterEvent(QEvent* event)
+void QuickMenu::enterEvent(QEnterEvent* event)
 {
   (void)event;
 }

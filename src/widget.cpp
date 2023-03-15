@@ -87,7 +87,7 @@ Widget::Widget(QWidget *parent) : QWidget(parent)
 
   m_currentTool = Tool::PEN;
   m_previousTool = Tool::NONE;
-  setCursor(penCursorBitmap);
+  setCursor(QCursor(penCursorBitmap));
 
   m_currentDocument = MrDoc::Document();
 
@@ -399,7 +399,7 @@ void Widget::updateWhileDrawing()
 }
 
 void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::MouseButtons buttons, Qt::KeyboardModifiers keyboardModifiers,
-                                 QTabletEvent::PointerType pointerType, QEvent::Type eventType, qreal pressure, bool tabletEvent)
+                                 QPointingDevice::PointerType pointerType, QEvent::Type eventType, qreal pressure, bool tabletEvent)
 {
   // Under Linux the keyboard modifiers are not reported to tabletevent. this should work
   // everywhere.
@@ -420,7 +420,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
   size_t pageNum = getPageFromMousePos(mousePos);
   QPointF pagePos = getPagePosFromMousePos(mousePos, pageNum);
 
-  if ((m_currentState == State::IDLE || m_currentState == State::SELECTED) && button & Qt::LeftButton && eventType == QEvent::MouseButtonRelease && pointerType == QTabletEvent::Pen && m_currentTool == Tool::TEXT)
+  if ((m_currentState == State::IDLE || m_currentState == State::SELECTED) && button & Qt::LeftButton && eventType == QEvent::MouseButtonRelease && pointerType == QPointingDevice::PointerType::Pen && m_currentTool == Tool::TEXT)
   {
     size_t index = 0;
     for (auto & element : m_currentDocument.pages.at(pageNum).elements())
@@ -463,7 +463,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
     emit quickmenu();
     return;
   }
-  if ((m_currentState == State::IDLE || m_currentState == State::SELECTED) && buttons & Qt::MiddleButton && pointerType == QTabletEvent::Pen)
+  if ((m_currentState == State::IDLE || m_currentState == State::SELECTED) && buttons & Qt::MiddleButton && pointerType == QPointingDevice::PointerType::Pen)
   {
     if (eventType == QEvent::MouseButtonPress && button == Qt::MiddleButton)
     {
@@ -677,7 +677,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
   {
     if (eventType == QEvent::MouseButtonPress)
     {
-      if (pointerType == QTabletEvent::Pen)
+      if (pointerType == QPointingDevice::PointerType::Pen)
       {
         if (m_currentTool == Tool::PEN)
         {
@@ -721,7 +721,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
           m_previousMousePos = mousePos;
         }
       }
-      if (pointerType == QTabletEvent::Eraser)
+      if (pointerType == QPointingDevice::PointerType::Eraser)
       {
         m_previousTool = m_currentTool;
         emit eraser();
@@ -731,7 +731,7 @@ void Widget::mouseAndTabletEvent(QPointF mousePos, Qt::MouseButton button, Qt::M
     }
     if (eventType == QEvent::MouseMove)
     {
-      if (pointerType == QTabletEvent::Eraser || m_currentTool == Tool::ERASER)
+      if (pointerType == QPointingDevice::PointerType::Eraser || m_currentTool == Tool::ERASER)
       {
         erase(mousePos, invertEraser);
       }
@@ -809,7 +809,7 @@ void Widget::mousePressEvent(QMouseEvent *event)
         qreal pressure = 1;
 
         Qt::KeyboardModifiers keyboardModifiers = event->modifiers();
-        mouseAndTabletEvent(mousePos, event->button(), event->buttons(), keyboardModifiers, QTabletEvent::Pen, event->type(), pressure, false);
+        mouseAndTabletEvent(mousePos, event->button(), event->buttons(), keyboardModifiers, QPointingDevice::PointerType::Pen, event->type(), pressure, false);
       }
     }
   }
@@ -829,7 +829,7 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
         qreal pressure = 1;
 
         Qt::KeyboardModifiers keyboardModifiers = event->modifiers();
-        mouseAndTabletEvent(mousePos, event->button(), event->buttons(), keyboardModifiers, QTabletEvent::Pen, event->type(), pressure, false);
+        mouseAndTabletEvent(mousePos, event->button(), event->buttons(), keyboardModifiers, QPointingDevice::PointerType::Pen, event->type(), pressure, false);
       }
     }
   }
@@ -849,7 +849,7 @@ void Widget::mouseReleaseEvent(QMouseEvent *event)
         qreal pressure = 1;
 
         Qt::KeyboardModifiers keyboardModifiers = event->modifiers();
-        mouseAndTabletEvent(mousePos, event->button(), event->buttons(), keyboardModifiers, QTabletEvent::Pen, event->type(), pressure, false);
+        mouseAndTabletEvent(mousePos, event->button(), event->buttons(), keyboardModifiers, QPointingDevice::PointerType::Pen, event->type(), pressure, false);
       }
     }
     m_penDown = false;
@@ -997,7 +997,7 @@ void Widget::continueSelecting(QPointF mousePos)
 
   if (MrWriter::polygonIsClockwise(m_currentSelection.selectionPolygon()))
   {
-    m_statusText = "selecting all intersecting strokes";
+    m_statusText = "selecting all intersectsing strokes";
   }
   else
   {
@@ -1507,7 +1507,7 @@ void Widget::erase(QPointF mousePos, bool lineEraser)
 
   if (!lineEraser)
   {
-  bool intersected;
+  bool intersectsed;
     for (size_t i = elements.size(); i--> 0; ) // reverse loop for size_t
     {
       auto stroke = dynamic_cast<MrDoc::Stroke*>(elements.at(i).get());
@@ -1519,32 +1519,32 @@ void Widget::erase(QPointF mousePos, bool lineEraser)
           for (int j = 0; j < stroke->points.length() - 1; ++j)
           {
             QLineF line = QLineF(stroke->points.at(j), stroke->points.at(j + 1));
-            if (line.intersect(lineA, &iPointA) == QLineF::BoundedIntersection && iPointA != stroke->points.first() && iPointA != stroke->points.last())
+            if (line.intersects(lineA, &iPointA) == QLineF::BoundedIntersection && iPointA != stroke->points.first() && iPointA != stroke->points.last())
             {
               iPoint = iPointA;
-              intersected = true;
+              intersectsed = true;
             }
-            else if (line.intersect(lineB, &iPointB) == QLineF::BoundedIntersection && iPointB != stroke->points.first() && iPointB != stroke->points.last())
+            else if (line.intersects(lineB, &iPointB) == QLineF::BoundedIntersection && iPointB != stroke->points.first() && iPointB != stroke->points.last())
             {
               iPoint = iPointB;
-              intersected = true;
+              intersectsed = true;
             }
-            else if (line.intersect(lineC, &iPointC) == QLineF::BoundedIntersection && iPointC != stroke->points.first() && iPointC != stroke->points.last())
+            else if (line.intersects(lineC, &iPointC) == QLineF::BoundedIntersection && iPointC != stroke->points.first() && iPointC != stroke->points.last())
             {
               iPoint = iPointC;
-              intersected = true;
+              intersectsed = true;
             }
-            else if (line.intersect(lineD, &iPointD) == QLineF::BoundedIntersection && iPointD != stroke->points.first() && iPointD != stroke->points.last())
+            else if (line.intersects(lineD, &iPointD) == QLineF::BoundedIntersection && iPointD != stroke->points.first() && iPointD != stroke->points.last())
             {
               iPoint = iPointD;
-              intersected = true;
+              intersectsed = true;
             }
             else
             {
-              intersected = false;
+              intersectsed = false;
             }
 
-            if (intersected)
+            if (intersectsed)
             {
               //                        if (iPoint != stroke.points.first() && iPoint != stroke.points.last())
               {
@@ -1609,8 +1609,8 @@ void Widget::erase(QPointF mousePos, bool lineEraser)
           for (int j = 0; j < stroke->points.length() - 1; ++j)
           {
             QLineF line = QLineF(stroke->points.at(j), stroke->points.at(j + 1));
-            if (line.intersect(lineA, &iPoint) == QLineF::BoundedIntersection || line.intersect(lineB, &iPoint) == QLineF::BoundedIntersection ||
-                line.intersect(lineC, &iPoint) == QLineF::BoundedIntersection || line.intersect(lineD, &iPoint) == QLineF::BoundedIntersection)
+            if (line.intersects(lineA, &iPoint) == QLineF::BoundedIntersection || line.intersects(lineB, &iPoint) == QLineF::BoundedIntersection ||
+                line.intersects(lineC, &iPoint) == QLineF::BoundedIntersection || line.intersects(lineD, &iPoint) == QLineF::BoundedIntersection)
             {
               strokesToDelete.push_back(i);
               break;

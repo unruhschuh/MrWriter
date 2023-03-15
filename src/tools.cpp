@@ -74,7 +74,7 @@ bool MrWriter::polygonLinesIntersect(const QPolygonF &polygonA, const QPolygonF 
     {
       lineB.setP1(polygonB.at(j));
       lineB.setP2(polygonB.at(j+1));
-      if (lineA.intersect(lineB, nullptr) == QLineF::BoundedIntersection)
+      if (lineA.intersects(lineB, nullptr) == QLineF::BoundedIntersection)
       {
         return true;
       }
@@ -121,7 +121,7 @@ QString MrWriter::transformToString(const QTransform & transform)
 QTransform MrWriter::stringToTransform(const QString & string)
 {
   QTransform transform;
-  QStringList list = string.split(" ", QString::SkipEmptyParts);
+  QStringList list = string.split(" ", Qt::SkipEmptyParts);
   if (list.size() < 9)
   {
     return transform;
@@ -144,7 +144,7 @@ bool MrWriter::hasTransparancy(const QImage& image)
 {
   bool useAlpha = false;
   const uchar* pixelData = image.bits();
-  int bytes = image.byteCount();
+  int bytes = image.sizeInBytes();
 
   for (const QRgb* pixel = reinterpret_cast<const QRgb*>(pixelData); bytes > 0; pixel++, bytes -= sizeof(QRgb)) {
     if (qAlpha(*pixel) != UCHAR_MAX) {

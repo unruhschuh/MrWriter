@@ -47,10 +47,10 @@ void Text::fromXml(QXmlStreamReader& reader)
   QString matrixString = attributes.value("", "matrix").toString();
   m_transform = MrWriter::stringToTransform(matrixString);
 
-  QStringRef color = attributes.value("", "color");
+  QStringView color = attributes.value("", "color");
   m_color = stringToColor(color.toString());
 
-  QStringRef font = attributes.value("", "font");
+  QStringView font = attributes.value("", "font");
   m_font.fromString(font.toString());
 }
 
